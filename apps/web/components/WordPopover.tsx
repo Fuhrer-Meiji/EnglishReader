@@ -7,7 +7,7 @@ import { DictEntry } from '../lib/mockData';
 interface WordPopoverProps {
   wordEntry: DictEntry;
   rawWord: string;
-  position: { x: number; y: number };
+  position: { x: number; y: number; placeAbove?: boolean };
   isSaved: boolean;
   onSave: () => void;
   onClose: () => void;
@@ -51,9 +51,11 @@ export const WordPopover: React.FC<WordPopoverProps> = ({
 
   return (
     <div
-      className="fixed z-50 transform -translate-x-1/2 mt-2 w-76 sm:w-84 bg-white dark:bg-stone-900 rounded-xl shadow-2xl border border-stone-200 dark:border-stone-800 p-4 animate-in fade-in zoom-in-95 duration-150"
+      className={`fixed z-50 transform -translate-x-1/2 w-76 sm:w-84 bg-white dark:bg-stone-900 rounded-xl shadow-2xl border border-stone-200 dark:border-stone-800 p-4 animate-in fade-in zoom-in-95 duration-150 ${
+        position.placeAbove ? '-translate-y-full' : ''
+      }`}
       style={{
-        left: `${Math.min(Math.max(position.x, 160), typeof window !== 'undefined' ? window.innerWidth - 160 : 300)}px`,
+        left: `${Math.min(Math.max(position.x, 170), typeof window !== 'undefined' ? window.innerWidth - 170 : 300)}px`,
         top: `${position.y}px`,
       }}
       onClick={(e) => e.stopPropagation()}

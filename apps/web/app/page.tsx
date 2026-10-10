@@ -21,7 +21,7 @@ export default function Home() {
   const [popoverState, setPopoverState] = useState<{
     wordEntry: DictEntry;
     rawWord: string;
-    position: { x: number; y: number };
+    position: { x: number; y: number; placeAbove?: boolean };
   } | null>(null);
 
   const [activeSentence, setActiveSentence] = useState<SentenceAnalysis | null>(null);
@@ -59,12 +59,14 @@ export default function Home() {
       };
     }
 
+    const placeAbove = typeof window !== 'undefined' && rect.bottom + 260 > window.innerHeight;
     setPopoverState({
       wordEntry: entry,
       rawWord: word,
       position: {
         x: rect.left + rect.width / 2,
-        y: rect.bottom + window.scrollY,
+        y: placeAbove ? rect.top - 8 : rect.bottom + 8,
+        placeAbove,
       },
     });
   };
@@ -79,6 +81,7 @@ export default function Home() {
         position: {
           x: typeof window !== 'undefined' ? window.innerWidth / 2 : 400,
           y: 200,
+          placeAbove: false,
         },
       });
     }

@@ -176,6 +176,94 @@ export const DICTIONARY_DATABASE: Record<string, DictEntry> = {
     englishDef: 'Deep sorrow, especially that caused by someone\'s death or a major loss.',
     level: 'CET6',
     collocations: ['secret griefs', 'overcome with grief']
+  },
+  confidences: {
+    word: 'confidence',
+    phonetic: '/ˈkɒnfɪdəns/',
+    pos: 'n.',
+    translation: '知心话；私密倾诉；信任',
+    englishDef: 'A secret or private matter told to someone under a condition of trust.',
+    level: 'CET4'
+  },
+  unsought: {
+    word: 'unsought',
+    phonetic: '/ʌnˈsɔːt/',
+    pos: 'adj.',
+    translation: '未被主动探求的；不请自来的',
+    englishDef: 'Not searched for or asked for.',
+    level: 'GRE'
+  },
+  feigned: {
+    word: 'feign',
+    phonetic: '/feɪnd/',
+    pos: 'v.',
+    translation: '假装；装作；捏造',
+    englishDef: 'Pretend to be affected by (a feeling, state, or injury).',
+    level: 'GRE'
+  },
+  preoccupation: {
+    word: 'preoccupation',
+    phonetic: '/priːˌɒkjuˈpeɪʃn/',
+    pos: 'n.',
+    translation: '全神贯注；出神；心事重重',
+    englishDef: 'The state or condition of being preoccupied or engrossed.',
+    level: 'CET6'
+  },
+  hostile: {
+    word: 'hostile',
+    phonetic: '/ˈhɒstaɪl/',
+    pos: 'adj.',
+    translation: '敌对的；不友善的；抵触的',
+    englishDef: 'Unfriendly; antagonistic.',
+    level: 'CET4'
+  },
+  levity: {
+    word: 'levity',
+    phonetic: '/ˈlevəti/',
+    pos: 'n.',
+    translation: '轻率；轻浮；不严肃',
+    englishDef: 'Humor or frivolity, especially the treatment of a serious matter with lack of respect.',
+    level: 'GRE'
+  },
+  unmistakable: {
+    word: 'unmistakable',
+    phonetic: '/ˌʌnmɪˈsteɪkəbl/',
+    pos: 'adj.',
+    translation: '显而易见的；不会弄错的',
+    englishDef: 'Not able to be mistaken for anything else; very distinctive.',
+    level: 'CET6'
+  },
+  intimate: {
+    word: 'intimate',
+    phonetic: '/ˈɪntɪmət/',
+    pos: 'adj.',
+    translation: '私密的；亲密的；深层的',
+    englishDef: 'Closely acquainted; familiar, close.',
+    level: 'CET4'
+  },
+  revelation: {
+    word: 'revelation',
+    phonetic: '/ˌrevəˈleɪʃn/',
+    pos: 'n.',
+    translation: '袒露；披露；真情吐露',
+    englishDef: 'A surprising and previously unknown fact, especially one that is made known in a dramatic way.',
+    level: 'CET6'
+  },
+  quivering: {
+    word: 'quiver',
+    phonetic: '/ˈkwɪvərɪŋ/',
+    pos: 'adj.',
+    translation: '颤抖的；若隐若现的',
+    englishDef: 'Trembling or shaking with a slight rapid motion.',
+    level: 'GRE'
+  },
+  infinite: {
+    word: 'infinite',
+    phonetic: '/ˈɪnfɪnət/',
+    pos: 'adj.',
+    translation: '无限的；无穷无尽的',
+    englishDef: 'Limitless or endless in space, extent, or size.',
+    level: 'CET4'
   }
 };
 
@@ -206,6 +294,7 @@ export const SAMPLE_BOOK: Book = {
       sentences: [
         {
           id: 'sent-1',
+          paragraphIndex: 0,
           rawText: 'In my younger and more vulnerable years my father gave me some advice that I’ve been turning over in my mind ever since.',
           chineseTranslation: '在我年纪还轻、阅历尚浅的那些年岁里，父亲曾给过我一句忠告，至今仍常在我心头萦绕回响。',
           difficultyTag: '长难句',
@@ -231,6 +320,7 @@ export const SAMPLE_BOOK: Book = {
         },
         {
           id: 'sent-2',
+          paragraphIndex: 1,
           rawText: '“Whenever you feel like criticizing any one,” he told me, “just remember that all the people in this world haven’t had the advantages that you’ve had.”',
           chineseTranslation: '“每当你想要批评任何人的时候，”他叮嘱我，“只要记住，这世上并不是所有人都拥有你所享有的优越条件。”',
           difficultyTag: '长难句',
@@ -261,6 +351,7 @@ export const SAMPLE_BOOK: Book = {
         },
         {
           id: 'sent-3',
+          paragraphIndex: 2,
           rawText: 'He didn’t say any more, but we’ve always been unusually communicative in a reserved way, and I understood that he meant a great deal more than that.',
           chineseTranslation: '他没有再多说什么，但我俩之间一贯很有默契，即便克制含蓄也能深谙彼此心意，我明白他的言下之意远不仅如此。',
           difficultyTag: '中等',
@@ -285,6 +376,7 @@ export const SAMPLE_BOOK: Book = {
         },
         {
           id: 'sent-4',
+          paragraphIndex: 2,
           rawText: 'In consequence, I’m inclined to reserve all judgements, a habit that has opened up many curious natures to me and also made me the victim of not a few veteran bores.',
           chineseTranslation: '因此，我倾向于不对任何人妄下判断，这种习惯让我接触到了许多性格古怪奇特的人，却也使我成了不少惯常招人厌烦之辈倾倒苦水的受害者。',
           difficultyTag: '长难句',
@@ -315,6 +407,7 @@ export const SAMPLE_BOOK: Book = {
         },
         {
           id: 'sent-5',
+          paragraphIndex: 2,
           rawText: 'The abnormal mind is quick to detect and attach itself to this quality when it appears in a normal person, and so it came about that in college I was unjustly accused of being a politician, because I was privy to the secret griefs of wild, unknown men.',
           chineseTranslation: '畸形怪诞的心智一旦在正常人身上察觉到这种品质，便会迫不及待地依附过来；也正因如此，大学时我曾被无端指责为圆滑世故的政客，仅仅因为那些狂放不羁、深藏不露的人总爱对我倾诉他们隐秘的悲伤。',
           difficultyTag: '长难句',
@@ -341,6 +434,53 @@ export const SAMPLE_BOOK: Book = {
               explanation: '“be privy to” 是文学高级短语，指知悉私密隐情。'
             }
           ]
+        },
+        {
+          id: 'sent-6',
+          paragraphIndex: 3,
+          rawText: 'Most of the confidences were unsought—frequently I have feigned sleep, preoccupation, or a hostile levity when I realized by some unmistakable sign that an intimate revelation was quivering on the horizon.',
+          chineseTranslation: '绝大多数的私密倾诉都是我不曾主动求取的——每当我凭借某些确凿无误的迹象，察觉到某种内心的袒露正在地平线上隐隐颤动时，我常常假装睡着、装作心不在焉，或是流露出带有排斥感的轻佻冷淡。',
+          difficultyTag: '长难句',
+          coreKeywords: ['confidences', 'unsought', 'feigned', 'preoccupation', 'hostile', 'levity', 'unmistakable', 'intimate', 'revelation', 'quivering'],
+          grammarComponents: [
+            {
+              role: '破折号前主句',
+              content: 'Most of the confidences were unsought',
+              explanation: '“unsought” 是 seek 的过去分词构成形容词，意为未经探求的、不期而遇的。'
+            },
+            {
+              role: '并列宾语成分',
+              content: 'feigned sleep, preoccupation, or a hostile levity',
+              explanation: 'feign 后接三个平行并列的名词短语，刻画叙述者在面对他人倾诉时的防御姿态。'
+            },
+            {
+              role: '多层状语与同位从句',
+              content: 'when I realized by some unmistakable sign that an intimate revelation was quivering on the horizon',
+              explanation: 'when 引导时间状语；by 引导介词方式状语；that 引导 realized 的宾语从句；“quivering on the horizon” 隐喻情感如曙光初现般呼之欲出。'
+            }
+          ],
+          culturalNote: '【叙述者心理防御】菲茨杰拉德运用富有诗意的隐喻，揭示尼克面对他人情绪倾倒时的疲惫与疏离感。'
+        },
+        {
+          id: 'sent-7',
+          paragraphIndex: 4,
+          rawText: 'Reserving judgements is a matter of infinite hope.',
+          chineseTranslation: '保留一切评判，是对人性抱有无限希望的体现。',
+          difficultyTag: '基础',
+          coreKeywords: ['infinite', 'judgements'],
+          grammarComponents: [
+            {
+              role: '动名词作主语',
+              content: 'Reserving judgements',
+              explanation: '动名词短语在句首担任全句主语。'
+            },
+            {
+              role: '系表主干',
+              content: 'is a matter of infinite hope',
+              explanation: '主干为 SVC 系表结构，简洁有力，成为文学史上的金句。'
+            }
+          ],
+          culturalNote: '【全书核心哲理】这一句被视作《了不起的盖茨比》最富深意的格言之一，既表达了对世人的宽容，也为盖茨比那种执着到近乎狂热的“了不起的希望”埋下了伏笔。'
         }
       ]
     }

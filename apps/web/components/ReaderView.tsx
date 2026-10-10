@@ -1,9 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Chapter, ReadingMode, ThemeMode, DifficultyLevel, SentenceAnalysis } from '../lib/types';
-import { DICTIONARY_DATABASE, DictEntry } from '../lib/mockData';
-import { Sparkles, HelpCircle } from 'lucide-react';
+import { DICTIONARY_DATABASE } from '../lib/mockData';
+import { Sparkles } from 'lucide-react';
 
 interface ReaderViewProps {
   chapter: Chapter;
@@ -28,7 +28,20 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   onSentenceAnalyze,
   activeSentenceId,
 }) => {
-  // Helper to test if a word qualifies for highlighting under current filter
+  // Group sentences into actual book paragraphs
+  const paragraphGroups = useMemo(() => {
+    const groups: SentenceAnalysis[][] = [];
+    chapter.sentences.forEach((sent) => {
+      const pIdx = sent.paragraphIndex ?? 0;
+      if (!groups[pIdx]) {
+        groups[pIdx] = [];
+      }
+      groups[pIdx].push(sent);
+    });
+    return groups.filter(Boolean);
+  }, [chapter.sentences]);
+
+  // Check if a word should have study highlights
   const shouldHighlightWord = (level?: DifficultyLevel) => {
     if (readingMode === 'zen' || selectedLevelFilter === 'OFF' || !level) return false;
     if (selectedLevelFilter === 'ALL') return true;
@@ -43,41 +56,45 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
     if (!level) return '';
     switch (level) {
       case 'GRE':
-        return 'text-purple-700 dark:text-purple-400 underline decoration-purple-400 decoration-wavy underline-offset-4 font-medium hover:bg-purple-100/50 dark:hover:bg-purple-950/40 rounded-xs px-0.5';
+        return 'text-purple-800 dark:text-purple-300 border-b border-purple-500/80 dark:border-purple-400 font-medium';
       case 'KY':
-        return 'text-rose-700 dark:text-rose-400 underline decoration-rose-400 decoration-dotted underline-offset-4 font-medium hover:bg-rose-100/50 dark:hover:bg-rose-950/40 rounded-xs px-0.5';
+        return 'text-rose-800 dark:text-rose-300 border-b border-rose-500/80 dark:border-rose-400 font-medium';
       case 'CET6':
-        return 'text-amber-700 dark:text-amber-400 underline decoration-amber-400 decoration-dotted underline-offset-4 font-medium hover:bg-amber-100/50 dark:hover:bg-amber-950/40 rounded-xs px-0.5';
+        return 'text-amber-800 dark:text-amber-300 border-b border-amber-600/80 dark:border-amber-400 font-medium';
       case 'CET4':
-        return 'text-blue-700 dark:text-blue-400 underline decoration-blue-300 decoration-dotted underline-offset-4 font-medium hover:bg-blue-100/50 dark:hover:bg-blue-950/40 rounded-xs px-0.5';
+        return 'text-blue-800 dark:text-blue-300 border-b border-blue-500/80 dark:border-blue-400 font-medium';
       default:
         return '';
     }
   };
 
-  // Split sentence rawText into tokens of words and punctuations
+  // Render sentence tokens naturally without artificial block spacing
   const renderInteractiveSentence = (sent: SentenceAnalysis) => {
-    // Regex splits by word characters keeping punctuation
+    // Regex splits by words, keeping punctuation and spaces exactly as they are in prose
     const tokens = sent.rawText.split(/([a-zA-Z’']+)/g);
+
+    const isCurrentActive = activeSentenceId === sent.id;
 
     return (
       <span
         key={sent.id}
-        className={`relative inline transition-colors rounded-lg ${
-          activeSentenceId === sent.id
-            ? 'bg-amber-100/60 dark:bg-amber-950/40 ring-2 ring-amber-300 dark:ring-amber-700'
+        className={`transition-colors rounded-sm ${
+          isCurrentActive
+            ? 'bg-amber-200/40 dark:bg-amber-900/40 px-0.5 ring-1 ring-amber-400/50'
             : ''
         }`}
       >
         {tokens.map((token, idx) => {
           const clean = token.toLowerCase().replace(/[’']/g, '');
           const isWord = /^[a-zA-Z’']+$/.test(token);
-          const dictEntry = isWord ? DICTIONARY_DATABASE[clean] : undefined;
-          const isHighlighted = dictEntry && shouldHighlightWord(dictEntry.level);
 
+          // Non-word punctuation or whitespace: render as pure plain text node (no span wrapper, no artificial gaps!)
           if (!isWord) {
-            return <span key={idx}>{token}</span>;
+            return token;
           }
+
+          const dictEntry = DICTIONARY_DATABASE[clean];
+          const isHighlighted = dictEntry && shouldHighlightWord(dictEntry.level);
 
           return (
             <span
@@ -87,10 +104,10 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                 const rect = e.currentTarget.getBoundingClientRect();
                 onWordClick(token, rect);
               }}
-              className={`cursor-pointer transition-colors duration-150 inline-block ${
+              className={`cursor-pointer transition-colors duration-100 ${
                 isHighlighted
                   ? getWordHighlightClass(dictEntry?.level)
-                  : 'hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-stone-800 rounded-xs'
+                  : 'hover:text-amber-700 dark:hover:text-amber-300'
               }`}
             >
               {token}
@@ -98,17 +115,17 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
           );
         })}
 
-        {/* Study Mode: Sentence Analysis Trigger Icon */}
+        {/* Study Mode only: subtle syntax inspection icon at sentence end */}
         {readingMode === 'study' && (
           <button
             onClick={(e) => {
               e.stopPropagation();
               onSentenceAnalyze(sent);
             }}
-            className="inline-flex items-center align-middle mx-1.5 p-1 rounded-md text-amber-500 hover:text-amber-700 hover:bg-amber-100/80 dark:hover:bg-amber-950/50 transition-all opacity-80 hover:opacity-100"
-            title="拆解长难句语法树与意译"
+            className="inline-flex items-center align-middle ml-1.5 p-0.5 rounded-sm text-amber-600/70 hover:text-amber-700 hover:bg-amber-100 dark:text-amber-400/70 dark:hover:text-amber-300 dark:hover:bg-amber-950/60 transition-all"
+            title="拆解长难句语法树与译文"
           >
-            <Sparkles className="w-3.5 h-3.5" />
+            <Sparkles className="w-3.5 h-3.5 inline" />
           </button>
         )}
       </span>
@@ -118,46 +135,56 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   return (
     <article
       className={`mx-auto transition-all ${
-        readingMode === 'zen' ? 'max-w-2xl py-12 px-6 sm:px-8' : 'max-w-3xl py-8 px-6'
+        readingMode === 'zen'
+          ? 'max-w-[700px] py-14 px-6 sm:px-10'
+          : 'max-w-[760px] py-10 px-6 sm:px-8'
       }`}
     >
-      {/* Chapter Title & Subtitle */}
-      <div className="mb-10 text-center space-y-2">
-        <h2 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight opacity-90">
+      {/* Chapter Title in authentic book style */}
+      <header className="mb-14 text-center space-y-3">
+        <span className="text-[11px] font-sans font-bold tracking-[0.25em] uppercase text-stone-400 dark:text-stone-500 block">
+          F. Scott Fitzgerald
+        </span>
+        <h2 className="text-3xl sm:text-4xl font-normal tracking-wide font-book-serif text-stone-900 dark:text-stone-100">
           {chapter.title}
         </h2>
         {chapter.subtitle && (
-          <p className="text-xs sm:text-sm italic opacity-60 font-serif">
+          <p className="text-xs sm:text-sm italic text-stone-500 dark:text-stone-400 font-book-serif">
             {chapter.subtitle}
           </p>
         )}
-        <div className="w-12 h-0.5 bg-amber-500/40 mx-auto mt-4 rounded-full" />
-      </div>
+        <div className="w-10 h-px bg-stone-300 dark:bg-stone-700 mx-auto mt-6" />
+      </header>
 
-      {/* Main Prose Text */}
+      {/* Main Prose Text: Real Book Paragraphs, natural left alignment, elegant indent */}
       <div
-        className={`space-y-6 leading-relaxed select-text ${
-          isSerif ? 'font-serif' : 'font-sans'
-        }`}
-        style={{ fontSize: `${fontSize}px`, lineHeight: 1.85 }}
+        className={`select-text ${isSerif ? 'font-book-serif' : 'font-book-sans'}`}
+        style={{
+          fontSize: `${fontSize}px`,
+          lineHeight: 1.85,
+          letterSpacing: '0.005em',
+        }}
       >
-        <p className="indent-8 text-justify">
-          {chapter.sentences.slice(0, 2).map((sent) => renderInteractiveSentence(sent))}
-        </p>
-        <p className="indent-8 text-justify">
-          {chapter.sentences.slice(2, 4).map((sent) => renderInteractiveSentence(sent))}
-        </p>
-        <p className="indent-8 text-justify">
-          {chapter.sentences.slice(4).map((sent) => renderInteractiveSentence(sent))}
-        </p>
+        {paragraphGroups.map((sentencesInParagraph, pIdx) => (
+          <p
+            key={pIdx}
+            className="text-left indent-[2em] mb-7 leading-[1.85]"
+          >
+            {sentencesInParagraph.map((sent, sIdx) => (
+              <React.Fragment key={sent.id}>
+                {sIdx > 0 ? ' ' : ''}
+                {renderInteractiveSentence(sent)}
+              </React.Fragment>
+            ))}
+          </p>
+        ))}
       </div>
 
-      {/* Chapter Footer Pagination / Mode Hint */}
-      <div className="mt-16 pt-8 border-t border-stone-200/60 dark:border-stone-800/60 flex items-center justify-between text-xs opacity-60">
-        <span>The Great Gatsby · Chapter 1 of 9</span>
-        <div className="flex items-center gap-1.5">
-          <span>当前：{readingMode === 'zen' ? '🧘 Zen 心流模式' : '🎓 Study 精读模式'}</span>
-        </div>
+      {/* End of chapter ornament */}
+      <div className="mt-20 pt-10 border-t border-stone-200/50 dark:border-stone-800/50 text-center">
+        <span className="text-sm font-serif italic text-stone-400 dark:text-stone-500">
+          ❦ · The Great Gatsby · ❦
+        </span>
       </div>
     </article>
   );

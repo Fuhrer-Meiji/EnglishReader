@@ -21,6 +21,7 @@ export interface GrammarNode {
 
 export interface SentenceAnalysis {
   id: string;
+  paragraphIndex: number;
   rawText: string;
   chineseTranslation: string;
   difficultyTag: '基础' | '中等' | '长难句';

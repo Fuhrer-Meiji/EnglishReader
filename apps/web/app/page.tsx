@@ -11,12 +11,15 @@ import {
 } from '../lib/types';
 import {
   SAMPLE_BOOK,
+  BOOKS_DATABASE,
   DICTIONARY_DATABASE,
   INITIAL_VOCAB_ITEMS,
   DictEntry,
 } from '../lib/mockData';
+import { fetchWordDefinition } from '../lib/dictService';
 import { ReaderHeader } from '../components/ReaderHeader';
 import { ReaderView } from '../components/ReaderView';
+import { BookshelfView } from '../components/BookshelfView';
 import { WeChatDock } from '../components/WeChatDock';
 import { TableOfContentsModal } from '../components/TableOfContentsModal';
 import { WordPopover } from '../components/WordPopover';
@@ -25,9 +28,12 @@ import { StudySidebar } from '../components/StudySidebar';
 import { VocabDrawer } from '../components/VocabDrawer';
 
 export default function Home() {
+  const [activeView, setActiveView] = useState<'reader' | 'bookshelf'>('reader');
+  const [currentBookId, setCurrentBookId] = useState<string>('the-great-gatsby');
+
   const [readingMode, setReadingMode] = useState<ReadingMode>('zen');
-  const [layoutMode, setLayoutMode] = useState<LayoutMode>('double'); // 默认双栏模式，还原微信读书
-  const [theme, setTheme] = useState<ThemeMode>('dark'); // 默认深色，与截图一致
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>('double');
+  const [theme, setTheme] = useState<ThemeMode>('dark');
   const [fontSize, setFontSize] = useState<number>(18);
   const [isSerif, setIsSerif] = useState<boolean>(true);
   const [selectedLevelFilter, setSelectedLevelFilter] = useState<DifficultyLevel | 'ALL' | 'OFF'>('CET6');
@@ -47,13 +53,13 @@ export default function Home() {
   const [isVocabOpen, setIsVocabOpen] = useState<boolean>(false);
   const [vocabItems, setVocabItems] = useState<VocabularyItem[]>(INITIAL_VOCAB_ITEMS);
 
-  const book = SAMPLE_BOOK;
-  const currentChapter = book.chapters[0];
+  const currentBook = BOOKS_DATABASE[currentBookId] || SAMPLE_BOOK;
+  const currentChapter = currentBook.chapters[0];
 
   // Keyboard navigation for Two-Column spread reading
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (layoutMode !== 'double') return;
+      if (activeView !== 'reader' || layoutMode !== 'double') return;
       if (e.key === 'ArrowRight' || e.key === 'PageDown') {
         setCurrentPage((prev) => Math.min(prev + 1, 1));
       } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
@@ -62,7 +68,7 @@ export default function Home() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [layoutMode]);
+  }, [activeView, layoutMode]);
 
   // Theme styling background and text mappings
   const getThemeContainerClass = () => {
@@ -77,18 +83,13 @@ export default function Home() {
     }
   };
 
-  const handleWordClick = (word: string, rect: DOMRect) => {
+  // Instant 770,000-word ECDICT lookup
+  const handleWordClick = async (word: string, rect: DOMRect) => {
     const clean = word.toLowerCase().replace(/[’']/g, '');
     let entry = DICTIONARY_DATABASE[clean];
 
     if (!entry) {
-      entry = {
-        word: clean,
-        phonetic: `/${clean}/`,
-        pos: 'word',
-        translation: '即时本地离线解析词条',
-        englishDef: 'A recognized vocabulary token in the reader.',
-      };
+      entry = await fetchWordDefinition(word);
     }
 
     const placeAbove = typeof window !== 'undefined' && rect.bottom + 260 > window.innerHeight;
@@ -103,20 +104,22 @@ export default function Home() {
     });
   };
 
-  const handleSelectWordFromSidebar = (word: string) => {
+  const handleSelectWordFromSidebar = async (word: string) => {
     const clean = word.toLowerCase();
-    const entry = DICTIONARY_DATABASE[clean];
-    if (entry) {
-      setPopoverState({
-        wordEntry: entry,
-        rawWord: word,
-        position: {
-          x: typeof window !== 'undefined' ? window.innerWidth / 2 : 400,
-          y: 200,
-          placeAbove: false,
-        },
-      });
+    let entry = DICTIONARY_DATABASE[clean];
+    if (!entry) {
+      entry = await fetchWordDefinition(word);
     }
+
+    setPopoverState({
+      wordEntry: entry,
+      rawWord: word,
+      position: {
+        x: typeof window !== 'undefined' ? window.innerWidth / 2 : 400,
+        y: 200,
+        placeAbove: false,
+      },
+    });
   };
 
   const handleToggleSaveVocab = (entry: DictEntry) => {
@@ -133,7 +136,7 @@ export default function Home() {
         pos: entry.pos,
         translation: entry.translation,
         contextSentence: activeSentence?.rawText || 'In my younger and more vulnerable years...',
-        bookTitle: book.title,
+        bookTitle: currentBook.title,
         chapterTitle: currentChapter.title,
         addedAt: new Date().toISOString().split('T')[0],
         level: entry.level,
@@ -147,6 +150,20 @@ export default function Home() {
     ? vocabItems.some((v) => v.word.toLowerCase() === popoverState.wordEntry.word.toLowerCase())
     : false;
 
+  // View 1: WeChat Read Styled Bookshelf & Library
+  if (activeView === 'bookshelf') {
+    return (
+      <BookshelfView
+        onSelectBook={(bookId) => {
+          setCurrentBookId(bookId);
+          setCurrentPage(0);
+          setActiveView('reader');
+        }}
+      />
+    );
+  }
+
+  // View 2: Dual-Mode WeChat Read Reader
   return (
     <div
       className={`min-h-screen flex flex-col font-sans transition-colors duration-200 relative ${getThemeContainerClass()}`}
@@ -159,10 +176,11 @@ export default function Home() {
           setReadingMode(mode);
           setPopoverState(null);
         }}
-        bookTitle={book.title}
+        bookTitle={currentBook.title}
         chapterTitle={currentChapter.title}
         isBookmarked={isBookmarked}
         onToggleBookmark={() => setIsBookmarked(!isBookmarked)}
+        onGoBookshelf={() => setActiveView('bookshelf')}
       />
 
       {/* 2. Main Reader Canvas with Optional Study Sidebar */}
@@ -225,14 +243,14 @@ export default function Home() {
       <TableOfContentsModal
         isOpen={isTOCOpen}
         onClose={() => setIsTOCOpen(false)}
-        chapters={book.chapters}
+        chapters={currentBook.chapters}
         currentChapterId={currentChapter.id}
         onSelectChapter={() => {
           setCurrentPage(0);
           setIsTOCOpen(false);
         }}
-        bookTitle={book.title}
-        author={book.author}
+        bookTitle={currentBook.title}
+        author={currentBook.author}
       />
 
       {/* 5. Instant Word Popover */}

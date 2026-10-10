@@ -54,6 +54,23 @@ export interface Chapter {
   stats: ChapterStats;
 }
 
+export interface BookCardInfo {
+  id: string;
+  title: string;
+  chineseTitle: string;
+  author: string;
+  publishedYear: number;
+  cefr: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
+  lexile: string;
+  wordCount: number;
+  coverBg: string;
+  description: string;
+  category: string;
+  recommendedAudience: string;
+  readingProgress: number;
+  totalChapters: number;
+}
+
 export interface Book {
   id: string;
   title: string;

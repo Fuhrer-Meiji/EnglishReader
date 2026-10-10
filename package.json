@@ -10,6 +10,7 @@
     "dev": "npm run dev --workspace=web",
     "build": "npm run build --workspace=web",
     "start": "npm run start --workspace=web",
-    "lint": "npm run lint --workspace=web"
+    "lint": "npm run lint --workspace=web",
+    "setup:dict": "python3 apps/pipeline/prepare_dict.py"
   }
 }

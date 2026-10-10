@@ -11,6 +11,7 @@ interface ReaderHeaderProps {
   chapterTitle: string;
   isBookmarked: boolean;
   onToggleBookmark: () => void;
+  onGoBookshelf: () => void;
 }
 
 export const ReaderHeader: React.FC<ReaderHeaderProps> = ({
@@ -20,20 +21,25 @@ export const ReaderHeader: React.FC<ReaderHeaderProps> = ({
   chapterTitle,
   isBookmarked,
   onToggleBookmark,
+  onGoBookshelf,
 }) => {
   return (
     <header className="sticky top-0 z-30 border-b border-stone-200/60 dark:border-stone-800/60 bg-white/70 dark:bg-stone-900/70 backdrop-blur-md px-4 sm:px-8 py-3 transition-colors">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         {/* Left: Book Title & Add to Bookshelf (WeChat Read style) */}
         <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-          <div className="flex items-center gap-2">
+          <button
+            onClick={onGoBookshelf}
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            title="返回书架"
+          >
             <div className="p-1.5 rounded-lg bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900">
               <BookOpen className="w-4 h-4" />
             </div>
             <span className="font-bold text-sm text-stone-900 dark:text-stone-100 truncate">
               {bookTitle}
             </span>
-          </div>
+          </button>
 
           <button
             onClick={onToggleBookmark}
@@ -81,11 +87,17 @@ export const ReaderHeader: React.FC<ReaderHeaderProps> = ({
 
         {/* Right: Navigation & User Profile (WeChat Read style) */}
         <div className="flex items-center gap-3 text-xs text-stone-500 dark:text-stone-400">
-          <button className="hover:text-stone-900 dark:hover:text-stone-100 hidden sm:inline transition-colors">
+          <button
+            onClick={onGoBookshelf}
+            className="hover:text-stone-900 dark:hover:text-stone-100 hidden sm:inline transition-colors"
+          >
             首页
           </button>
           <span className="text-stone-300 dark:text-stone-700 hidden sm:inline">|</span>
-          <button className="hover:text-stone-900 dark:hover:text-stone-100 hidden sm:inline transition-colors">
+          <button
+            onClick={onGoBookshelf}
+            className="hover:text-stone-900 dark:hover:text-stone-100 hidden sm:inline transition-colors font-medium text-amber-500"
+          >
             我的书架
           </button>
           <div className="w-7 h-7 rounded-full bg-amber-500 flex items-center justify-center text-white font-bold text-xs shadow-xs">

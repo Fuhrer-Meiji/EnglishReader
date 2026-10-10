@@ -1,4 +1,4 @@
-import { Book, VocabularyItem, DifficultyLevel } from './types';
+import { Book, VocabularyItem, DifficultyLevel, BookCardInfo } from './types';
 
 export interface DictEntry {
   word: string;
@@ -864,3 +864,188 @@ export const INITIAL_VOCAB_ITEMS: VocabularyItem[] = [
     status: 'new'
   }
 ];
+
+export const LITTLE_PRINCE_BOOK: Book = {
+  id: 'the-little-prince',
+  title: 'The Little Prince',
+  author: 'Antoine de Saint-Exupéry',
+  publishedYear: 1943,
+  source: 'Standard Ebooks',
+  chapters: [
+    {
+      id: 'lp-chapter-1',
+      number: 1,
+      title: 'Chapter I',
+      subtitle: 'Once when I was six years old...',
+      stats: {
+        wordCount: 820,
+        cefr: 'B1',
+        fleschScore: 89.2,
+        lexile: '710L',
+        levelDistribution: {
+          basic: 94,
+          cet4: 4,
+          cet6: 2,
+          gre: 0,
+        },
+      },
+      sentences: [
+        {
+          id: 'lp-s1',
+          paragraphIndex: 0,
+          rawText: 'Once when I was six years old I saw a magnificent picture in a book, called True Stories from Nature, about the primeval forest.',
+          chineseTranslation: '六岁那年，我在一本名叫《真实的自然故事》的书中，看到过一幅描绘原始森林的绝妙图画。',
+          difficultyTag: '基础',
+          coreKeywords: ['magnificent', 'primeval'],
+          grammarComponents: [
+            {
+              role: '时间状语从句',
+              content: 'Once when I was six years old',
+              explanation: 'once 连词与 when 从句嵌套，生动开启童年回忆。',
+            },
+            {
+              role: '主干句',
+              content: 'I saw a magnificent picture in a book',
+              explanation: '核心 SVO 结构：I (主语) + saw (谓语) + a magnificent picture (宾语)。',
+            },
+          ],
+          culturalNote: '【开篇纯真视角】圣埃克苏佩里借飞行员之口，奠定了全书童年初心与成人世界隔阂的核心主题。',
+        },
+        {
+          id: 'lp-s2',
+          paragraphIndex: 0,
+          rawText: 'It was a picture of a boa constrictor in the act of swallowing an animal.',
+          chineseTranslation: '那是一幅画着一条蟒蛇正吞食猎物的特写图画。',
+          difficultyTag: '基础',
+          coreKeywords: ['swallowing'],
+          grammarComponents: [
+            {
+              role: '主干 + 介词短语状语',
+              content: 'in the act of swallowing an animal',
+              explanation: '“in the act of doing” 表示“正处于...动作的瞬间”。',
+            },
+          ],
+        },
+        {
+          id: 'lp-s3',
+          paragraphIndex: 1,
+          rawText: 'In the book it said: “Boa constrictors swallow their prey whole, without chewing it. After that they are not able to move, and they sleep through the six months that they need for digestion.”',
+          chineseTranslation: '书里这样写道：“蟒蛇会把猎物囫囵吞下，根本不用咀嚼。此后它们便动弹不得，睡上整整六个月来进行消化。”',
+          difficultyTag: '中等',
+          coreKeywords: ['digestion'],
+          grammarComponents: [
+            {
+              role: '直接引语分句',
+              content: 'swallow their prey whole, without chewing it',
+              explanation: 'whole 用作副词（完整地）；without chewing 表方式伴随。',
+            },
+          ],
+        },
+        {
+          id: 'lp-s4',
+          paragraphIndex: 2,
+          rawText: 'I pondered deeply, then, over the adventures of the jungle. And after some work with a colored pencil I succeeded in drawing my first picture. My Drawing Number One.',
+          chineseTranslation: '于是我对丛林深处的探险历程陷入了深深的思索。几番拿着彩色铅笔尝试后，我终于画出了我的第一幅作品——我的第一号画作。',
+          difficultyTag: '基础',
+          coreKeywords: ['pondered'],
+          grammarComponents: [
+            {
+              role: '固定动词短语',
+              content: 'pondered deeply over',
+              explanation: '“ponder over” 意为深思、琢磨。',
+            },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+export const BOOKS_DATABASE: Record<string, Book> = {
+  'the-great-gatsby': SAMPLE_BOOK,
+  'the-little-prince': LITTLE_PRINCE_BOOK,
+};
+
+export const LIBRARY_BOOKS: BookCardInfo[] = [
+  {
+    id: 'the-great-gatsby',
+    title: 'The Great Gatsby',
+    chineseTitle: '了不起的盖茨比',
+    author: 'F. Scott Fitzgerald',
+    publishedYear: 1925,
+    cefr: 'C1',
+    lexile: '1020L',
+    wordCount: 48600,
+    coverBg: 'from-amber-600 via-amber-800 to-stone-900',
+    description: '20世纪20年代爵士时代经典之作，以迷幻而清醒的笔触刻画了美国梦的幻灭。',
+    category: '现代文学',
+    recommendedAudience: '考研 / GRE / 托福',
+    readingProgress: 18,
+    totalChapters: 9,
+  },
+  {
+    id: 'the-little-prince',
+    title: 'The Little Prince',
+    chineseTitle: '小王子',
+    author: 'Antoine de Saint-Exupéry',
+    publishedYear: 1943,
+    cefr: 'B1',
+    lexile: '710L',
+    wordCount: 16500,
+    coverBg: 'from-sky-500 via-indigo-700 to-slate-900',
+    description: '风靡全球的哲理童话，语言纯净透彻，句式简洁明快，非母语读者入门首选。',
+    category: '童话哲理',
+    recommendedAudience: '四级 / 高考 / 初学者',
+    readingProgress: 0,
+    totalChapters: 27,
+  },
+  {
+    id: 'the-picture-of-dorian-gray',
+    title: 'The Picture of Dorian Gray',
+    chineseTitle: '道林·格雷的画像',
+    author: 'Oscar Wilde',
+    publishedYear: 1890,
+    cefr: 'C1',
+    lexile: '980L',
+    wordCount: 78500,
+    coverBg: 'from-purple-700 via-purple-900 to-stone-950',
+    description: '唯美主义大师王尔德唯一的长篇小说，辞藻华丽典雅，充满警句格言与人性思辨。',
+    category: '唯美主义',
+    recommendedAudience: 'GRE / 雅思 / 高级',
+    readingProgress: 5,
+    totalChapters: 20,
+  },
+  {
+    id: 'pride-and-prejudice',
+    title: 'Pride and Prejudice',
+    chineseTitle: '傲慢与偏见',
+    author: 'Jane Austen',
+    publishedYear: 1813,
+    cefr: 'B2',
+    lexile: '1090L',
+    wordCount: 122000,
+    coverBg: 'from-rose-700 via-amber-900 to-stone-950',
+    description: '19世纪英国文学巨著，机智风趣的对话与细腻的世态人情，英语学习者的必读经典。',
+    category: '英国文学',
+    recommendedAudience: '六级 / 考研 / 雅思',
+    readingProgress: 0,
+    totalChapters: 61,
+  },
+  {
+    id: 'alice-in-wonderland',
+    title: "Alice's Adventures in Wonderland",
+    chineseTitle: '爱丽丝梦游仙境',
+    author: 'Lewis Carroll',
+    publishedYear: 1865,
+    cefr: 'B1',
+    lexile: '890L',
+    wordCount: 26800,
+    coverBg: 'from-emerald-600 via-teal-800 to-stone-900',
+    description: '奇幻文学鼻祖，富含谐音双关与双重修辞，适合在妙趣横生的故事中提升语感。',
+    category: '奇幻冒险',
+    recommendedAudience: '四六级 / 趣味进阶',
+    readingProgress: 0,
+    totalChapters: 12,
+  },
+];
+

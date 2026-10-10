@@ -71,4 +71,9 @@ Thumbs.db
 *.swo
 
 # Local database and cache files (large dictionary SQLite files should not be committed directly if downloaded dynamically)
+*.db
+*.sqlite
+*.sqlite3
 *.sqlite3-journal
+apps/web/data/*.db
+apps/web/data/*.sqlite

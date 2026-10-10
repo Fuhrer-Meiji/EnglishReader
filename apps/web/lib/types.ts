@@ -1,5 +1,7 @@
 export type ReadingMode = 'zen' | 'study';
 
+export type LayoutMode = 'scroll' | 'double';
+
 export type ThemeMode = 'light' | 'sepia' | 'dark';
 
 export type DifficultyLevel = 'CET4' | 'CET6' | 'KY' | 'IELTS' | 'GRE';

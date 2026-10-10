@@ -1,10 +1,24 @@
 'use client';
 
-import React, { useState } from 'react';
-import { ReadingMode, ThemeMode, DifficultyLevel, SentenceAnalysis, VocabularyItem } from '../lib/types';
-import { SAMPLE_BOOK, DICTIONARY_DATABASE, INITIAL_VOCAB_ITEMS, DictEntry } from '../lib/mockData';
+import React, { useState, useEffect } from 'react';
+import {
+  ReadingMode,
+  LayoutMode,
+  ThemeMode,
+  DifficultyLevel,
+  SentenceAnalysis,
+  VocabularyItem,
+} from '../lib/types';
+import {
+  SAMPLE_BOOK,
+  DICTIONARY_DATABASE,
+  INITIAL_VOCAB_ITEMS,
+  DictEntry,
+} from '../lib/mockData';
 import { ReaderHeader } from '../components/ReaderHeader';
 import { ReaderView } from '../components/ReaderView';
+import { WeChatDock } from '../components/WeChatDock';
+import { TableOfContentsModal } from '../components/TableOfContentsModal';
 import { WordPopover } from '../components/WordPopover';
 import { SentenceDrawer } from '../components/SentenceDrawer';
 import { StudySidebar } from '../components/StudySidebar';
@@ -12,12 +26,17 @@ import { VocabDrawer } from '../components/VocabDrawer';
 
 export default function Home() {
   const [readingMode, setReadingMode] = useState<ReadingMode>('zen');
-  const [theme, setTheme] = useState<ThemeMode>('sepia');
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>('double'); // 默认双栏模式，还原微信读书
+  const [theme, setTheme] = useState<ThemeMode>('dark'); // 默认深色，与截图一致
   const [fontSize, setFontSize] = useState<number>(18);
   const [isSerif, setIsSerif] = useState<boolean>(true);
   const [selectedLevelFilter, setSelectedLevelFilter] = useState<DifficultyLevel | 'ALL' | 'OFF'>('CET6');
 
-  // Interactive popovers & drawers state
+  const [currentPage, setCurrentPage] = useState<number>(0);
+  const [isBookmarked, setIsBookmarked] = useState<boolean>(true);
+  const [isTOCOpen, setIsTOCOpen] = useState<boolean>(false);
+
+  // Popovers & Drawers
   const [popoverState, setPopoverState] = useState<{
     wordEntry: DictEntry;
     rawWord: string;
@@ -31,13 +50,27 @@ export default function Home() {
   const book = SAMPLE_BOOK;
   const currentChapter = book.chapters[0];
 
+  // Keyboard navigation for Two-Column spread reading
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (layoutMode !== 'double') return;
+      if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+        setCurrentPage((prev) => Math.min(prev + 1, 1));
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        setCurrentPage((prev) => Math.max(prev - 1, 0));
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [layoutMode]);
+
   // Theme styling background and text mappings
   const getThemeContainerClass = () => {
     switch (theme) {
       case 'sepia':
         return 'bg-[#f4ecd8] text-[#423326]';
       case 'dark':
-        return 'bg-[#141417] text-[#e0deda] dark';
+        return 'bg-[#1e1e1e] text-[#ededed] dark';
       case 'light':
       default:
         return 'bg-[#faf9f5] text-[#242220]';
@@ -48,7 +81,6 @@ export default function Home() {
     const clean = word.toLowerCase().replace(/[’']/g, '');
     let entry = DICTIONARY_DATABASE[clean];
 
-    // Fallback dictionary entry for words not in the mock database
     if (!entry) {
       entry = {
         word: clean,
@@ -88,7 +120,9 @@ export default function Home() {
   };
 
   const handleToggleSaveVocab = (entry: DictEntry) => {
-    const existingIndex = vocabItems.findIndex((item) => item.word.toLowerCase() === entry.word.toLowerCase());
+    const existingIndex = vocabItems.findIndex(
+      (item) => item.word.toLowerCase() === entry.word.toLowerCase()
+    );
     if (existingIndex >= 0) {
       setVocabItems(vocabItems.filter((_, idx) => idx !== existingIndex));
     } else {
@@ -109,54 +143,35 @@ export default function Home() {
     }
   };
 
-  const handleRemoveVocabItem = (id: string) => {
-    setVocabItems(vocabItems.filter((i) => i.id !== id));
-  };
-
-  const handleToggleVocabStatus = (id: string) => {
-    setVocabItems(
-      vocabItems.map((item) =>
-        item.id === id
-          ? { ...item, status: item.status === 'mastered' ? 'learning' : 'mastered' }
-          : item
-      )
-    );
-  };
-
   const isCurrentWordSaved = popoverState
     ? vocabItems.some((v) => v.word.toLowerCase() === popoverState.wordEntry.word.toLowerCase())
     : false;
 
   return (
     <div
-      className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${getThemeContainerClass()}`}
+      className={`min-h-screen flex flex-col font-sans transition-colors duration-200 relative ${getThemeContainerClass()}`}
       onClick={() => setPopoverState(null)}
     >
-      {/* Top Reader Header */}
+      {/* 1. WeChat Read Style Header */}
       <ReaderHeader
         readingMode={readingMode}
         onToggleMode={(mode) => {
           setReadingMode(mode);
           setPopoverState(null);
         }}
-        theme={theme}
-        onSelectTheme={setTheme}
-        fontSize={fontSize}
-        onChangeFontSize={(delta) => setFontSize((prev) => Math.min(Math.max(prev + delta, 14), 26))}
-        isSerif={isSerif}
-        onToggleFontFamily={() => setIsSerif(!isSerif)}
         bookTitle={book.title}
         chapterTitle={currentChapter.title}
-        vocabCount={vocabItems.length}
-        onOpenVocab={() => setIsVocabOpen(true)}
+        isBookmarked={isBookmarked}
+        onToggleBookmark={() => setIsBookmarked(!isBookmarked)}
       />
 
-      {/* Main Reading Surface */}
+      {/* 2. Main Reader Canvas with Optional Study Sidebar */}
       <main className="flex-1 flex overflow-hidden">
         <div className="flex-1 overflow-y-auto">
           <ReaderView
             chapter={currentChapter}
             readingMode={readingMode}
+            layoutMode={layoutMode}
             theme={theme}
             fontSize={fontSize}
             isSerif={isSerif}
@@ -167,6 +182,9 @@ export default function Home() {
               setPopoverState(null);
             }}
             activeSentenceId={activeSentence?.id}
+            currentPage={currentPage}
+            onNextPage={() => setCurrentPage((prev) => Math.min(prev + 1, 1))}
+            onPrevPage={() => setCurrentPage((prev) => Math.max(prev - 1, 0))}
           />
         </div>
 
@@ -181,7 +199,43 @@ export default function Home() {
         )}
       </main>
 
-      {/* Instant Word Popover */}
+      {/* 3. WeChat Read Floating Right Dock */}
+      <WeChatDock
+        layoutMode={layoutMode}
+        onToggleLayoutMode={(mode) => {
+          setLayoutMode(mode);
+          setCurrentPage(0);
+        }}
+        readingMode={readingMode}
+        onToggleReadingMode={setReadingMode}
+        theme={theme}
+        onSelectTheme={setTheme}
+        fontSize={fontSize}
+        onChangeFontSize={(delta) =>
+          setFontSize((prev) => Math.min(Math.max(prev + delta, 14), 26))
+        }
+        isSerif={isSerif}
+        onToggleFontFamily={() => setIsSerif(!isSerif)}
+        onOpenVocab={() => setIsVocabOpen(true)}
+        onOpenTOC={() => setIsTOCOpen(true)}
+        vocabCount={vocabItems.length}
+      />
+
+      {/* 4. Table of Contents Modal */}
+      <TableOfContentsModal
+        isOpen={isTOCOpen}
+        onClose={() => setIsTOCOpen(false)}
+        chapters={book.chapters}
+        currentChapterId={currentChapter.id}
+        onSelectChapter={() => {
+          setCurrentPage(0);
+          setIsTOCOpen(false);
+        }}
+        bookTitle={book.title}
+        author={book.author}
+      />
+
+      {/* 5. Instant Word Popover */}
       {popoverState && (
         <WordPopover
           wordEntry={popoverState.wordEntry}
@@ -201,7 +255,7 @@ export default function Home() {
         />
       )}
 
-      {/* Sentence Syntax & Cultural Breakdown Drawer */}
+      {/* 6. Sentence Syntax & Cultural Breakdown Drawer */}
       <SentenceDrawer
         sentence={activeSentence}
         onClose={() => setActiveSentence(null)}
@@ -210,13 +264,24 @@ export default function Home() {
         }}
       />
 
-      {/* Vocabulary Drawer */}
+      {/* 7. Vocabulary Drawer */}
       <VocabDrawer
         isOpen={isVocabOpen}
         onClose={() => setIsVocabOpen(false)}
         vocabItems={vocabItems}
-        onRemoveItem={handleRemoveVocabItem}
-        onToggleStatus={handleToggleVocabStatus}
+        onRemoveItem={(id) => setVocabItems(vocabItems.filter((i) => i.id !== id))}
+        onToggleStatus={(id) =>
+          setVocabItems(
+            vocabItems.map((item) =>
+              item.id === id
+                ? {
+                    ...item,
+                    status: item.status === 'mastered' ? 'learning' : 'mastered',
+                  }
+                : item
+            )
+          )
+        }
       />
     </div>
   );

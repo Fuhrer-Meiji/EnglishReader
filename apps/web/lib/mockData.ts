@@ -264,6 +264,222 @@ export const DICTIONARY_DATABASE: Record<string, DictEntry> = {
     translation: '无限的；无穷无尽的',
     englishDef: 'Limitless or endless in space, extent, or size.',
     level: 'CET4'
+  },
+  snobbishly: {
+    word: 'snobbishly',
+    phonetic: '/ˈsnɒbɪʃli/',
+    pos: 'adv.',
+    translation: '势利地；自命不凡地',
+    englishDef: 'In a manner that shows a snobbish attitude.',
+    level: 'GRE'
+  },
+  fundamental: {
+    word: 'fundamental',
+    phonetic: '/ˌfʌndəˈmentl/',
+    pos: 'adj.',
+    translation: '根本的；基础的；原始的',
+    englishDef: 'Forming a necessary base or core; of central importance.',
+    level: 'CET4'
+  },
+  decencies: {
+    word: 'decency',
+    phonetic: '/ˈdiːsnsi/',
+    pos: 'n.',
+    translation: '体面；礼貌；规矩品行',
+    englishDef: 'Behavior that conforms to accepted standards of morality or respectability.',
+    level: 'CET6'
+  },
+  parcelled: {
+    word: 'parcel',
+    phonetic: '/ˈpɑːsld/',
+    pos: 'v.',
+    translation: '分配；打包；细分',
+    englishDef: 'Divide into portions and distribute.',
+    level: 'GRE'
+  },
+  unequally: {
+    word: 'unequally',
+    phonetic: '/ʌnˈiːkwəli/',
+    pos: 'adv.',
+    translation: '不平等地；不均匀地',
+    englishDef: 'In an unequal or disparate manner.',
+    level: 'CET4'
+  },
+  boasting: {
+    word: 'boast',
+    phonetic: '/bəʊstɪŋ/',
+    pos: 'v.',
+    translation: '自夸；吹嘘；夸耀',
+    englishDef: 'Talk with excessive pride and self-satisfaction about one\'s achievements, possessions, or abilities.',
+    level: 'CET4'
+  },
+  tolerance: {
+    word: 'tolerance',
+    phonetic: '/ˈtɒlərəns/',
+    pos: 'n.',
+    translation: '宽容；忍耐力；包容度',
+    englishDef: 'The ability or willingness to tolerate something, in particular the existence of opinions or behavior that one does not necessarily agree with.',
+    level: 'CET4'
+  },
+  admission: {
+    word: 'admission',
+    phonetic: '/ədˈmɪʃn/',
+    pos: 'n.',
+    translation: '承认；供认；准许加入',
+    englishDef: 'A statement acknowledging the truth of something.',
+    level: 'CET4'
+  },
+  conduct: {
+    word: 'conduct',
+    phonetic: '/ˈkɒndʌkt/',
+    pos: 'n.',
+    translation: '品行；操守；举止',
+    englishDef: 'The manner in which a person behaves, especially on a particular occasion or in a particular context.',
+    level: 'CET4'
+  },
+  founded: {
+    word: 'found',
+    phonetic: '/ˈfaʊndɪd/',
+    pos: 'v.',
+    translation: '建立在...之上；奠基',
+    englishDef: 'Establish or originate an institution or system; base on.',
+    level: 'CET4'
+  },
+  marshes: {
+    word: 'marsh',
+    phonetic: '/mɑːʃɪz/',
+    pos: 'n.',
+    translation: '沼泽；湿地',
+    englishDef: 'An area of low-lying land which is flooded in wet seasons or at high tide, and typically remains waterlogged at all times.',
+    level: 'CET6'
+  },
+  uniform: {
+    word: 'uniform',
+    phonetic: '/ˈjuːnɪfɔːm/',
+    pos: 'n. / adj.',
+    translation: '制服；整齐划一的',
+    englishDef: 'Remaining the same in all cases and at all times; unchanging in form or character.',
+    level: 'CET4'
+  },
+  moral: {
+    word: 'moral',
+    phonetic: '/ˈmɒrəl/',
+    pos: 'adj.',
+    translation: '道德上的；精神上的',
+    englishDef: 'Concerned with the principles of right and wrong behavior.',
+    level: 'CET4'
+  },
+  riotous: {
+    word: 'riotous',
+    phonetic: '/ˈraɪətəs/',
+    pos: 'adj.',
+    translation: '狂乱放纵的；暴乱的；喧闹的',
+    englishDef: 'Characterized by wild and uncontrolled behavior.',
+    level: 'GRE'
+  },
+  excursions: {
+    word: 'excursion',
+    phonetic: '/ɪkˈskɜːʃnz/',
+    pos: 'n.',
+    translation: '游历；涉足；远足',
+    englishDef: 'A short journey or trip; a deviation from a regular activity.',
+    level: 'CET6'
+  },
+  privileged: {
+    word: 'privileged',
+    phonetic: '/ˈprɪvəlɪdʒd/',
+    pos: 'adj.',
+    translation: '享有特权的；荣幸的',
+    englishDef: 'Having special rights, advantages, or immunities.',
+    level: 'CET4'
+  },
+  glimpses: {
+    word: 'glimpse',
+    phonetic: '/ɡlɪmpsɪz/',
+    pos: 'n.',
+    translation: '一瞥；短暂感受；隐约显露',
+    englishDef: 'A momentary or partial view.',
+    level: 'CET4'
+  },
+  exempt: {
+    word: 'exempt',
+    phonetic: '/ɪɡˈzempt/',
+    pos: 'adj.',
+    translation: '被免除的；豁免的',
+    englishDef: 'Free from an obligation or liability imposed on others.',
+    level: 'CET6'
+  },
+  reaction: {
+    word: 'reaction',
+    phonetic: '/riˈækʃn/',
+    pos: 'n.',
+    translation: '反应；回应；反抗',
+    englishDef: 'An action performed or a feeling experienced in response to a situation or event.',
+    level: 'CET4'
+  },
+  represented: {
+    word: 'represent',
+    phonetic: '/ˌreprɪˈzentɪd/',
+    pos: 'v.',
+    translation: '代表；象征；集中体现',
+    englishDef: 'Be an embodiment or typical example of.',
+    level: 'CET4'
+  },
+  unaffected: {
+    word: 'unaffected',
+    phonetic: '/ˌʌnəˈfektɪd/',
+    pos: 'adj.',
+    translation: '无矫饰的；真挚的；不造作的',
+    englishDef: 'Feeling or showing no effect or change; sincere and genuine.',
+    level: 'GRE'
+  },
+  scorn: {
+    word: 'scorn',
+    phonetic: '/skɔːn/',
+    pos: 'n.',
+    translation: '轻蔑；鄙视；不屑一顾',
+    englishDef: 'The feeling or belief that someone or something is worthless or despicable.',
+    level: 'CET6'
+  },
+  gorgeous: {
+    word: 'gorgeous',
+    phonetic: '/ˈɡɔːdʒəs/',
+    pos: 'adj.',
+    translation: '华美璀璨的；光彩夺目的；极好的',
+    englishDef: 'Beautiful; very attractive; magnificent.',
+    level: 'CET4'
+  },
+  heightened: {
+    word: 'heightened',
+    phonetic: '/ˈhaɪtnd/',
+    pos: 'adj.',
+    translation: '加剧的；提升的；高度敏锐的',
+    englishDef: 'More intense than normal.',
+    level: 'CET6'
+  },
+  sensitivity: {
+    word: 'sensitivity',
+    phonetic: '/ˌsensəˈtɪvəti/',
+    pos: 'n.',
+    translation: '敏感性；感应力；灵敏度',
+    englishDef: 'The quality or condition of being sensitive.',
+    level: 'CET4'
+  },
+  intricate: {
+    word: 'intricate',
+    phonetic: '/ˈɪntrɪkət/',
+    pos: 'adj.',
+    translation: '错综复杂的；精细微妙的',
+    englishDef: 'Very complicated or detailed.',
+    level: 'CET6'
+  },
+  register: {
+    word: 'register',
+    phonetic: '/ˈredʒɪstə(r)/',
+    pos: 'v.',
+    translation: '记录；察觉；感应到',
+    englishDef: 'Express, record, or perceive subtly.',
+    level: 'CET4'
   }
 };
 
@@ -481,6 +697,139 @@ export const SAMPLE_BOOK: Book = {
             }
           ],
           culturalNote: '【全书核心哲理】这一句被视作《了不起的盖茨比》最富深意的格言之一，既表达了对世人的宽容，也为盖茨比那种执着到近乎狂热的“了不起的希望”埋下了伏笔。'
+        },
+        {
+          id: 'sent-8',
+          paragraphIndex: 4,
+          rawText: 'I am still a little afraid of missing something if I forget that, as my father snobbishly suggested, and I snobbishly repeat, a sense of the fundamental decencies is parcelled out unequally at birth.',
+          chineseTranslation: '如果我忘记了父亲曾势利地暗示、而我也势利地重申过的一句话——在这个世界上，基本的体面与道德感在人出生时分配得并不均等——我依然会隐隐害怕自己错过了什么。',
+          difficultyTag: '长难句',
+          coreKeywords: ['snobbishly', 'fundamental', 'decencies', 'parcelled', 'unequally'],
+          grammarComponents: [
+            {
+              role: '主句 + 宾语形容词短语',
+              content: 'I am still a little afraid of missing something',
+              explanation: '“be afraid of doing” 表顾虑恐惧；“a little” 修饰 degree。'
+            },
+            {
+              role: '条件从句 + 双重插入语',
+              content: 'if I forget that, as my father snobbishly suggested, and I snobbishly repeat...',
+              explanation: 'if 引导条件状语，that 引导 forget 的宾语从句；两个 as 并列从句作叙述插入语，表达自嘲反思。'
+            },
+            {
+              role: '宾语从句核心被动句',
+              content: 'a sense of the fundamental decencies is parcelled out unequally at birth',
+              explanation: '主语为 a sense of fundamental decencies；is parcelled out 为被动语态，unequally 副词修饰。'
+            }
+          ],
+          culturalNote: '【宿命与特权观】尼克清醒地认识到自己所谓的“教养与道德水准”并非与生俱来的优越，而是富裕中产家庭环境赋予的隐形特权。'
+        },
+        {
+          id: 'sent-9',
+          paragraphIndex: 5,
+          rawText: 'And, after boasting this way of my tolerance, I come to the admission that it has a limit.',
+          chineseTranslation: '在吹嘘完我这种宽容与忍耐之后，我不得不承认，这种宽容也是有底线的。',
+          difficultyTag: '基础',
+          coreKeywords: ['boasting', 'tolerance', 'admission'],
+          grammarComponents: [
+            {
+              role: '时间介词短语状语',
+              content: 'after boasting this way of my tolerance',
+              explanation: 'after 介词接动名词短语，构成时间状语。'
+            },
+            {
+              role: '主干 + 同位语从句',
+              content: 'I come to the admission that it has a limit',
+              explanation: 'come to the admission（做出招认）；that 引导同位语从句解释 admission 具体内容。'
+            }
+          ]
+        },
+        {
+          id: 'sent-10',
+          paragraphIndex: 5,
+          rawText: 'Conduct may be founded on the hard rock or the wet marshes, but after a certain point I don’t care what it’s founded on.',
+          chineseTranslation: '一个人的品行操守，或许奠基于坚如磐石的准则，亦或立足于湿软泥泞的沼泽，但过了某个特定的界限，我便不再在乎它是基于何种根基。',
+          difficultyTag: '长难句',
+          coreKeywords: ['conduct', 'founded', 'marshes'],
+          grammarComponents: [
+            {
+              role: '转折对比并列句',
+              content: 'Conduct may be founded on ... but ... I don\'t care...',
+              explanation: 'but 连接转折分句；“hard rock” 与 “wet marshes” 构成生动的二元对立隐喻。'
+            },
+            {
+              role: '宾语从句',
+              content: 'what it’s founded on',
+              explanation: 'what 引导宾语从句，作 care 的宾语。'
+            }
+          ]
+        },
+        {
+          id: 'sent-11',
+          paragraphIndex: 5,
+          rawText: 'When I came back from the East last autumn I felt that I wanted the world to be in uniform and at a sort of moral attention for ever; I wanted no more riotous excursions with privileged glimpses into the human heart.',
+          chineseTranslation: '去年秋天我从东部回到故乡时，我渴望整个世界都穿上整齐划一的制服，在道德面前永远保持肃穆立正；我再也不想去经历那些狂乱放纵的游历，也不愿再去窥探他人内心深处的私密特权。',
+          difficultyTag: '长难句',
+          coreKeywords: ['uniform', 'moral', 'riotous', 'excursions', 'privileged', 'glimpses'],
+          grammarComponents: [
+            {
+              role: '复合从句 + 军事隐喻',
+              content: 'wanted the world to be in uniform and at a sort of moral attention for ever',
+              explanation: '“in uniform” 和 “at attention”（立正姿势）运用了精准的军队纪律隐喻，反映一战后老兵尼克对浮华世界的幻灭。'
+            },
+            {
+              role: '分号并列句',
+              content: 'I wanted no more riotous excursions with privileged glimpses into the human heart',
+              explanation: '“riotous excursions” 指纽约长岛纸醉金迷的纵欲放荡；“privileged glimpses” 呼应前文倾听秘密的特权。'
+            }
+          ],
+          culturalNote: '【幻灭与回归】尼克经历了东部繁华喧嚣后产生的深刻道德疲惫，促使他渴望秩序、规训与内心的安宁。'
+        },
+        {
+          id: 'sent-12',
+          paragraphIndex: 6,
+          rawText: 'Only Gatsby, the man who gives his name to this book, was exempt from my reaction—Gatsby, who represented everything for which I have an unaffected scorn.',
+          chineseTranslation: '唯有盖茨比——这个赋予本书名字的男人——在我的这种厌倦反应之外；盖茨比，他身上集中体现了我向来怀着毫无矫饰的鄙夷所看待的一切。',
+          difficultyTag: '长难句',
+          coreKeywords: ['exempt', 'reaction', 'represented', 'unaffected', 'scorn'],
+          grammarComponents: [
+            {
+              role: '同位语 + 定语从句',
+              content: 'Only Gatsby, the man who gives his name to this book...',
+              explanation: 'Gatsby 后接先行词同位语及 who 限制性定语从句。'
+            },
+            {
+              role: '破折号强调同位语 + 介词前置定语从句',
+              content: 'Gatsby, who represented everything for which I have an unaffected scorn',
+              explanation: '“for which” 引导定语从句修饰 everything；“unaffected scorn” 展现了尼克克制言语下强烈的审美品味。'
+            }
+          ]
+        },
+        {
+          id: 'sent-13',
+          paragraphIndex: 6,
+          rawText: 'If personality is an unbroken series of successful gestures, then there was something gorgeous about him, some heightened sensitivity to the promises of life, as if he were related to one of those intricate machines that register earthquakes ten thousand miles away.',
+          chineseTranslation: '如果一个人的个性是由一连串成功的姿态所构成，那么他身上确有一种华美璀璨的特质，他对生活的诸般承诺具有一种极度敏锐的感应，仿佛他与某种能在万里之外记录地震的精密仪器心意相通。',
+          difficultyTag: '长难句',
+          coreKeywords: ['personality', 'unbroken', 'gestures', 'gorgeous', 'heightened', 'sensitivity', 'intricate', 'register'],
+          grammarComponents: [
+            {
+              role: '虚拟假设条件从句',
+              content: 'If personality is an unbroken series of successful gestures',
+              explanation: '菲茨杰拉德标志性的唯美思辨长句。'
+            },
+            {
+              role: '主干从句 + 并列同位语',
+              content: 'there was something gorgeous about him, some heightened sensitivity to the promises of life',
+              explanation: 'there be 句型，gorgeous 修饰 something；sensitivity 进一步深化 gorgeous 的内涵。'
+            },
+            {
+              role: 'as if 虚拟语气地震仪隐喻',
+              content: 'as if he were related to one of those intricate machines that register earthquakes ten thousand miles away',
+              explanation: '文学史顶级隐喻：将盖茨比的情感感应力比拟为记录万里外地震的精密仪器（seismograph）。'
+            }
+          ],
+          culturalNote: '【浪漫主义核心特质】这是整部作品对盖茨比最核心、最光彩夺目的定性——他对生活与爱情具有超凡脱俗的敏感与狂热信念。'
         }
       ]
     }

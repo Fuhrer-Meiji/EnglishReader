@@ -8,6 +8,7 @@ import {
   DifficultyLevel,
   SentenceAnalysis,
   VocabularyItem,
+  Book,
 } from '../lib/types';
 import {
   SAMPLE_BOOK,
@@ -30,6 +31,8 @@ import { VocabDrawer } from '../components/VocabDrawer';
 export default function Home() {
   const [activeView, setActiveView] = useState<'reader' | 'bookshelf'>('reader');
   const [currentBookId, setCurrentBookId] = useState<string>('the-great-gatsby');
+  const [currentBook, setCurrentBook] = useState<Book>(BOOKS_DATABASE['the-great-gatsby'] || SAMPLE_BOOK);
+  const [currentChapterIndex, setCurrentChapterIndex] = useState<number>(0);
 
   const [readingMode, setReadingMode] = useState<ReadingMode>('zen');
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('double');
@@ -53,15 +56,43 @@ export default function Home() {
   const [isVocabOpen, setIsVocabOpen] = useState<boolean>(false);
   const [vocabItems, setVocabItems] = useState<VocabularyItem[]>(INITIAL_VOCAB_ITEMS);
 
-  const currentBook = BOOKS_DATABASE[currentBookId] || SAMPLE_BOOK;
-  const currentChapter = currentBook.chapters[0];
+  // Load compiled book from API if available
+  useEffect(() => {
+    let isCancelled = false;
+    async function loadBookData() {
+      try {
+        const res = await fetch(`/api/books/${currentBookId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (!isCancelled && data && data.chapters) {
+            setCurrentBook(data);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn(`[Reader] Using preset database for ${currentBookId}`);
+      }
+
+      if (!isCancelled) {
+        const fallback = BOOKS_DATABASE[currentBookId] || SAMPLE_BOOK;
+        setCurrentBook(fallback);
+      }
+    }
+
+    loadBookData();
+    return () => {
+      isCancelled = true;
+    };
+  }, [currentBookId]);
+
+  const currentChapter = currentBook.chapters[currentChapterIndex] || currentBook.chapters[0];
 
   // Keyboard navigation for Two-Column spread reading
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (activeView !== 'reader' || layoutMode !== 'double') return;
       if (e.key === 'ArrowRight' || e.key === 'PageDown') {
-        setCurrentPage((prev) => Math.min(prev + 1, 1));
+        setCurrentPage((prev) => prev + 1);
       } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
         setCurrentPage((prev) => Math.max(prev - 1, 0));
       }
@@ -156,6 +187,7 @@ export default function Home() {
       <BookshelfView
         onSelectBook={(bookId) => {
           setCurrentBookId(bookId);
+          setCurrentChapterIndex(0);
           setCurrentPage(0);
           setActiveView('reader');
         }}
@@ -201,8 +233,18 @@ export default function Home() {
             }}
             activeSentenceId={activeSentence?.id}
             currentPage={currentPage}
-            onNextPage={() => setCurrentPage((prev) => Math.min(prev + 1, 1))}
+            onNextPage={() => setCurrentPage((prev) => prev + 1)}
             onPrevPage={() => setCurrentPage((prev) => Math.max(prev - 1, 0))}
+            hasPrevChapter={currentChapterIndex > 0}
+            hasNextChapter={currentChapterIndex < currentBook.chapters.length - 1}
+            onPrevChapter={() => {
+              setCurrentChapterIndex((prev) => Math.max(0, prev - 1));
+              setCurrentPage(0);
+            }}
+            onNextChapter={() => {
+              setCurrentChapterIndex((prev) => Math.min(currentBook.chapters.length - 1, prev + 1));
+              setCurrentPage(0);
+            }}
           />
         </div>
 
@@ -245,8 +287,12 @@ export default function Home() {
         onClose={() => setIsTOCOpen(false)}
         chapters={currentBook.chapters}
         currentChapterId={currentChapter.id}
-        onSelectChapter={() => {
-          setCurrentPage(0);
+        onSelectChapter={(chapterId) => {
+          const idx = currentBook.chapters.findIndex((c) => c.id === chapterId);
+          if (idx >= 0) {
+            setCurrentChapterIndex(idx);
+            setCurrentPage(0);
+          }
           setIsTOCOpen(false);
         }}
         bookTitle={currentBook.title}

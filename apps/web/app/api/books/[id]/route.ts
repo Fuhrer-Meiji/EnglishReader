@@ -1,0 +1,34 @@
+import { NextRequest, NextResponse } from 'next/server';
+import fs from 'node:fs';
+import path from 'node:path';
+import { BOOKS_DATABASE } from '../../../../lib/mockData';
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  if (!id) {
+    return NextResponse.json({ error: 'Book ID required' }, { status: 400 });
+  }
+
+  // 1. Try compiled pipeline JSON first
+  const bookJsonPath = path.join(process.cwd(), 'data', 'books', `${id}.json`);
+  if (fs.existsSync(bookJsonPath)) {
+    try {
+      const fileContent = fs.readFileSync(bookJsonPath, 'utf-8');
+      const bookData = JSON.parse(fileContent);
+      return NextResponse.json(bookData);
+    } catch (err) {
+      console.error(`[BookAPI] Error loading JSON for ${id}:`, err);
+    }
+  }
+
+  // 2. Try preset database fallback
+  const presetBook = BOOKS_DATABASE[id];
+  if (presetBook) {
+    return NextResponse.json(presetBook);
+  }
+
+  return NextResponse.json({ error: `Book '${id}' not found` }, { status: 404 });
+}

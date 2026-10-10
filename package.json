@@ -11,6 +11,7 @@
     "build": "npm run build --workspace=web",
     "start": "npm run start --workspace=web",
     "lint": "npm run lint --workspace=web",
-    "setup:dict": "python3 apps/pipeline/prepare_dict.py"
+    "setup:dict": "python3 apps/pipeline/prepare_dict.py",
+    "pipeline:books": "python3 apps/pipeline/main.py --all"
   }
 }

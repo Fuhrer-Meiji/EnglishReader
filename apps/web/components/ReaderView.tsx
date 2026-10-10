@@ -10,7 +10,7 @@ import {
   SentenceAnalysis,
 } from '../lib/types';
 import { DICTIONARY_DATABASE } from '../lib/mockData';
-import { Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Sparkles, ChevronLeft, ChevronRight, BookOpen } from 'lucide-react';
 
 interface ReaderViewProps {
   chapter: Chapter;
@@ -26,6 +26,10 @@ interface ReaderViewProps {
   currentPage: number;
   onNextPage: () => void;
   onPrevPage: () => void;
+  onNextChapter?: () => void;
+  onPrevChapter?: () => void;
+  hasPrevChapter?: boolean;
+  hasNextChapter?: boolean;
 }
 
 export const ReaderView: React.FC<ReaderViewProps> = ({
@@ -42,6 +46,10 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   currentPage,
   onNextPage,
   onPrevPage,
+  onNextChapter,
+  onPrevChapter,
+  hasPrevChapter = false,
+  hasNextChapter = false,
 }) => {
   // Check if a word should have study highlights
   const shouldHighlightWord = (level?: DifficultyLevel) => {
@@ -143,22 +151,53 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
     return Array.from(pMap.values());
   };
 
-  // Two-column pagination spreads
+  // Dynamic spread pagination based on sentence/word density
   const spreads = useMemo(() => {
-    return [
-      {
-        left: chapter.sentences.slice(0, 4), // sent-1, 2, 3, 4
-        right: chapter.sentences.slice(4, 7), // sent-5, 6, 7
-      },
-      {
-        left: chapter.sentences.slice(7, 10), // sent-8, 9, 10
-        right: chapter.sentences.slice(10, 13), // sent-11, 12, 13
-      },
-    ];
+    const list = chapter.sentences || [];
+    if (list.length === 0) {
+      return [{ left: [], right: [] }];
+    }
+
+    const result: { left: SentenceAnalysis[]; right: SentenceAnalysis[] }[] = [];
+    let currentLeft: SentenceAnalysis[] = [];
+    let currentRight: SentenceAnalysis[] = [];
+    let currentColumnWords = 0;
+    let isFillingLeft = true;
+    const WORDS_PER_COLUMN = 140;
+
+    for (const sent of list) {
+      const wordsInSent = sent.rawText.split(/\s+/).length;
+
+      if (isFillingLeft) {
+        currentLeft.push(sent);
+        currentColumnWords += wordsInSent;
+        if (currentColumnWords >= WORDS_PER_COLUMN && currentLeft.length >= 3) {
+          isFillingLeft = false;
+          currentColumnWords = 0;
+        }
+      } else {
+        currentRight.push(sent);
+        currentColumnWords += wordsInSent;
+        if (currentColumnWords >= WORDS_PER_COLUMN && currentRight.length >= 3) {
+          result.push({ left: currentLeft, right: currentRight });
+          currentLeft = [];
+          currentRight = [];
+          isFillingLeft = true;
+          currentColumnWords = 0;
+        }
+      }
+    }
+
+    if (currentLeft.length > 0 || currentRight.length > 0) {
+      result.push({ left: currentLeft, right: currentRight });
+    }
+
+    return result.length > 0 ? result : [{ left: [], right: [] }];
   }, [chapter.sentences]);
 
-  const currentSpread = spreads[currentPage] || spreads[0];
   const totalPages = spreads.length;
+  const safePage = Math.min(Math.max(currentPage, 0), totalPages - 1);
+  const currentSpread = spreads[safePage] || spreads[0];
 
   // -------------------------------------------------------------
   // Mode 1: 双栏翻页阅读 (WeChat Read Two-Column Spread Mode)
@@ -166,6 +205,8 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   if (layoutMode === 'double') {
     const leftParagraphs = groupSentencesIntoParagraphs(currentSpread.left);
     const rightParagraphs = groupSentencesIntoParagraphs(currentSpread.right);
+    const isFirstPage = safePage === 0;
+    const isLastPage = safePage === totalPages - 1;
 
     return (
       <div className="w-full max-w-6xl mx-auto px-4 sm:px-8 py-6 transition-all animate-in fade-in duration-200">
@@ -175,7 +216,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
             {/* Left Column (左栏) */}
             <div className="flex flex-col justify-between border-b md:border-b-0 md:border-r border-stone-200/60 dark:border-stone-800/60 pb-6 md:pb-0 md:pr-10 lg:pr-14">
               <div>
-                {currentPage === 0 ? (
+                {isFirstPage ? (
                   <div className="mb-8">
                     <span className="text-xs text-stone-400 dark:text-stone-500 font-sans block mb-1">
                       {chapter.title}
@@ -187,8 +228,8 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                   </div>
                 ) : (
                   <div className="flex items-center justify-between text-xs text-stone-400 dark:text-stone-500 font-sans pb-4 mb-6 border-b border-stone-100 dark:border-stone-800/60">
-                    <span>The Great Gatsby</span>
                     <span>{chapter.title}</span>
+                    <span>Page {safePage * 2 + 1}</span>
                   </div>
                 )}
 
@@ -216,20 +257,31 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
 
               {/* Left Column Bottom: 上一页 (Previous Page) */}
               <div className="pt-6 flex items-center justify-between text-xs text-stone-400">
-                <button
-                  onClick={onPrevPage}
-                  disabled={currentPage === 0}
-                  className={`flex items-center gap-1 px-3.5 py-1.5 rounded-full border border-stone-200 dark:border-stone-700 transition-all ${
-                    currentPage === 0
-                      ? 'opacity-30 cursor-not-allowed'
-                      : 'hover:border-amber-500 hover:text-amber-600 dark:hover:text-amber-400'
-                  }`}
-                >
-                  <ChevronLeft className="w-3.5 h-3.5" />
-                  <span>上一页</span>
-                </button>
+                {isFirstPage && hasPrevChapter ? (
+                  <button
+                    onClick={onPrevChapter}
+                    className="flex items-center gap-1 px-3.5 py-1.5 rounded-full border border-stone-200 dark:border-stone-700 hover:border-amber-500 hover:text-amber-500 transition-all"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                    <span>上一章</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={onPrevPage}
+                    disabled={isFirstPage}
+                    className={`flex items-center gap-1 px-3.5 py-1.5 rounded-full border border-stone-200 dark:border-stone-700 transition-all ${
+                      isFirstPage
+                        ? 'opacity-30 cursor-not-allowed'
+                        : 'hover:border-amber-500 hover:text-amber-600 dark:hover:text-amber-400'
+                    }`}
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                    <span>上一页</span>
+                  </button>
+                )}
+
                 <span className="font-mono text-[11px] text-stone-400">
-                  {currentPage * 2 + 1} / {totalPages * 2}
+                  {safePage * 2 + 1} / {totalPages * 2}
                 </span>
               </div>
             </div>
@@ -238,8 +290,8 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
             <div className="flex flex-col justify-between md:pl-2">
               <div>
                 <div className="flex items-center justify-between text-xs text-stone-400 dark:text-stone-500 font-sans pb-4 mb-6 border-b border-stone-100 dark:border-stone-800/60">
-                  <span>Chapter I</span>
-                  <span>Page {currentPage * 2 + 2}</span>
+                  <span>{chapter.title}</span>
+                  <span>Page {safePage * 2 + 2}</span>
                 </div>
 
                 {/* Right Column Paragraphs */}
@@ -264,23 +316,34 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                 </div>
               </div>
 
-              {/* Right Column Bottom: 下一页 (Next Page) */}
+              {/* Right Column Bottom: 下一页 (Next Page) / 下一章 */}
               <div className="pt-6 flex items-center justify-between text-xs text-stone-400">
                 <span className="font-mono text-[11px] text-stone-400">
-                  {currentPage * 2 + 2} / {totalPages * 2}
+                  {safePage * 2 + 2} / {totalPages * 2}
                 </span>
-                <button
-                  onClick={onNextPage}
-                  disabled={currentPage === totalPages - 1}
-                  className={`flex items-center gap-1 px-3.5 py-1.5 rounded-full border border-stone-200 dark:border-stone-700 transition-all ${
-                    currentPage === totalPages - 1
-                      ? 'opacity-30 cursor-not-allowed'
-                      : 'hover:border-amber-500 hover:text-amber-600 dark:hover:text-amber-400'
-                  }`}
-                >
-                  <span>下一页</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </button>
+
+                {isLastPage && hasNextChapter ? (
+                  <button
+                    onClick={onNextChapter}
+                    className="flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-amber-500 text-stone-950 font-bold hover:bg-amber-400 transition-all shadow-xs"
+                  >
+                    <span>下一章</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={onNextPage}
+                    disabled={isLastPage}
+                    className={`flex items-center gap-1 px-3.5 py-1.5 rounded-full border border-stone-200 dark:border-stone-700 transition-all ${
+                      isLastPage
+                        ? 'opacity-30 cursor-not-allowed'
+                        : 'hover:border-amber-500 hover:text-amber-600 dark:hover:text-amber-400'
+                    }`}
+                  >
+                    <span>下一页</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -304,9 +367,14 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
     >
       {/* Top Chapter Nav & Title */}
       <header className="mb-10 text-left space-y-3">
-        <button className="text-xs text-amber-600 dark:text-amber-400 hover:underline font-sans font-medium mb-2 inline-block">
-          上一章
-        </button>
+        {hasPrevChapter && (
+          <button
+            onClick={onPrevChapter}
+            className="text-xs text-amber-600 dark:text-amber-400 hover:underline font-sans font-medium mb-2 inline-block"
+          >
+            &lt; 上一章
+          </button>
+        )}
         <h2 className="text-3xl sm:text-4xl font-bold font-book-serif text-stone-900 dark:text-stone-100 tracking-tight">
           {chapter.title}
         </h2>
@@ -336,10 +404,15 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
 
       {/* Chapter Footer Navigation */}
       <div className="mt-16 pt-8 border-t border-stone-200/60 dark:border-stone-800/60 flex items-center justify-between text-xs text-stone-400">
-        <span>The Great Gatsby · Chapter 1</span>
-        <button className="text-amber-600 dark:text-amber-400 hover:underline font-medium">
-          下一章 &gt;
-        </button>
+        <span>{chapter.title}</span>
+        {hasNextChapter && (
+          <button
+            onClick={onNextChapter}
+            className="text-amber-600 dark:text-amber-400 hover:underline font-medium"
+          >
+            下一章 &gt;
+          </button>
+        )}
       </div>
     </article>
   );

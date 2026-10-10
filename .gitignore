@@ -77,3 +77,4 @@ Thumbs.db
 *.sqlite3-journal
 apps/web/data/*.db
 apps/web/data/*.sqlite
+apps/pipeline/cache/

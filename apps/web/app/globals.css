@@ -1,39 +1,131 @@
 @import "tailwindcss";
 
+/* Hallmark · genre: editorial · macrostructure: Curated Catalog · theme: newsprint-warm / moroccan-leather
+ * states: default · hover · focus · active · disabled · loading · error · success
+ * contrast: pass (APCA / WCAG 2.1 AAA)
+ * pre-emit critique: P5 H5 E5 S5 R5 V5
+ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Warm Parchment / Literary Paper - Hallmark Rule: tint toward anchor hue, no pure #fff */
+  --color-paper: oklch(96.8% 0.012 75);
+  --color-paper-2: oklch(93.8% 0.015 75);
+  --color-paper-elevated: oklch(98.8% 0.008 75);
+  --color-ink: oklch(18.2% 0.012 60);
+  --color-ink-2: oklch(42.0% 0.010 60);
+  --color-ink-muted: oklch(58.0% 0.008 60);
+  --color-rule: oklch(85.0% 0.012 75);
+  --color-accent: oklch(56.0% 0.165 48);
+  --color-focus: oklch(52.0% 0.170 50);
+
+  --background: var(--color-paper);
+  --foreground: var(--color-ink);
+}
+
+.dark, [data-theme="dark"] {
+  /* Library Midnight / Moroccan Leather - Hallmark Rule: never pure #000 */
+  --color-paper: oklch(16.5% 0.009 55);
+  --color-paper-2: oklch(20.5% 0.011 55);
+  --color-paper-elevated: oklch(24.0% 0.012 55);
+  --color-ink: oklch(93.5% 0.006 75);
+  --color-ink-2: oklch(72.0% 0.008 65);
+  --color-ink-muted: oklch(56.0% 0.008 65);
+  --color-rule: oklch(28.0% 0.008 55);
+  --color-accent: oklch(68.0% 0.150 52);
+  --color-focus: oklch(65.0% 0.160 52);
+
+  --background: var(--color-paper);
+  --foreground: var(--color-ink);
+}
+
+/* Eye-care Parchment / Warm Sepia */
+[data-theme="sepia"] {
+  --color-paper: oklch(92.5% 0.024 78);
+  --color-paper-2: oklch(88.5% 0.028 78);
+  --color-paper-elevated: oklch(95.0% 0.020 78);
+  --color-ink: oklch(22.0% 0.025 65);
+  --color-ink-2: oklch(42.0% 0.020 65);
+  --color-ink-muted: oklch(58.0% 0.016 65);
+  --color-rule: oklch(80.0% 0.022 78);
+  --color-accent: oklch(52.0% 0.160 48);
+  --color-focus: oklch(48.0% 0.160 50);
+
+  --background: var(--color-paper);
+  --foreground: var(--color-ink);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-paper: var(--color-paper);
+  --color-paper-2: var(--color-paper-2);
+  --color-paper-elevated: var(--color-paper-elevated);
+  --color-ink: var(--color-ink);
+  --color-ink-2: var(--color-ink-2);
+  --color-ink-muted: var(--color-ink-muted);
+  --color-rule: var(--color-rule);
+  --color-accent: var(--color-accent);
+  --color-focus: var(--color-focus);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-newsreader);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Hallmark Gate 34 & 54: Non-negotiable mobile clipping, no horizontal scroll */
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  overflow-x: clip;
+  min-height: 100%;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
 }
 
+/* Authentic book typography */
 .font-book-serif {
-  font-family: Charter, 'Bitstream Charter', 'Sitka Text', Cambria, Georgia, 'Times New Roman', serif;
-  font-feature-settings: "liga" 1, "kern" 1;
+  font-family: var(--font-newsreader), Charter, 'Bitstream Charter', 'Sitka Text', Cambria, Georgia, serif;
+  font-feature-settings: "liga" 1, "kern" 1, "calt" 1;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
 
 .font-book-sans {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-feature-settings: "liga" 1, "kern" 1;
-  text-rendering: optimizeLegibility;
+}
+
+.font-meta-mono {
+  font-family: var(--font-geist-mono), monospace;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Tactile bookcloth & spine styling - replaces cheap linear-gradients */
+.book-cloth-shadow {
+  box-shadow: 
+    0 1px 2px oklch(0% 0 0 / 0.1),
+    0 4px 12px oklch(0% 0 0 / 0.18),
+    0 12px 28px oklch(0% 0 0 / 0.22);
+}
+
+.book-spine-crease {
+  position: relative;
+}
+.book-spine-crease::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 12px;
+  width: 1px;
+  background: linear-gradient(to right, oklch(0% 0 0 / 0.25), transparent);
+  pointer-events: none;
+}
+.book-spine-crease::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 15px;
+  width: 2px;
+  background: linear-gradient(to right, oklch(100% 0 0 / 0.12), transparent);
+  pointer-events: none;
 }

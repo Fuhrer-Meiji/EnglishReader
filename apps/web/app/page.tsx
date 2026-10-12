@@ -128,12 +128,12 @@ export default function Home() {
   const getThemeContainerClass = () => {
     switch (theme) {
       case 'sepia':
-        return 'bg-[#f4ecd8] text-[#423326]';
+        return 'bg-[var(--color-paper)] text-[var(--color-ink)]';
       case 'dark':
-        return 'bg-[#1e1e1e] text-[#ededed] dark';
+        return 'dark bg-[var(--color-paper)] text-[var(--color-ink)]';
       case 'light':
       default:
-        return 'bg-[#faf9f5] text-[#242220]';
+        return 'bg-[var(--color-paper)] text-[var(--color-ink)]';
     }
   };
 
@@ -228,6 +228,7 @@ export default function Home() {
   // View 2: Dual-Mode WeChat Read Reader
   return (
     <div
+      data-theme={theme}
       className={`min-h-screen flex flex-col font-sans transition-colors duration-200 relative ${getThemeContainerClass()}`}
       onClick={() => setPopoverState(null)}
     >

@@ -1,0 +1,10 @@
+{
+  "scannedAt": "2026-10-12T22:02:00Z",
+  "framework": "Next.js 16 (App Router) + React 19",
+  "fontStack": "Geist + Geist Mono (next/font) + Charter / Bitstream Charter / Georgia (book serif)",
+  "palette": "OKLCH editorial tokens (design.md)",
+  "motion": "motion-cut (pure CSS microinteractions, no framer-motion)",
+  "spacingScale": "4-point Tailwind v4 scale",
+  "genre": "editorial",
+  "theme": "newsprint / warm parchment"
+}

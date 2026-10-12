@@ -1,13 +1,12 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { headers } from 'next/headers';
 import fs from 'node:fs';
 import path from 'node:path';
 import { BookCardInfo } from '../../../lib/types';
 import { PUBLIC_CATALOG_BOOKS } from '../../../lib/publicCatalog';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
-export async function GET() {
+export async function GET(request: NextRequest) {
+  await headers();
   try {
     const booksDir = path.join(process.cwd(), 'data', 'books');
     const catalogMap = new Map(PUBLIC_CATALOG_BOOKS.map((b) => [b.id, b]));

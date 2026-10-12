@@ -1,34 +1,99 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BookCardInfo } from '../lib/types';
 import { LIBRARY_BOOKS } from '../lib/mockData';
-import { Search, BookOpen, Clock, ChevronRight, Award, Compass, Sparkles, SlidersHorizontal } from 'lucide-react';
+import { PUBLIC_CATALOG_BOOKS, PublicCatalogBook } from '../lib/publicCatalog';
+import {
+  Search,
+  BookOpen,
+  Clock,
+  ChevronRight,
+  Compass,
+  Sparkles,
+  Upload,
+  Plus,
+  FileUp,
+  CheckCircle2,
+  Loader2,
+  X,
+  Library,
+} from 'lucide-react';
 
 interface BookshelfViewProps {
   onSelectBook: (bookId: string) => void;
 }
 
 export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) => {
+  const [activeTab, setActiveTab] = useState<'my-shelf' | 'public-library'>('my-shelf');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCefr, setSelectedCefr] = useState<string>('ALL');
 
-  const filteredBooks = LIBRARY_BOOKS.filter((b) => {
-    const matchesSearch =
-      b.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.chineseTitle.includes(searchQuery) ||
-      b.author.toLowerCase().includes(searchQuery.toLowerCase());
+  // Books in local shelf
+  const [myBooks, setMyBooks] = useState<BookCardInfo[]>(LIBRARY_BOOKS);
+  const [isLoadingBooks, setIsLoadingBooks] = useState(true);
 
-    const matchesCefr =
-      selectedCefr === 'ALL' ||
-      (selectedCefr === 'B1' && (b.cefr === 'A2' || b.cefr === 'B1')) ||
-      (selectedCefr === 'B2' && b.cefr === 'B2') ||
-      (selectedCefr === 'C1' && (b.cefr === 'C1' || b.cefr === 'C2'));
+  // Upload modal state
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'analyzing' | 'success' | 'error'>('idle');
+  const [uploadMessage, setUploadMessage] = useState('');
+  const [uploadedBook, setUploadedBook] = useState<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-    return matchesSearch && matchesCefr;
-  });
+  // Public domain one-click import loading state
+  const [importingSlug, setImportingSlug] = useState<string | null>(null);
 
-  const currentlyReading = LIBRARY_BOOKS.find((b) => b.readingProgress > 0) || LIBRARY_BOOKS[0];
+  // 1. Fetch books from backend API on mount
+  const fetchMyBooks = async () => {
+    try {
+      const res = await fetch('/api/books');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.books && Array.isArray(data.books) && data.books.length > 0) {
+          // Merge with mock books to keep sample progress
+          const existingIds = new Set(data.books.map((b: BookCardInfo) => b.id));
+          const mockUnadded = LIBRARY_BOOKS.filter((b) => !existingIds.has(b.id));
+          setMyBooks([...data.books, ...mockUnadded]);
+        }
+      }
+    } catch (err) {
+      console.warn('[Bookshelf] Using preset library:', err);
+    } finally {
+      setIsLoadingBooks(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMyBooks();
+  }, []);
+
+  // Set of local book IDs
+  const localBookIds = new Set(myBooks.map((b) => b.id));
+
+  // 2. Filter logic
+  const filterList = <T extends BookCardInfo>(books: T[]): T[] => {
+    return books.filter((b) => {
+      const q = searchQuery.toLowerCase().trim();
+      const matchesSearch =
+        !q ||
+        b.title.toLowerCase().includes(q) ||
+        b.chineseTitle.includes(q) ||
+        b.author.toLowerCase().includes(q);
+
+      const matchesCefr =
+        selectedCefr === 'ALL' ||
+        (selectedCefr === 'B1' && (b.cefr === 'A2' || b.cefr === 'B1')) ||
+        (selectedCefr === 'B2' && b.cefr === 'B2') ||
+        (selectedCefr === 'C1' && (b.cefr === 'C1' || b.cefr === 'C2'));
+
+      return matchesSearch && matchesCefr;
+    });
+  };
+
+  const filteredMyBooks = filterList(myBooks);
+  const filteredPublicCatalog = filterList(PUBLIC_CATALOG_BOOKS);
+
+  const currentlyReading = myBooks.find((b) => b.readingProgress > 0) || myBooks[0];
 
   const getCefrBadgeStyle = (cefr: string) => {
     switch (cefr) {
@@ -41,6 +106,82 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
       case 'A2':
       default:
         return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
+    }
+  };
+
+  // 3. Handle EPUB upload
+  const handleFileUpload = async (file: File) => {
+    if (!file.name.toLowerCase().endsWith('.epub')) {
+      setUploadStatus('error');
+      setUploadMessage('仅支持上传 .epub 格式的电子书文件');
+      return;
+    }
+
+    try {
+      setUploadStatus('uploading');
+      setUploadMessage(`正在上传《${file.name}》...`);
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Short delay to indicate analysis phase
+      const timer = setTimeout(() => {
+        setUploadStatus('analyzing');
+        setUploadMessage('正在解析章节、提取词汇并运行蓝思/CEFR难度评测...');
+      }, 800);
+
+      const res = await fetch('/api/books/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      clearTimeout(timer);
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || '上传解析失败');
+      }
+
+      const result = await res.json();
+      setUploadStatus('success');
+      setUploadedBook(result.book);
+      setUploadMessage(result.message || '解析成功！');
+
+      // Refresh shelf
+      await fetchMyBooks();
+    } catch (err: any) {
+      setUploadStatus('error');
+      setUploadMessage(err.message || '上传处理失败，请重试');
+    }
+  };
+
+  // 4. Handle One-Click Import from Public Library
+  const handleImportPublicBook = async (book: PublicCatalogBook) => {
+    if (localBookIds.has(book.id)) {
+      onSelectBook(book.id);
+      return;
+    }
+
+    try {
+      setImportingSlug(book.slug);
+      const res = await fetch('/api/books/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: book.slug }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || '导入失败');
+      }
+
+      const result = await res.json();
+      await fetchMyBooks();
+      onSelectBook(result.book?.id || book.id);
+    } catch (err: any) {
+      alert(`导入《${book.title}》失败: ` + err.message);
+    } finally {
+      setImportingSlug(null);
     }
   };
 
@@ -57,227 +198,607 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
               <h1 className="font-bold text-base tracking-tight text-white flex items-center gap-2">
                 EnglishReader
                 <span className="text-[10px] bg-amber-500/20 text-amber-400 font-semibold px-2 py-0.5 rounded-full border border-amber-500/40">
-                  原著书架
+                  原著分级阅读
                 </span>
               </h1>
             </div>
           </div>
 
-          <div className="flex items-center gap-6 text-sm text-stone-400">
-            <span className="text-white font-semibold flex items-center gap-1.5 cursor-pointer">
-              <BookOpen className="w-4 h-4 text-amber-500" />
-              我的书架
-            </span>
-            <span className="hover:text-white transition-colors cursor-pointer flex items-center gap-1.5">
-              <Compass className="w-4 h-4" />
-              发现新书
-            </span>
-            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-amber-500 to-amber-300 text-stone-900 font-bold text-xs flex items-center justify-center shadow-xs">
-              M
-            </div>
+          <div className="flex items-center gap-6 text-sm">
+            {/* Tab: My Bookshelf */}
+            <button
+              onClick={() => setActiveTab('my-shelf')}
+              className={`flex items-center gap-1.5 transition-colors font-medium ${
+                activeTab === 'my-shelf' ? 'text-amber-400 font-semibold' : 'text-stone-400 hover:text-white'
+              }`}
+            >
+              <BookOpen className="w-4 h-4" />
+              我的书架 ({myBooks.length})
+            </button>
+
+            {/* Tab: Public Library */}
+            <button
+              onClick={() => setActiveTab('public-library')}
+              className={`flex items-center gap-1.5 transition-colors font-medium ${
+                activeTab === 'public-library' ? 'text-amber-400 font-semibold' : 'text-stone-400 hover:text-white'
+              }`}
+            >
+              <Library className="w-4 h-4" />
+              公共文库 ({PUBLIC_CATALOG_BOOKS.length})
+            </button>
+
+            {/* Upload Button */}
+            <button
+              onClick={() => {
+                setUploadStatus('idle');
+                setUploadMessage('');
+                setUploadedBook(null);
+                setIsUploadModalOpen(true);
+              }}
+              className="px-3 py-1.5 rounded-full bg-stone-850 hover:bg-stone-800 border border-stone-700/80 text-amber-400 hover:text-amber-300 font-medium text-xs flex items-center gap-1.5 transition-all shadow-xs"
+            >
+              <FileUp className="w-3.5 h-3.5" />
+              <span>导入 EPUB</span>
+            </button>
           </div>
         </div>
       </header>
 
       {/* 2. Main Content Container */}
-      <main className="max-w-6xl mx-auto px-6 sm:px-12 py-10 space-y-12">
-        {/* Currently Reading Featured Hero Card (微信读书今日在读) */}
-        {currentlyReading && (
-          <section className="bg-gradient-to-r from-stone-900 via-stone-850 to-stone-900 rounded-3xl border border-stone-800/90 p-6 sm:p-8 shadow-2xl relative overflow-hidden group">
-            <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-radial from-amber-500/10 to-transparent pointer-events-none" />
+      <main className="max-w-6xl mx-auto px-6 sm:px-12 py-8 space-y-10">
+        {/* TAB 1: MY BOOKSHELF */}
+        {activeTab === 'my-shelf' && (
+          <>
+            {/* Currently Reading Featured Hero Card */}
+            {currentlyReading && (
+              <section className="bg-gradient-to-r from-stone-900 via-stone-850 to-stone-900 rounded-3xl border border-stone-800/90 p-6 sm:p-8 shadow-2xl relative overflow-hidden group">
+                <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-radial from-amber-500/10 to-transparent pointer-events-none" />
 
-            <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 sm:gap-8 justify-between">
-              <div className="flex items-center gap-6">
-                {/* Book Spine / Cover Mockup */}
+                <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 sm:gap-8 justify-between">
+                  <div className="flex items-center gap-6">
+                    {/* Book Spine / Cover */}
+                    <div
+                      onClick={() => onSelectBook(currentlyReading.id)}
+                      className={`w-28 sm:w-32 h-40 sm:h-44 rounded-xl bg-gradient-to-br ${currentlyReading.coverBg} p-3 flex flex-col justify-between shadow-2xl border border-white/10 shrink-0 cursor-pointer hover:scale-105 transition-transform duration-200`}
+                    >
+                      <div className="text-[9px] uppercase tracking-wider text-amber-200/80 font-mono">
+                        EnglishReader
+                      </div>
+                      <div>
+                        <h3 className="font-serif font-bold text-sm text-white line-clamp-2 leading-tight">
+                          {currentlyReading.title}
+                        </h3>
+                        <p className="text-[10px] text-stone-300 font-serif italic mt-0.5 truncate">
+                          {currentlyReading.author}
+                        </p>
+                      </div>
+                      <div className="text-[9px] font-sans text-amber-300/80 truncate">
+                        {currentlyReading.chineseTitle}
+                      </div>
+                    </div>
+
+                    {/* Details */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-amber-400 font-semibold flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" />
+                          当前在读
+                        </span>
+                        <span
+                          className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold ${getCefrBadgeStyle(
+                            currentlyReading.cefr
+                          )}`}
+                        >
+                          {currentlyReading.cefr} · 蓝思 {currentlyReading.lexile}
+                        </span>
+                      </div>
+
+                      <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight font-book-serif">
+                        {currentlyReading.title}
+                        <span className="text-lg text-stone-400 font-normal ml-2">
+                          ({currentlyReading.chineseTitle})
+                        </span>
+                      </h2>
+
+                      <p className="text-xs text-stone-400 max-w-xl line-clamp-2">
+                        {currentlyReading.description}
+                      </p>
+
+                      <div className="pt-2 flex items-center gap-4 text-xs text-stone-400">
+                        <div>
+                          已读进度：<span className="font-semibold text-white">{currentlyReading.readingProgress}%</span>
+                        </div>
+                        <div className="w-28 h-1.5 rounded-full bg-stone-800 overflow-hidden">
+                          <div
+                            className="h-full bg-amber-500 rounded-full"
+                            style={{ width: `${Math.max(5, currentlyReading.readingProgress)}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Button */}
+                  <button
+                    onClick={() => onSelectBook(currentlyReading.id)}
+                    className="w-full md:w-auto px-6 py-3 rounded-full bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 transition-all hover:gap-3 shrink-0 cursor-pointer"
+                  >
+                    <span>继续阅读</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </section>
+            )}
+
+            {/* Search & CEFR Filters */}
+            <section className="space-y-4">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="relative w-full sm:w-80">
+                  <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="在我的书架中搜索书名、作者..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-stone-900 border border-stone-800 rounded-full text-xs text-white placeholder-stone-500 focus:outline-hidden focus:border-amber-500 transition-colors"
+                  />
+                </div>
+
+                {/* CEFR Level Selector Pills */}
+                <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1">
+                  {[
+                    { label: '全部书籍', value: 'ALL' },
+                    { label: '入门 A2/B1 · 四级', value: 'B1' },
+                    { label: '进阶 B2 · 六级/雅思', value: 'B2' },
+                    { label: '高阶 C1 · 考研/GRE', value: 'C1' },
+                  ].map((pill) => (
+                    <button
+                      key={pill.value}
+                      onClick={() => setSelectedCefr(pill.value)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
+                        selectedCefr === pill.value
+                          ? 'bg-amber-500 text-stone-950 font-semibold shadow-xs'
+                          : 'bg-stone-900 text-stone-400 hover:text-white border border-stone-800'
+                      }`}
+                    >
+                      {pill.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* My Books Grid */}
+            <section className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-lg text-white">
+                  我的书架 ({filteredMyBooks.length})
+                </h3>
+                <span className="text-xs text-stone-500 flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  已内置 770,000 离线词条极速点词
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Upload Action Card */}
                 <div
-                  onClick={() => onSelectBook(currentlyReading.id)}
-                  className={`w-28 sm:w-32 h-40 sm:h-44 rounded-xl bg-gradient-to-br ${currentlyReading.coverBg} p-3 flex flex-col justify-between shadow-2xl border border-white/10 shrink-0 cursor-pointer hover:scale-105 transition-transform duration-200 relative`}
+                  onClick={() => {
+                    setUploadStatus('idle');
+                    setUploadMessage('');
+                    setUploadedBook(null);
+                    setIsUploadModalOpen(true);
+                  }}
+                  className="p-5 rounded-2xl bg-stone-900/40 hover:bg-stone-900 border border-dashed border-stone-750 hover:border-amber-500/60 transition-all cursor-pointer group flex flex-col items-center justify-center min-h-[200px] text-center space-y-3"
                 >
-                  <div className="text-[9px] uppercase tracking-wider text-amber-200/80 font-mono">
-                    Standard Ebooks
+                  <div className="w-12 h-12 rounded-full bg-stone-800 group-hover:bg-amber-500/20 text-stone-400 group-hover:text-amber-400 flex items-center justify-center transition-colors">
+                    <Upload className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-serif font-bold text-sm text-white line-clamp-2 leading-tight">
-                      {currentlyReading.title}
-                    </h3>
-                    <p className="text-[10px] text-stone-300 font-serif italic mt-0.5">
-                      {currentlyReading.author}
+                    <h4 className="font-bold text-sm text-white group-hover:text-amber-400 transition-colors">
+                      导入本地 EPUB 书籍
+                    </h4>
+                    <p className="text-xs text-stone-500 mt-1 max-w-[200px]">
+                      支持拖拽上传，系统自动提取章节、句子并计算蓝思难度
                     </p>
                   </div>
-                  <div className="text-[9px] font-sans text-amber-300/80">
-                    {currentlyReading.chineseTitle}
-                  </div>
                 </div>
 
-                {/* Details */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-amber-400 font-semibold flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" />
-                      当前正在阅读
-                    </span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold ${getCefrBadgeStyle(currentlyReading.cefr)}`}>
-                      {currentlyReading.cefr} · 蓝思 {currentlyReading.lexile}
-                    </span>
-                  </div>
-
-                  <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight font-book-serif">
-                    {currentlyReading.title}
-                    <span className="text-lg text-stone-400 font-normal ml-2">
-                      ({currentlyReading.chineseTitle})
-                    </span>
-                  </h2>
-
-                  <p className="text-xs text-stone-400 max-w-xl line-clamp-2">
-                    {currentlyReading.description}
-                  </p>
-
-                  <div className="pt-2 flex items-center gap-4 text-xs text-stone-400">
-                    <div>
-                      阅读进度：<span className="font-semibold text-white">{currentlyReading.readingProgress}%</span>
-                    </div>
-                    <div className="w-28 h-1.5 rounded-full bg-stone-800 overflow-hidden">
+                {/* Book Cards */}
+                {filteredMyBooks.map((book) => (
+                  <div
+                    key={book.id}
+                    onClick={() => onSelectBook(book.id)}
+                    className="p-5 rounded-2xl bg-stone-900/60 hover:bg-stone-850/80 border border-stone-800/80 hover:border-amber-500/50 transition-all cursor-pointer group flex flex-col justify-between shadow-lg"
+                  >
+                    <div className="flex gap-4">
+                      {/* Cover */}
                       <div
-                        className="h-full bg-amber-500 rounded-full"
-                        style={{ width: `${currentlyReading.readingProgress}%` }}
-                      />
+                        className={`w-24 h-34 rounded-lg bg-gradient-to-br ${book.coverBg} p-2.5 flex flex-col justify-between shadow-md border border-white/10 shrink-0 group-hover:scale-105 transition-transform`}
+                      >
+                        <span className="text-[8px] text-amber-200/60 uppercase font-mono">Book</span>
+                        <div>
+                          <h4 className="font-serif font-bold text-xs text-white line-clamp-2 leading-tight">
+                            {book.title}
+                          </h4>
+                          <p className="text-[9px] text-stone-300 font-serif italic mt-0.5 truncate">
+                            {book.author}
+                          </p>
+                        </div>
+                        <span className="text-[8px] text-stone-300">{book.publishedYear}</span>
+                      </div>
+
+                      {/* Info */}
+                      <div className="flex-1 space-y-1.5 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span
+                            className={`text-[9px] px-1.5 py-0.2 rounded font-semibold border ${getCefrBadgeStyle(
+                              book.cefr
+                            )}`}
+                          >
+                            {book.cefr}
+                          </span>
+                          <span className="text-[9px] px-1.5 py-0.2 rounded bg-stone-800 text-stone-400 border border-stone-700">
+                            {book.lexile}
+                          </span>
+                          <span className="text-[9px] text-stone-400 font-medium">
+                            {book.category}
+                          </span>
+                        </div>
+
+                        <h4 className="font-bold text-sm text-white group-hover:text-amber-400 transition-colors truncate">
+                          {book.title}
+                        </h4>
+                        <p className="text-xs text-stone-400 font-medium truncate">
+                          {book.chineseTitle}
+                        </p>
+
+                        <p className="text-[11px] text-stone-500 line-clamp-2 leading-relaxed">
+                          {book.description}
+                        </p>
+
+                        <div className="pt-1 text-[10px] text-amber-500/80 font-medium">
+                          推荐读者：{book.recommendedAudience}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bottom Progress */}
+                    <div className="mt-4 pt-3 border-t border-stone-800/60 flex items-center justify-between text-xs">
+                      <span className="text-stone-500 text-[11px]">
+                        约 {book.wordCount.toLocaleString()} 词 · {book.totalChapters} 章节
+                      </span>
+
+                      <span className="text-amber-400 font-semibold group-hover:translate-x-1 transition-transform flex items-center gap-0.5 text-xs">
+                        {book.readingProgress > 0 ? '继续阅读' : '开始阅读'} &gt;
+                      </span>
                     </div>
                   </div>
-                </div>
+                ))}
               </div>
-
-              {/* Action Button */}
-              <button
-                onClick={() => onSelectBook(currentlyReading.id)}
-                className="w-full md:w-auto px-6 py-3 rounded-full bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 transition-all hover:gap-3 shrink-0"
-              >
-                <span>继续阅读 (Chapter I)</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </section>
+            </section>
+          </>
         )}
 
-        {/* 3. Search & CEFR Difficulty Filter Bar */}
-        <section className="space-y-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="relative w-full sm:w-80">
-              <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="搜索原著书名、中文名或作者..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-stone-900 border border-stone-800 rounded-full text-xs text-white placeholder-stone-500 focus:outline-hidden focus:border-amber-500 transition-colors"
-              />
-            </div>
-
-            {/* CEFR Level Selector Pills */}
-            <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1">
-              {[
-                { label: '全部书库', value: 'ALL' },
-                { label: '入门 A2/B1 · 四级', value: 'B1' },
-                { label: '进阶 B2 · 六级/雅思', value: 'B2' },
-                { label: '高阶 C1 · 考研/GRE', value: 'C1' },
-              ].map((pill) => (
-                <button
-                  key={pill.value}
-                  onClick={() => setSelectedCefr(pill.value)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
-                    selectedCefr === pill.value
-                      ? 'bg-amber-500 text-stone-950 font-semibold shadow-xs'
-                      : 'bg-stone-900 text-stone-400 hover:text-white border border-stone-800'
-                  }`}
-                >
-                  {pill.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* 4. Books Grid */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-lg text-white">
-              精选公版书分级文库 ({filteredBooks.length})
-            </h3>
-            <span className="text-xs text-stone-500 flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              已内置 77 万词条离线速查
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredBooks.map((book) => (
-              <div
-                key={book.id}
-                onClick={() => onSelectBook(book.id)}
-                className="p-5 rounded-2xl bg-stone-900/60 hover:bg-stone-850/80 border border-stone-800/80 hover:border-amber-500/50 transition-all cursor-pointer group flex flex-col justify-between shadow-lg"
-              >
-                <div className="flex gap-4">
-                  {/* Cover */}
-                  <div
-                    className={`w-24 h-34 rounded-lg bg-gradient-to-br ${book.coverBg} p-2.5 flex flex-col justify-between shadow-md border border-white/10 shrink-0 group-hover:scale-105 transition-transform`}
-                  >
-                    <span className="text-[8px] text-amber-200/60 uppercase font-mono">Classic</span>
-                    <div>
-                      <h4 className="font-serif font-bold text-xs text-white line-clamp-2 leading-tight">
-                        {book.title}
-                      </h4>
-                      <p className="text-[9px] text-stone-300 font-serif italic mt-0.5 truncate">
-                        {book.author}
-                      </p>
-                    </div>
-                    <span className="text-[8px] text-stone-300">{book.publishedYear}</span>
+        {/* TAB 2: PUBLIC DOMAIN LIBRARY (在线公共文库) */}
+        {activeTab === 'public-library' && (
+          <>
+            {/* Banner */}
+            <section className="bg-gradient-to-r from-stone-900 via-stone-850 to-stone-900 rounded-3xl border border-stone-800 p-6 sm:p-8 shadow-xl relative overflow-hidden">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-amber-400 font-semibold text-xs">
+                    <Compass className="w-4 h-4" />
+                    <span>Standard Ebooks 精校典藏公开库</span>
                   </div>
-
-                  {/* Info */}
-                  <div className="flex-1 space-y-1.5 min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className={`text-[9px] px-1.5 py-0.2 rounded font-semibold border ${getCefrBadgeStyle(book.cefr)}`}>
-                        {book.cefr}
-                      </span>
-                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-stone-800 text-stone-400 border border-stone-700">
-                        {book.lexile}
-                      </span>
-                      <span className="text-[9px] text-stone-400 font-medium">
-                        {book.category}
-                      </span>
-                    </div>
-
-                    <h4 className="font-bold text-sm text-white group-hover:text-amber-400 transition-colors truncate">
-                      {book.title}
-                    </h4>
-                    <p className="text-xs text-stone-400 font-medium truncate">
-                      {book.chineseTitle}
-                    </p>
-
-                    <p className="text-[11px] text-stone-500 line-clamp-2 leading-relaxed">
-                      {book.description}
-                    </p>
-
-                    <div className="pt-1 text-[10px] text-amber-500/80 font-medium">
-                      推荐水平：{book.recommendedAudience}
-                    </div>
-                  </div>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight font-book-serif">
+                    世界英语名著文库
+                  </h2>
+                  <p className="text-xs text-stone-400 max-w-2xl leading-relaxed">
+                    精选 16+ 部享誉全球的世界英语文学巅峰名著，基于 Standard Ebooks 现代数字化规范排版。
+                    支持<strong>一键秒级按需入库</strong>，后台自动完成 CEFR 与蓝思分级，即刻开始双栏沉浸式阅读。
+                  </p>
                 </div>
 
-                {/* Card Bottom Progress & Enter Button */}
-                <div className="mt-4 pt-3 border-t border-stone-800/60 flex items-center justify-between text-xs">
-                  <span className="text-stone-500 text-[11px]">
-                    约 {book.wordCount.toLocaleString()} 词 · {book.totalChapters} 章节
-                  </span>
-
-                  <span className="text-amber-400 font-semibold group-hover:translate-x-1 transition-transform flex items-center gap-0.5 text-xs">
-                    {book.readingProgress > 0 ? '继续阅读' : '开始阅读'} &gt;
-                  </span>
+                <div className="flex items-center gap-4 text-xs text-stone-400 bg-stone-900/80 px-4 py-3 rounded-2xl border border-stone-800 shrink-0">
+                  <div className="text-center">
+                    <div className="text-amber-400 font-bold text-lg">{PUBLIC_CATALOG_BOOKS.length}</div>
+                    <div className="text-[10px]">精选名著</div>
+                  </div>
+                  <div className="w-px h-8 bg-stone-800" />
+                  <div className="text-center">
+                    <div className="text-emerald-400 font-bold text-lg">A2-C1</div>
+                    <div className="text-[10px]">全级别覆盖</div>
+                  </div>
+                  <div className="w-px h-8 bg-stone-800" />
+                  <div className="text-center">
+                    <div className="text-purple-400 font-bold text-lg">&lt;3s</div>
+                    <div className="text-[10px]">一键秒级入库</div>
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
-        </section>
+            </section>
+
+            {/* Filter Bar */}
+            <section className="space-y-4">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="relative w-full sm:w-80">
+                  <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="搜索公版名著书名、中文名或作者..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-stone-900 border border-stone-800 rounded-full text-xs text-white placeholder-stone-500 focus:outline-hidden focus:border-amber-500 transition-colors"
+                  />
+                </div>
+
+                {/* CEFR Level Selector Pills */}
+                <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1">
+                  {[
+                    { label: '全部名著', value: 'ALL' },
+                    { label: '入门 A2/B1 · 四级', value: 'B1' },
+                    { label: '进阶 B2 · 六级/雅思', value: 'B2' },
+                    { label: '高阶 C1 · 考研/GRE', value: 'C1' },
+                  ].map((pill) => (
+                    <button
+                      key={pill.value}
+                      onClick={() => setSelectedCefr(pill.value)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
+                        selectedCefr === pill.value
+                          ? 'bg-amber-500 text-stone-950 font-semibold shadow-xs'
+                          : 'bg-stone-900 text-stone-400 hover:text-white border border-stone-800'
+                      }`}
+                    >
+                      {pill.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* Public Catalog Grid */}
+            <section className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredPublicCatalog.map((book) => {
+                  const isImported = localBookIds.has(book.id);
+                  const isCurrentImporting = importingSlug === book.slug;
+
+                  return (
+                    <div
+                      key={book.id}
+                      className="p-5 rounded-2xl bg-stone-900/60 hover:bg-stone-850/80 border border-stone-800/80 hover:border-amber-500/50 transition-all flex flex-col justify-between shadow-lg group"
+                    >
+                      <div className="flex gap-4">
+                        {/* Cover */}
+                        <div
+                          className={`w-24 h-34 rounded-lg bg-gradient-to-br ${book.coverBg} p-2.5 flex flex-col justify-between shadow-md border border-white/10 shrink-0 group-hover:scale-105 transition-transform`}
+                        >
+                          <span className="text-[8px] text-amber-200/60 uppercase font-mono">Classic</span>
+                          <div>
+                            <h4 className="font-serif font-bold text-xs text-white line-clamp-2 leading-tight">
+                              {book.title}
+                            </h4>
+                            <p className="text-[9px] text-stone-300 font-serif italic mt-0.5 truncate">
+                              {book.author}
+                            </p>
+                          </div>
+                          <span className="text-[8px] text-stone-300">{book.publishedYear}</span>
+                        </div>
+
+                        {/* Details */}
+                        <div className="flex-1 space-y-1.5 min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span
+                              className={`text-[9px] px-1.5 py-0.2 rounded font-semibold border ${getCefrBadgeStyle(
+                                book.cefr
+                              )}`}
+                            >
+                              {book.cefr}
+                            </span>
+                            <span className="text-[9px] px-1.5 py-0.2 rounded bg-stone-800 text-stone-400 border border-stone-700">
+                              {book.lexile}
+                            </span>
+                            <span className="text-[9px] text-stone-400 font-medium">
+                              {book.category}
+                            </span>
+                          </div>
+
+                          <h4 className="font-bold text-sm text-white group-hover:text-amber-400 transition-colors truncate">
+                            {book.title}
+                          </h4>
+                          <p className="text-xs text-stone-400 font-medium truncate">
+                            {book.chineseTitle}
+                          </p>
+
+                          <p className="text-[11px] text-stone-500 line-clamp-2 leading-relaxed">
+                            {book.description}
+                          </p>
+
+                          {/* Tags */}
+                          <div className="flex items-center gap-1 flex-wrap pt-1">
+                            {book.tags.map((tag) => (
+                              <span
+                                key={tag}
+                                className="text-[9px] px-1.5 py-0.5 bg-stone-800 text-stone-400 rounded-sm"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Card Bottom: Word Count & Import / Read Button */}
+                      <div className="mt-4 pt-3 border-t border-stone-800/60 flex items-center justify-between text-xs">
+                        <span className="text-stone-500 text-[11px]">
+                          约 {book.wordCount.toLocaleString()} 词 · {book.totalChapters} 章
+                        </span>
+
+                        {isImported ? (
+                          <button
+                            onClick={() => onSelectBook(book.id)}
+                            className="px-3 py-1 rounded-full bg-stone-800 hover:bg-stone-750 text-amber-400 font-semibold text-xs flex items-center gap-1 border border-stone-700 transition-colors cursor-pointer"
+                          >
+                            <span>已在书架 · 立即阅读</span>
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </button>
+                        ) : (
+                          <button
+                            disabled={isCurrentImporting}
+                            onClick={() => handleImportPublicBook(book)}
+                            className="px-3 py-1 rounded-full bg-amber-500 hover:bg-amber-400 disabled:bg-stone-800 text-stone-950 disabled:text-stone-500 font-bold text-xs flex items-center gap-1 shadow-xs transition-all cursor-pointer"
+                          >
+                            {isCurrentImporting ? (
+                              <>
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                <span>下载分级中...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>一键入库阅读</span>
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          </>
+        )}
       </main>
+
+      {/* 3. Upload EPUB Modal */}
+      {isUploadModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+          <div className="bg-[#242426] border border-stone-700/80 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative space-y-6">
+            {/* Close Button */}
+            <button
+              onClick={() => setIsUploadModalOpen(false)}
+              className="absolute right-5 top-5 text-stone-400 hover:text-white p-1 rounded-full bg-stone-800/80 hover:bg-stone-700 transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div>
+              <h3 className="font-bold text-xl text-white flex items-center gap-2">
+                <FileUp className="w-5 h-5 text-amber-400" />
+                导入 EPUB 原著
+              </h3>
+              <p className="text-xs text-stone-400 mt-1">
+                上传你自己的英文电子书，后台将自动清洗章节并完成全书词汇与可读性评测。
+              </p>
+            </div>
+
+            {/* Drop Zone */}
+            {uploadStatus !== 'success' ? (
+              <div
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    handleFileUpload(e.dataTransfer.files[0]);
+                  }
+                }}
+                onClick={() => fileInputRef.current?.click()}
+                className="border-2 border-dashed border-stone-600 hover:border-amber-500/80 bg-stone-900/60 hover:bg-stone-900 rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all space-y-3"
+              >
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept=".epub"
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      handleFileUpload(e.target.files[0]);
+                    }
+                  }}
+                />
+
+                {uploadStatus === 'idle' && (
+                  <>
+                    <div className="w-12 h-12 rounded-full bg-stone-800 flex items-center justify-center text-amber-400 shadow-md">
+                      <Upload className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm text-white">点击选择或将 EPUB 文件拖入此处</p>
+                      <p className="text-xs text-stone-500 mt-1">支持标准 .epub 格式电子书</p>
+                    </div>
+                  </>
+                )}
+
+                {(uploadStatus === 'uploading' || uploadStatus === 'analyzing') && (
+                  <div className="space-y-3 py-4">
+                    <Loader2 className="w-8 h-8 text-amber-400 animate-spin mx-auto" />
+                    <p className="text-sm font-medium text-white">{uploadMessage}</p>
+                    <p className="text-xs text-stone-500">正在分析难度分级，可能需要数秒...</p>
+                  </div>
+                )}
+
+                {uploadStatus === 'error' && (
+                  <div className="space-y-2 py-2 text-rose-400">
+                    <p className="text-sm font-semibold">{uploadMessage}</p>
+                    <p className="text-xs text-stone-400">点击此处可重新选择文件上传</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Success View */
+              <div className="p-6 rounded-2xl bg-stone-900/80 border border-emerald-500/40 space-y-4">
+                <div className="flex items-center gap-3 text-emerald-400">
+                  <CheckCircle2 className="w-6 h-6 shrink-0" />
+                  <div>
+                    <h4 className="font-bold text-base text-white">{uploadedBook?.title || '解析完成'}</h4>
+                    <p className="text-xs text-stone-400">{uploadedBook?.author} ({uploadedBook?.publishedYear})</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 py-2 border-y border-stone-800 text-center">
+                  <div className="p-2 bg-stone-850 rounded-lg">
+                    <div className="text-[10px] text-stone-400">总章节</div>
+                    <div className="font-bold text-sm text-white">{uploadedBook?.totalChapters} 章</div>
+                  </div>
+                  <div className="p-2 bg-stone-850 rounded-lg">
+                    <div className="text-[10px] text-stone-400">预估词数</div>
+                    <div className="font-bold text-sm text-white">{uploadedBook?.wordCount?.toLocaleString()} 词</div>
+                  </div>
+                  <div className="p-2 bg-stone-850 rounded-lg">
+                    <div className="text-[10px] text-stone-400">难度评级</div>
+                    <div className="font-bold text-sm text-amber-400">{uploadedBook?.cefr} · {uploadedBook?.lexile}</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 pt-2">
+                  <button
+                    onClick={() => {
+                      setIsUploadModalOpen(false);
+                      if (uploadedBook?.id) {
+                        onSelectBook(uploadedBook.id);
+                      }
+                    }}
+                    className="flex-1 py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-sm shadow-md transition-colors cursor-pointer"
+                  >
+                    立即打开阅读
+                  </button>
+                  <button
+                    onClick={() => {
+                      setUploadStatus('idle');
+                      setUploadedBook(null);
+                    }}
+                    className="px-4 py-2.5 rounded-full bg-stone-800 hover:bg-stone-700 text-stone-300 font-medium text-xs transition-colors cursor-pointer"
+                  >
+                    继续上传其他书
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

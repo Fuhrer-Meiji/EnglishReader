@@ -51,6 +51,22 @@ def process_single_book(slug: Optional[str] = None, custom_file: Optional[str] =
         total_words = sum(c["stats"]["wordCount"] for c in book_data["chapters"])
         avg_flesch = round(sum(c["stats"]["fleschScore"] for c in book_data["chapters"]) / max(1, len(book_data["chapters"])), 1)
         
+        avg_cefr = book_data["chapters"][0]["stats"]["cefr"] if book_data["chapters"] else "B2"
+        avg_lexile = book_data["chapters"][0]["stats"]["lexile"] if book_data["chapters"] else "900L"
+
+        meta = {
+            "id": book_id,
+            "title": book_data["title"],
+            "author": book_data["author"],
+            "publishedYear": book_data["publishedYear"],
+            "totalChapters": book_data["totalChapters"],
+            "wordCount": total_words,
+            "fleschScore": avg_flesch,
+            "cefr": avg_cefr,
+            "lexile": avg_lexile,
+            "filePath": out_file
+        }
+
         # Display summary card
         print(f"\n" + "="*56)
         print(f"  ✓ Successfully compiled: {book_data['title']}")
@@ -59,7 +75,8 @@ def process_single_book(slug: Optional[str] = None, custom_file: Optional[str] =
         print(f"  Total Words:    {total_words:,} words")
         print(f"  Average Flesch: {avg_flesch} (Reading Ease)")
         print(f"  Output JSON:    {out_file} ({os.path.getsize(out_file) // 1024} KB)")
-        print("="*56 + "\n")
+        print("="*56)
+        print(f"__BOOK_METADATA__:{json.dumps(meta)}\n")
         return True
     except Exception as e:
         print(f"[!] Error processing book: {e}")

@@ -154,9 +154,11 @@ def download_standard_ebook(slug: str, cache_dir: str) -> Optional[str]:
         url = info["url"]
         filename = info["filename"]
     else:
-        # Generic slug format fallback
-        url = f"https://standardebooks.org/ebooks/{slug}/downloads/{slug}.epub?source=download"
-        filename = f"{slug.replace('/', '_')}.epub"
+        # Generic slug format supporting all 1,500+ Standard Ebooks
+        clean_slug = slug.strip('/')
+        url_file = clean_slug.replace('/', '_')
+        url = f"https://standardebooks.org/ebooks/{clean_slug}/downloads/{url_file}.epub?source=download"
+        filename = f"{url_file}.epub"
 
     dest_path = os.path.join(cache_dir, filename)
 

@@ -18,10 +18,40 @@ import {
   Loader2,
   X,
   Library,
+  ChevronLeft,
+  Flame,
 } from 'lucide-react';
 
 interface BookshelfViewProps {
   onSelectBook: (bookId: string) => void;
+}
+
+interface CatalogBookItem {
+  id: string;
+  slug: string;
+  title: string;
+  author: string;
+  source: string;
+}
+
+const COVER_GRADIENTS = [
+  'from-amber-600 via-amber-800 to-stone-900',
+  'from-emerald-600 via-teal-800 to-stone-900',
+  'from-purple-700 via-purple-900 to-stone-950',
+  'from-rose-700 via-amber-900 to-stone-950',
+  'from-cyan-900 via-stone-900 to-black',
+  'from-red-900 via-stone-900 to-stone-950',
+  'from-blue-900 via-indigo-950 to-stone-900',
+  'from-slate-800 via-stone-900 to-black',
+  'from-emerald-950 via-stone-900 to-zinc-950',
+  'from-amber-900 via-stone-900 to-slate-900',
+  'from-sky-700 via-indigo-900 to-stone-900',
+];
+
+function getCoverGradient(seed: string): string {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) hash = (hash << 5) - hash + seed.charCodeAt(i);
+  return COVER_GRADIENTS[Math.abs(hash) % COVER_GRADIENTS.length];
 }
 
 export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) => {
@@ -32,6 +62,15 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
   // Books in local shelf
   const [myBooks, setMyBooks] = useState<BookCardInfo[]>(LIBRARY_BOOKS);
   const [isLoadingBooks, setIsLoadingBooks] = useState(true);
+
+  // Full 1,528 catalog state
+  const [catalogBooks, setCatalogBooks] = useState<CatalogBookItem[]>([]);
+  const [catalogTotal, setCatalogTotal] = useState<number>(0);
+  const [catalogPage, setCatalogPage] = useState<number>(1);
+  const [catalogTotalPages, setCatalogTotalPages] = useState<number>(1);
+  const [catalogSearch, setCatalogSearch] = useState<string>('');
+  const [isLoadingCatalog, setIsLoadingCatalog] = useState<boolean>(false);
+  const [catalogViewMode, setCatalogViewMode] = useState<'featured' | 'full'>('full');
 
   // Upload modal state
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -50,7 +89,6 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
       if (res.ok) {
         const data = await res.json();
         if (data.books && Array.isArray(data.books) && data.books.length > 0) {
-          // Merge with mock books to keep sample progress
           const existingIds = new Set(data.books.map((b: BookCardInfo) => b.id));
           const mockUnadded = LIBRARY_BOOKS.filter((b) => !existingIds.has(b.id));
           setMyBooks([...data.books, ...mockUnadded]);
@@ -67,10 +105,47 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
     fetchMyBooks();
   }, []);
 
+  // 2. Fetch full catalog from backend
+  const fetchFullCatalog = async (query: string, page: number) => {
+    setIsLoadingCatalog(true);
+    try {
+      const res = await fetch(
+        `/api/books/catalog?q=${encodeURIComponent(query)}&page=${page}&limit=36`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setCatalogBooks(data.books || []);
+        setCatalogTotal(data.total || 0);
+        setCatalogTotalPages(data.totalPages || 1);
+        setCatalogPage(data.page || 1);
+      }
+    } catch (err) {
+      console.error('[Catalog] Failed to fetch catalog:', err);
+    } finally {
+      setIsLoadingCatalog(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'public-library') {
+      fetchFullCatalog(catalogSearch, catalogPage);
+    }
+  }, [activeTab, catalogPage]);
+
+  // Handle catalog search debounce
+  useEffect(() => {
+    if (activeTab !== 'public-library') return;
+    const timer = setTimeout(() => {
+      setCatalogPage(1);
+      fetchFullCatalog(catalogSearch, 1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [catalogSearch]);
+
   // Set of local book IDs
   const localBookIds = new Set(myBooks.map((b) => b.id));
 
-  // 2. Filter logic
+  // Filter my books
   const filterList = <T extends BookCardInfo>(books: T[]): T[] => {
     return books.filter((b) => {
       const q = searchQuery.toLowerCase().trim();
@@ -91,8 +166,6 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
   };
 
   const filteredMyBooks = filterList(myBooks);
-  const filteredPublicCatalog = filterList(PUBLIC_CATALOG_BOOKS);
-
   const currentlyReading = myBooks.find((b) => b.readingProgress > 0) || myBooks[0];
 
   const getCefrBadgeStyle = (cefr: string) => {
@@ -124,7 +197,6 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
       const formData = new FormData();
       formData.append('file', file);
 
-      // Short delay to indicate analysis phase
       const timer = setTimeout(() => {
         setUploadStatus('analyzing');
         setUploadMessage('正在解析章节、提取词汇并运行蓝思/CEFR难度评测...');
@@ -147,7 +219,6 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
       setUploadedBook(result.book);
       setUploadMessage(result.message || '解析成功！');
 
-      // Refresh shelf
       await fetchMyBooks();
     } catch (err: any) {
       setUploadStatus('error');
@@ -156,18 +227,18 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
   };
 
   // 4. Handle One-Click Import from Public Library
-  const handleImportPublicBook = async (book: PublicCatalogBook) => {
-    if (localBookIds.has(book.id)) {
-      onSelectBook(book.id);
+  const handleImportPublicBook = async (slug: string, id: string, title: string) => {
+    if (localBookIds.has(id)) {
+      onSelectBook(id);
       return;
     }
 
     try {
-      setImportingSlug(book.slug);
+      setImportingSlug(slug);
       const res = await fetch('/api/books/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug: book.slug }),
+        body: JSON.stringify({ slug }),
       });
 
       if (!res.ok) {
@@ -177,9 +248,9 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
 
       const result = await res.json();
       await fetchMyBooks();
-      onSelectBook(result.book?.id || book.id);
+      onSelectBook(result.book?.id || id);
     } catch (err: any) {
-      alert(`导入《${book.title}》失败: ` + err.message);
+      alert(`导入《${title}》失败: ` + err.message);
     } finally {
       setImportingSlug(null);
     }
@@ -208,7 +279,7 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
             {/* Tab: My Bookshelf */}
             <button
               onClick={() => setActiveTab('my-shelf')}
-              className={`flex items-center gap-1.5 transition-colors font-medium ${
+              className={`flex items-center gap-1.5 transition-colors font-medium cursor-pointer ${
                 activeTab === 'my-shelf' ? 'text-amber-400 font-semibold' : 'text-stone-400 hover:text-white'
               }`}
             >
@@ -219,12 +290,12 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
             {/* Tab: Public Library */}
             <button
               onClick={() => setActiveTab('public-library')}
-              className={`flex items-center gap-1.5 transition-colors font-medium ${
+              className={`flex items-center gap-1.5 transition-colors font-medium cursor-pointer ${
                 activeTab === 'public-library' ? 'text-amber-400 font-semibold' : 'text-stone-400 hover:text-white'
               }`}
             >
               <Library className="w-4 h-4" />
-              公共文库 ({PUBLIC_CATALOG_BOOKS.length})
+              公共文库 (1,500+)
             </button>
 
             {/* Upload Button */}
@@ -235,7 +306,7 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
                 setUploadedBook(null);
                 setIsUploadModalOpen(true);
               }}
-              className="px-3 py-1.5 rounded-full bg-stone-850 hover:bg-stone-800 border border-stone-700/80 text-amber-400 hover:text-amber-300 font-medium text-xs flex items-center gap-1.5 transition-all shadow-xs"
+              className="px-3 py-1.5 rounded-full bg-stone-850 hover:bg-stone-800 border border-stone-700/80 text-amber-400 hover:text-amber-300 font-medium text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
             >
               <FileUp className="w-3.5 h-3.5" />
               <span>导入 EPUB</span>
@@ -480,7 +551,7 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
           </>
         )}
 
-        {/* TAB 2: PUBLIC DOMAIN LIBRARY (在线公共文库) */}
+        {/* TAB 2: PUBLIC DOMAIN LIBRARY (在线公共文库 - 1,528 部世界经典) */}
         {activeTab === 'public-library' && (
           <>
             {/* Banner */}
@@ -489,26 +560,26 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-amber-400 font-semibold text-xs">
                     <Compass className="w-4 h-4" />
-                    <span>Standard Ebooks 精校典藏公开库</span>
+                    <span>Standard Ebooks 官方 1,500+ 精校典藏公开全库</span>
                   </div>
                   <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight font-book-serif">
-                    世界英语名著文库
+                    世界公版英语名著全库
                   </h2>
                   <p className="text-xs text-stone-400 max-w-2xl leading-relaxed">
-                    精选 16+ 部享誉全球的世界英语文学巅峰名著，基于 Standard Ebooks 现代数字化规范排版。
-                    支持<strong>一键秒级按需入库</strong>，后台自动完成 CEFR 与蓝思分级，即刻开始双栏沉浸式阅读。
+                    已全量索引 <strong>1,528 部</strong> 世界文学经典，涵盖莎士比亚、狄更斯、马克·吐温、简·奥斯汀、王尔德、毛姆等所有经典巨作。
+                    支持<strong>在线搜索与一键秒级入库</strong>，点击即刻开始双栏沉浸式阅读。
                   </p>
                 </div>
 
                 <div className="flex items-center gap-4 text-xs text-stone-400 bg-stone-900/80 px-4 py-3 rounded-2xl border border-stone-800 shrink-0">
                   <div className="text-center">
-                    <div className="text-amber-400 font-bold text-lg">{PUBLIC_CATALOG_BOOKS.length}</div>
-                    <div className="text-[10px]">精选名著</div>
+                    <div className="text-amber-400 font-bold text-lg">1,528</div>
+                    <div className="text-[10px]">精校原著全集</div>
                   </div>
                   <div className="w-px h-8 bg-stone-800" />
                   <div className="text-center">
                     <div className="text-emerald-400 font-bold text-lg">A2-C1</div>
-                    <div className="text-[10px]">全级别覆盖</div>
+                    <div className="text-[10px]">全级别难度</div>
                   </div>
                   <div className="w-px h-8 bg-stone-800" />
                   <div className="text-center">
@@ -519,120 +590,93 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
               </div>
             </section>
 
-            {/* Filter Bar */}
+            {/* Catalog Search & Mode Tabs */}
             <section className="space-y-4">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="relative w-full sm:w-80">
+                <div className="relative w-full sm:w-96">
                   <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
-                    placeholder="搜索公版名著书名、中文名或作者..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="搜索 1,500+ 部名著（如 Austen, Dickens, Shakespeare, Pooh）..."
+                    value={catalogSearch}
+                    onChange={(e) => setCatalogSearch(e.target.value)}
                     className="w-full pl-10 pr-4 py-2 bg-stone-900 border border-stone-800 rounded-full text-xs text-white placeholder-stone-500 focus:outline-hidden focus:border-amber-500 transition-colors"
                   />
                 </div>
 
-                {/* CEFR Level Selector Pills */}
-                <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1">
-                  {[
-                    { label: '全部名著', value: 'ALL' },
-                    { label: '入门 A2/B1 · 四级', value: 'B1' },
-                    { label: '进阶 B2 · 六级/雅思', value: 'B2' },
-                    { label: '高阶 C1 · 考研/GRE', value: 'C1' },
-                  ].map((pill) => (
-                    <button
-                      key={pill.value}
-                      onClick={() => setSelectedCefr(pill.value)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
-                        selectedCefr === pill.value
-                          ? 'bg-amber-500 text-stone-950 font-semibold shadow-xs'
-                          : 'bg-stone-900 text-stone-400 hover:text-white border border-stone-800'
-                      }`}
-                    >
-                      {pill.label}
-                    </button>
-                  ))}
+                <div className="text-xs text-stone-400">
+                  {isLoadingCatalog ? (
+                    <span className="flex items-center gap-1.5 text-amber-400">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      正在检索公版文库...
+                    </span>
+                  ) : (
+                    <span>
+                      共找到 <strong className="text-white">{catalogTotal}</strong> 部公版名著
+                      {catalogTotalPages > 1 && ` · 第 ${catalogPage} / ${catalogTotalPages} 页`}
+                    </span>
+                  )}
                 </div>
               </div>
             </section>
 
-            {/* Public Catalog Grid */}
-            <section className="space-y-4">
+            {/* Catalog Grid */}
+            <section className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredPublicCatalog.map((book) => {
+                {catalogBooks.map((book) => {
                   const isImported = localBookIds.has(book.id);
                   const isCurrentImporting = importingSlug === book.slug;
+                  const coverBg = getCoverGradient(book.title + book.author);
 
                   return (
                     <div
-                      key={book.id}
+                      key={book.slug}
                       className="p-5 rounded-2xl bg-stone-900/60 hover:bg-stone-850/80 border border-stone-800/80 hover:border-amber-500/50 transition-all flex flex-col justify-between shadow-lg group"
                     >
                       <div className="flex gap-4">
                         {/* Cover */}
                         <div
-                          className={`w-24 h-34 rounded-lg bg-gradient-to-br ${book.coverBg} p-2.5 flex flex-col justify-between shadow-md border border-white/10 shrink-0 group-hover:scale-105 transition-transform`}
+                          className={`w-24 h-34 rounded-lg bg-gradient-to-br ${coverBg} p-2.5 flex flex-col justify-between shadow-md border border-white/10 shrink-0 group-hover:scale-105 transition-transform`}
                         >
                           <span className="text-[8px] text-amber-200/60 uppercase font-mono">Classic</span>
                           <div>
-                            <h4 className="font-serif font-bold text-xs text-white line-clamp-2 leading-tight">
+                            <h4 className="font-serif font-bold text-xs text-white line-clamp-3 leading-tight">
                               {book.title}
                             </h4>
-                            <p className="text-[9px] text-stone-300 font-serif italic mt-0.5 truncate">
+                            <p className="text-[9px] text-stone-300 font-serif italic mt-1 truncate">
                               {book.author}
                             </p>
                           </div>
-                          <span className="text-[8px] text-stone-300">{book.publishedYear}</span>
+                          <span className="text-[8px] text-stone-400">Standard Ebooks</span>
                         </div>
 
                         {/* Details */}
-                        <div className="flex-1 space-y-1.5 min-w-0">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span
-                              className={`text-[9px] px-1.5 py-0.2 rounded font-semibold border ${getCefrBadgeStyle(
-                                book.cefr
-                              )}`}
-                            >
-                              {book.cefr}
-                            </span>
-                            <span className="text-[9px] px-1.5 py-0.2 rounded bg-stone-800 text-stone-400 border border-stone-700">
-                              {book.lexile}
-                            </span>
-                            <span className="text-[9px] text-stone-400 font-medium">
-                              {book.category}
-                            </span>
+                        <div className="flex-1 space-y-2 min-w-0 flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-stone-800 text-amber-400 border border-stone-700 font-semibold">
+                                公版经典
+                              </span>
+                            </div>
+
+                            <h4 className="font-bold text-sm text-white group-hover:text-amber-400 transition-colors mt-1.5 line-clamp-2">
+                              {book.title}
+                            </h4>
+                            <p className="text-xs text-stone-400 font-medium truncate mt-0.5">
+                              {book.author}
+                            </p>
                           </div>
 
-                          <h4 className="font-bold text-sm text-white group-hover:text-amber-400 transition-colors truncate">
-                            {book.title}
-                          </h4>
-                          <p className="text-xs text-stone-400 font-medium truncate">
-                            {book.chineseTitle}
-                          </p>
-
-                          <p className="text-[11px] text-stone-500 line-clamp-2 leading-relaxed">
-                            {book.description}
-                          </p>
-
-                          {/* Tags */}
-                          <div className="flex items-center gap-1 flex-wrap pt-1">
-                            {book.tags.map((tag) => (
-                              <span
-                                key={tag}
-                                className="text-[9px] px-1.5 py-0.5 bg-stone-800 text-stone-400 rounded-sm"
-                              >
-                                {tag}
-                              </span>
-                            ))}
+                          <div className="text-[10px] text-stone-500">
+                            标准数字化排版 · 支持蓝思分级与点词查词
                           </div>
                         </div>
                       </div>
 
-                      {/* Card Bottom: Word Count & Import / Read Button */}
+                      {/* Card Bottom: Import Button */}
                       <div className="mt-4 pt-3 border-t border-stone-800/60 flex items-center justify-between text-xs">
-                        <span className="text-stone-500 text-[11px]">
-                          约 {book.wordCount.toLocaleString()} 词 · {book.totalChapters} 章
+                        <span className="text-stone-500 text-[11px] truncate max-w-[120px]">
+                          {book.author}
                         </span>
 
                         {isImported ? (
@@ -646,7 +690,7 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
                         ) : (
                           <button
                             disabled={isCurrentImporting}
-                            onClick={() => handleImportPublicBook(book)}
+                            onClick={() => handleImportPublicBook(book.slug, book.id, book.title)}
                             className="px-3 py-1 rounded-full bg-amber-500 hover:bg-amber-400 disabled:bg-stone-800 text-stone-950 disabled:text-stone-500 font-bold text-xs flex items-center gap-1 shadow-xs transition-all cursor-pointer"
                           >
                             {isCurrentImporting ? (
@@ -667,6 +711,33 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
                   );
                 })}
               </div>
+
+              {/* Pagination controls */}
+              {catalogTotalPages > 1 && (
+                <div className="flex items-center justify-center gap-4 pt-6">
+                  <button
+                    disabled={catalogPage <= 1}
+                    onClick={() => setCatalogPage((prev) => Math.max(prev - 1, 1))}
+                    className="px-4 py-2 rounded-full bg-stone-900 border border-stone-800 hover:bg-stone-800 disabled:opacity-40 text-xs text-white flex items-center gap-1 cursor-pointer transition-all"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    <span>上一页</span>
+                  </button>
+
+                  <span className="text-xs text-stone-400">
+                    第 <strong className="text-amber-400">{catalogPage}</strong> / {catalogTotalPages} 页
+                  </span>
+
+                  <button
+                    disabled={catalogPage >= catalogTotalPages}
+                    onClick={() => setCatalogPage((prev) => Math.min(prev + 1, catalogTotalPages))}
+                    className="px-4 py-2 rounded-full bg-stone-900 border border-stone-800 hover:bg-stone-800 disabled:opacity-40 text-xs text-white flex items-center gap-1 cursor-pointer transition-all"
+                  >
+                    <span>下一页</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
             </section>
           </>
         )}
@@ -676,7 +747,6 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
       {isUploadModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
           <div className="bg-[#242426] border border-stone-700/80 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative space-y-6">
-            {/* Close Button */}
             <button
               onClick={() => setIsUploadModalOpen(false)}
               className="absolute right-5 top-5 text-stone-400 hover:text-white p-1 rounded-full bg-stone-800/80 hover:bg-stone-700 transition-colors cursor-pointer"

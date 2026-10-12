@@ -29,7 +29,7 @@ import { StudySidebar } from '../components/StudySidebar';
 import { VocabDrawer } from '../components/VocabDrawer';
 
 export default function Home() {
-  const [activeView, setActiveView] = useState<'reader' | 'bookshelf'>('reader');
+  const [activeView, setActiveView] = useState<'reader' | 'bookshelf'>('bookshelf');
   const [currentBookId, setCurrentBookId] = useState<string>('the-great-gatsby');
   const [currentBook, setCurrentBook] = useState<Book>(BOOKS_DATABASE['the-great-gatsby'] || SAMPLE_BOOK);
   const [currentChapterIndex, setCurrentChapterIndex] = useState<number>(0);
@@ -55,6 +55,29 @@ export default function Home() {
   const [activeSentence, setActiveSentence] = useState<SentenceAnalysis | null>(null);
   const [isVocabOpen, setIsVocabOpen] = useState<boolean>(false);
   const [vocabItems, setVocabItems] = useState<VocabularyItem[]>(INITIAL_VOCAB_ITEMS);
+
+  // Restore last read book and position from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedBookId = localStorage.getItem('er_last_book_id');
+      if (savedBookId) {
+        setCurrentBookId(savedBookId);
+        const savedChap = parseInt(localStorage.getItem(`er_chap_${savedBookId}`) || '0', 10);
+        const savedPage = parseInt(localStorage.getItem(`er_page_${savedBookId}`) || '0', 10);
+        setCurrentChapterIndex(savedChap);
+        setCurrentPage(savedPage);
+      }
+    }
+  }, []);
+
+  // Save current progress to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined' && currentBookId) {
+      localStorage.setItem('er_last_book_id', currentBookId);
+      localStorage.setItem(`er_chap_${currentBookId}`, String(currentChapterIndex));
+      localStorage.setItem(`er_page_${currentBookId}`, String(currentPage));
+    }
+  }, [currentBookId, currentChapterIndex, currentPage]);
 
   // Load compiled book from API if available
   useEffect(() => {
@@ -187,8 +210,15 @@ export default function Home() {
       <BookshelfView
         onSelectBook={(bookId) => {
           setCurrentBookId(bookId);
-          setCurrentChapterIndex(0);
-          setCurrentPage(0);
+          if (typeof window !== 'undefined') {
+            const savedChap = parseInt(localStorage.getItem(`er_chap_${bookId}`) || '0', 10);
+            const savedPage = parseInt(localStorage.getItem(`er_page_${bookId}`) || '0', 10);
+            setCurrentChapterIndex(savedChap);
+            setCurrentPage(savedPage);
+          } else {
+            setCurrentChapterIndex(0);
+            setCurrentPage(0);
+          }
           setActiveView('reader');
         }}
       />

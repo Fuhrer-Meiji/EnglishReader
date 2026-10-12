@@ -4,6 +4,9 @@ import path from 'node:path';
 import { BookCardInfo } from '../../../lib/types';
 import { PUBLIC_CATALOG_BOOKS } from '../../../lib/publicCatalog';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   try {
     const booksDir = path.join(process.cwd(), 'data', 'books');

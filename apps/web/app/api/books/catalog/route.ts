@@ -16,16 +16,48 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q')?.toLowerCase().trim() || '';
+    const category = searchParams.get('category')?.toLowerCase().trim() || 'all';
+    const cefr = searchParams.get('cefr')?.toUpperCase().trim() || 'ALL';
     const page = parseInt(searchParams.get('page') || '1', 10);
     const limit = parseInt(searchParams.get('limit') || '36', 10);
 
+    // Compute global category counts across full catalog
+    const categoryCounts: Record<string, number> = { all: allBooks.length };
+    const cefrCounts: Record<string, number> = { ALL: allBooks.length };
+
+    for (const book of allBooks) {
+      const cat = book.category || 'literature';
+      categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+
+      const lvl = book.cefr || 'B2';
+      cefrCounts[lvl] = (cefrCounts[lvl] || 0) + 1;
+    }
+
+    // Apply filters
     let filtered = allBooks;
+
+    // 1. Category Filter
+    if (category && category !== 'all') {
+      filtered = filtered.filter((b) => b.category === category);
+    }
+
+    // 2. CEFR Difficulty Filter
+    if (cefr && cefr !== 'ALL') {
+      filtered = filtered.filter((b) => {
+        if (cefr === 'B1') return b.cefr === 'A2' || b.cefr === 'B1';
+        return b.cefr === cefr;
+      });
+    }
+
+    // 3. Search Query Filter
     if (query) {
-      filtered = allBooks.filter(
+      filtered = filtered.filter(
         (b) =>
           b.title.toLowerCase().includes(query) ||
           b.author.toLowerCase().includes(query) ||
-          b.slug.toLowerCase().includes(query)
+          b.slug.toLowerCase().includes(query) ||
+          (b.chineseTitle && b.chineseTitle.includes(query)) ||
+          (b.categoryName && b.categoryName.includes(query))
       );
     }
 
@@ -38,6 +70,8 @@ export async function GET(request: NextRequest) {
       page,
       limit,
       totalPages: Math.ceil(total / limit),
+      categoryCounts,
+      cefrCounts,
       books: paginated,
     });
   } catch (error: any) {

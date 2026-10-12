@@ -35,7 +35,33 @@ interface CatalogBookItem {
   title: string;
   author: string;
   source: string;
+  category?: string;
+  categoryName?: string;
+  chineseTitle?: string;
+  cefr?: string;
+  lexile?: string;
 }
+
+export const CATALOG_CATEGORIES = [
+  { id: 'all', name: '全部文库', enName: 'All' },
+  { id: 'literature', name: '文学巨著', enName: 'Classics' },
+  { id: 'mystery', name: '侦探推理', enName: 'Mystery' },
+  { id: 'scifi', name: '科幻奇幻', enName: 'Sci-Fi' },
+  { id: 'adventure', name: '冒险传奇', enName: 'Adventure' },
+  { id: 'romance', name: '爱情世情', enName: 'Romance' },
+  { id: 'drama-poetry', name: '戏剧诗歌', enName: 'Drama & Poetry' },
+  { id: 'children', name: '童话青少年', enName: 'Children' },
+  { id: 'philosophy-essay', name: '哲学随笔', enName: 'Philosophy' },
+  { id: 'humor', name: '幽默讽刺', enName: 'Humor' },
+  { id: 'gothic', name: '哥特惊悚', enName: 'Gothic' },
+];
+
+export const CATALOG_CEFR_FILTERS = [
+  { label: '全部难度', value: 'ALL' },
+  { label: '入门 A2/B1 · 四级', value: 'B1' },
+  { label: '进阶 B2 · 六级/雅思', value: 'B2' },
+  { label: '高阶 C1/C2 · 考研/GRE', value: 'C1' },
+];
 
 interface ClothBinding {
   bg: string;
@@ -96,6 +122,9 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
   const [catalogPage, setCatalogPage] = useState<number>(1);
   const [catalogTotalPages, setCatalogTotalPages] = useState<number>(1);
   const [catalogSearch, setCatalogSearch] = useState<string>('');
+  const [selectedCatalogCategory, setSelectedCatalogCategory] = useState<string>('all');
+  const [selectedCatalogCefr, setSelectedCatalogCefr] = useState<string>('ALL');
+  const [catalogCategoryCounts, setCatalogCategoryCounts] = useState<Record<string, number>>({});
   const [isLoadingCatalog, setIsLoadingCatalog] = useState<boolean>(false);
 
   // Upload modal state
@@ -132,11 +161,16 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
   }, []);
 
   // 2. Fetch full catalog from backend
-  const fetchFullCatalog = async (query: string, page: number) => {
+  const fetchFullCatalog = async (
+    query: string,
+    page: number,
+    category: string,
+    cefr: string
+  ) => {
     setIsLoadingCatalog(true);
     try {
       const res = await fetch(
-        `/api/books/catalog?q=${encodeURIComponent(query)}&page=${page}&limit=36`
+        `/api/books/catalog?q=${encodeURIComponent(query)}&category=${category}&cefr=${cefr}&page=${page}&limit=36`
       );
       if (res.ok) {
         const data = await res.json();
@@ -144,6 +178,9 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
         setCatalogTotal(data.total || 0);
         setCatalogTotalPages(data.totalPages || 1);
         setCatalogPage(data.page || 1);
+        if (data.categoryCounts) {
+          setCatalogCategoryCounts(data.categoryCounts);
+        }
       }
     } catch (err) {
       console.error('[Catalog] Failed to fetch catalog:', err);
@@ -152,21 +189,29 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
     }
   };
 
-  useEffect(() => {
-    if (activeTab === 'public-library') {
-      fetchFullCatalog(catalogSearch, catalogPage);
-    }
-  }, [activeTab, catalogPage]);
+  const handleCatalogSearchChange = (val: string) => {
+    setCatalogSearch(val);
+    setCatalogPage(1);
+  };
 
-  // Handle catalog search debounce
+  const handleCatalogCategoryChange = (catId: string) => {
+    setSelectedCatalogCategory(catId);
+    setCatalogPage(1);
+  };
+
+  const handleCatalogCefrChange = (cefrVal: string) => {
+    setSelectedCatalogCefr(cefrVal);
+    setCatalogPage(1);
+  };
+
+  // Debounced catalog fetch triggered by search, page, category, or CEFR filter changes
   useEffect(() => {
     if (activeTab !== 'public-library') return;
     const timer = setTimeout(() => {
-      setCatalogPage(1);
-      fetchFullCatalog(catalogSearch, 1);
-    }, 300);
+      fetchFullCatalog(catalogSearch, catalogPage, selectedCatalogCategory, selectedCatalogCefr);
+    }, 250);
     return () => clearTimeout(timer);
-  }, [catalogSearch]);
+  }, [activeTab, catalogSearch, catalogPage, selectedCatalogCategory, selectedCatalogCefr]);
 
   // Set of local book IDs
   const localBookIds = new Set(myBooks.map((b) => b.id));
@@ -615,21 +660,122 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
               </div>
             </section>
 
-            {/* Catalog Search */}
-            <section className="space-y-4">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="relative w-full sm:w-96">
+            {/* Category Navigation Strip */}
+            <section className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-[var(--color-ink-muted)] flex items-center gap-1.5">
+                  <Library className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                  <span>按文学流派浏览：</span>
+                </span>
+                <span className="text-[11px] font-meta-mono text-[var(--color-ink-muted)]">
+                  10 大经典分类 · 1,528 卷精校典藏
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 overflow-x-auto pb-1.5 scrollbar-none no-scrollbar flex-wrap sm:flex-nowrap">
+                {CATALOG_CATEGORIES.map((cat) => {
+                  const isActive = selectedCatalogCategory === cat.id;
+                  const count = catalogCategoryCounts[cat.id] ?? (cat.id === 'all' ? 1528 : undefined);
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => handleCatalogCategoryChange(cat.id)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1.5 cursor-pointer border shrink-0 ${
+                        isActive
+                          ? 'bg-[var(--color-ink)] text-[var(--color-paper)] border-[var(--color-ink)] shadow-2xs font-semibold'
+                          : 'bg-[var(--color-paper-2)] hover:bg-[var(--color-paper-elevated)] text-[var(--color-ink-2)] hover:text-[var(--color-ink)] border-[var(--color-rule)]'
+                      }`}
+                    >
+                      <span>{cat.name}</span>
+                      {count !== undefined && (
+                        <span
+                          className={`text-[10px] px-1.5 py-0.5 rounded-full font-meta-mono leading-none ${
+                            isActive
+                              ? 'bg-[var(--color-paper)]/25 text-[var(--color-paper)]'
+                              : 'bg-[var(--color-paper-elevated)] text-[var(--color-ink-muted)] border border-[var(--color-rule)]'
+                          }`}
+                        >
+                          {count}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* Catalog Search & CEFR Difficulty Filter */}
+            <section className="bg-[var(--color-paper-2)] p-4 rounded-xl border border-[var(--color-rule)] space-y-3 shadow-2xs">
+              <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+                {/* Search Input */}
+                <div className="relative flex-1 max-w-md">
                   <Search className="w-3.5 h-3.5 text-[var(--color-ink-muted)] absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
-                    placeholder="检索 1,500+ 部名著（如 Austen, Dickens, Shakespeare, Pooh）..."
+                    placeholder="按书名、作者或中译名检索（如 Austen, Holmes, 傲慢与偏见）..."
                     value={catalogSearch}
-                    onChange={(e) => setCatalogSearch(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2 bg-[var(--color-paper-elevated)] border border-[var(--color-rule)] rounded-lg text-xs text-[var(--color-ink)] placeholder-[var(--color-ink-muted)] focus:outline-hidden focus:border-[var(--color-focus)] transition-colors"
+                    onChange={(e) => handleCatalogSearchChange(e.target.value)}
+                    className="w-full pl-9 pr-8 py-2 bg-[var(--color-paper-elevated)] border border-[var(--color-rule)] rounded-lg text-xs text-[var(--color-ink)] placeholder-[var(--color-ink-muted)] focus:outline-hidden focus:border-[var(--color-focus)] transition-colors"
                   />
+                  {catalogSearch && (
+                    <button
+                      onClick={() => handleCatalogSearchChange('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] p-0.5 cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
 
-                <div className="text-xs text-[var(--color-ink-muted)] font-meta-mono">
+                {/* CEFR Difficulty Selector */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none shrink-0">
+                  <span className="text-[11px] text-[var(--color-ink-muted)] shrink-0 font-medium mr-1 hidden sm:inline">
+                    难度分级:
+                  </span>
+                  {CATALOG_CEFR_FILTERS.map((f) => {
+                    const isActive = selectedCatalogCefr === f.value;
+                    return (
+                      <button
+                        key={f.value}
+                        onClick={() => handleCatalogCefrChange(f.value)}
+                        className={`px-2.5 py-1.5 rounded-md text-xs font-meta-mono transition-colors border cursor-pointer shrink-0 ${
+                          isActive
+                            ? 'bg-[var(--color-accent)] text-[var(--color-paper)] border-[var(--color-accent)] font-semibold shadow-2xs'
+                            : 'bg-[var(--color-paper-elevated)] text-[var(--color-ink-2)] hover:text-[var(--color-ink)] border-[var(--color-rule)] hover:bg-[var(--color-paper)]'
+                        }`}
+                      >
+                        {f.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Status and Active Filter Chips */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-[var(--color-ink-muted)] font-meta-mono pt-1.5 border-t border-[var(--color-rule)]/60">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span>
+                    分类: <strong className="text-[var(--color-ink)] font-sans">{CATALOG_CATEGORIES.find((c) => c.id === selectedCatalogCategory)?.name || '全部文库'}</strong>
+                  </span>
+                  {selectedCatalogCefr !== 'ALL' && (
+                    <>
+                      <span>·</span>
+                      <span>
+                        难度: <strong className="text-[var(--color-accent)]">{selectedCatalogCefr}</strong>
+                      </span>
+                    </>
+                  )}
+                  {catalogSearch && (
+                    <>
+                      <span>·</span>
+                      <span>
+                        关键词: &ldquo;{catalogSearch}&rdquo;
+                      </span>
+                    </>
+                  )}
+                </div>
+
+                <div>
                   {isLoadingCatalog ? (
                     <span className="flex items-center gap-1.5 text-[var(--color-accent)]">
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -647,6 +793,29 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
 
             {/* Catalog Grid */}
             <section className="space-y-6">
+              {catalogBooks.length === 0 && !isLoadingCatalog && (
+                <div className="py-16 text-center space-y-3 bg-[var(--color-paper-2)] border border-[var(--color-rule)] rounded-2xl">
+                  <Library className="w-10 h-10 text-[var(--color-ink-muted)] mx-auto opacity-40" />
+                  <h4 className="font-book-serif text-base text-[var(--color-ink)]">
+                    未找到匹配的公版名著
+                  </h4>
+                  <p className="text-xs text-[var(--color-ink-muted)] max-w-sm mx-auto">
+                    在当前分类或筛选条件下无对应书目，您可以尝试清除检索词或切换文学分类。
+                  </p>
+                  <button
+                    onClick={() => {
+                      setSelectedCatalogCategory('all');
+                      setSelectedCatalogCefr('ALL');
+                      setCatalogSearch('');
+                      setCatalogPage(1);
+                    }}
+                    className="mt-2 px-4 py-1.5 rounded-lg bg-[var(--color-paper-elevated)] hover:bg-[var(--color-paper)] border border-[var(--color-rule)] text-xs text-[var(--color-accent)] font-medium transition-colors cursor-pointer"
+                  >
+                    重置所有分类与筛选
+                  </button>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {catalogBooks.map((book) => {
                   const isImported = localBookIds.has(book.id);
@@ -678,22 +847,43 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
                         {/* Details */}
                         <div className="flex-1 space-y-2 min-w-0 flex flex-col justify-between">
                           <div>
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-[var(--color-paper-elevated)] text-[var(--color-accent)] border border-[var(--color-rule)] font-meta-mono font-semibold">
-                                公版典藏
-                              </span>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {book.categoryName && (
+                                <span className="text-[9px] px-1.5 py-0.5 rounded bg-[var(--color-paper-elevated)] text-[var(--color-accent)] border border-[var(--color-rule)] font-meta-mono font-semibold">
+                                  {book.categoryName}
+                                </span>
+                              )}
+                              {book.cefr && (
+                                <span
+                                  className={`text-[9px] px-1.5 py-0.5 rounded font-semibold border font-meta-mono ${getCefrBadgeStyle(
+                                    book.cefr
+                                  )}`}
+                                >
+                                  {book.cefr}
+                                </span>
+                              )}
+                              {book.lexile && (
+                                <span className="text-[9px] px-1.5 py-0.5 rounded bg-[var(--color-paper-elevated)] text-[var(--color-ink-muted)] border border-[var(--color-rule)] font-meta-mono">
+                                  {book.lexile}
+                                </span>
+                              )}
                             </div>
 
                             <h4 className="font-book-serif font-medium text-base text-[var(--color-ink)] group-hover:text-[var(--color-accent)] transition-colors mt-1.5 line-clamp-2">
                               {book.title}
                             </h4>
-                            <p className="text-xs text-[var(--color-ink-2)] truncate mt-0.5">
+                            {book.chineseTitle ? (
+                              <p className="text-xs text-[var(--color-ink-2)] truncate mt-0.5 font-book-serif">
+                                {book.chineseTitle}
+                              </p>
+                            ) : null}
+                            <p className="text-xs text-[var(--color-ink-muted)] truncate mt-0.5">
                               {book.author}
                             </p>
                           </div>
 
-                          <div className="text-[10px] text-[var(--color-ink-muted)]">
-                            标准数字化排版 · 支持蓝思分级与离线查词
+                          <div className="text-[10px] text-[var(--color-ink-muted)] font-meta-mono">
+                            标准数字化排版 · 蓝思分级驱动
                           </div>
                         </div>
                       </div>

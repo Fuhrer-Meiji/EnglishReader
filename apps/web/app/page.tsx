@@ -69,8 +69,9 @@ export default function Home() {
   // Restore last read book, position, settings, and vocabulary on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      const hasActive = localStorage.getItem('er_last_read_active') === 'true';
       const savedBookId = localStorage.getItem('er_last_book_id');
-      if (savedBookId) {
+      if (hasActive && savedBookId) {
         setCurrentBookId(savedBookId);
         const savedChap = parseInt(localStorage.getItem(`er_chap_${savedBookId}`) || '0', 10);
         const savedPage = parseInt(localStorage.getItem(`er_page_${savedBookId}`) || '0', 10);
@@ -117,14 +118,15 @@ export default function Home() {
     }
   };
 
-  // Save current progress to localStorage
+  // Save current progress to localStorage ONLY when user is actively inside the reader
   useEffect(() => {
-    if (typeof window !== 'undefined' && currentBookId) {
+    if (typeof window !== 'undefined' && activeView === 'reader' && currentBookId) {
+      localStorage.setItem('er_last_read_active', 'true');
       localStorage.setItem('er_last_book_id', currentBookId);
       localStorage.setItem(`er_chap_${currentBookId}`, String(currentChapterIndex));
       localStorage.setItem(`er_page_${currentBookId}`, String(currentPage));
     }
-  }, [currentBookId, currentChapterIndex, currentPage]);
+  }, [activeView, currentBookId, currentChapterIndex, currentPage]);
 
   // Load compiled book from API if available
   useEffect(() => {

@@ -110,11 +110,16 @@ function getCefrBadgeStyle(cefr: string): string {
 
 function attachRealProgress(books: BookCardInfo[]): BookCardInfo[] {
   if (typeof window === 'undefined') return books;
+  const hasActiveRead = localStorage.getItem('er_last_read_active') === 'true';
+  if (!hasActiveRead) {
+    return books.map((b) => ({ ...b, readingProgress: 0 }));
+  }
   return books.map((b) => {
     const chap = parseInt(localStorage.getItem(`er_chap_${b.id}`) || '-1', 10);
-    if (chap >= 0 && b.totalChapters > 0) {
-      const progress = Math.min(100, Math.round(((chap + 1) / b.totalChapters) * 100));
-      return { ...b, readingProgress: progress };
+    const page = parseInt(localStorage.getItem(`er_page_${b.id}`) || '0', 10);
+    if (chap > 0 || (chap === 0 && page > 0)) {
+      const progress = Math.min(100, Math.round(((chap + (page > 0 ? 0.5 : 0)) / b.totalChapters) * 100));
+      return { ...b, readingProgress: Math.max(1, progress) };
     }
     return { ...b, readingProgress: 0 };
   });
@@ -251,12 +256,14 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
 
   const filteredMyBooks = filterList(myBooks);
 
-  // Pick currently reading book (last read book with progress, or first book with progress, or library headliner)
+  // Only pick currently reading book if user has an active reading session and real progress
+  const hasActiveRead = typeof window !== 'undefined' && localStorage.getItem('er_last_read_active') === 'true';
   const lastReadBookId = typeof window !== 'undefined' ? localStorage.getItem('er_last_book_id') : null;
-  const currentlyReading =
-    myBooks.find((b) => b.id === lastReadBookId && (b.readingProgress ?? 0) > 0) ||
-    myBooks.find((b) => b.readingProgress && b.readingProgress > 0) ||
-    myBooks[0];
+  const currentlyReading = hasActiveRead
+    ? myBooks.find((b) => b.id === lastReadBookId && (b.readingProgress ?? 0) > 0) ||
+      myBooks.find((b) => (b.readingProgress ?? 0) > 0) ||
+      null
+    : null;
 
   const hasStartedReading = Boolean(currentlyReading && currentlyReading.readingProgress && currentlyReading.readingProgress > 0);
 
@@ -408,8 +415,8 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
         {/* TAB 1: MY BOOKSHELF */}
         {activeTab === 'my-shelf' && (
           <>
-            {/* Currently Reading Featured Folio Hero */}
-            {currentlyReading && (
+            {/* Currently Reading Featured Folio Hero - Only rendered when user has an active reading book */}
+            {hasStartedReading && currentlyReading && (
               <section className="bg-[var(--color-paper-2)] border border-[var(--color-rule)] rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden group">
                 <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 sm:gap-8 justify-between">
                   <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">

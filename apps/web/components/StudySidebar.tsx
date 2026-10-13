@@ -1,6 +1,6 @@
 'use client';
 
-/* Hallmark · component: StudySidebar · genre: editorial · theme: newsprint-warm / moroccan-leather
+/* Astryx · component: StudySidebar · integrated with Meta Astryx Badge and IconButton
  * states: default · hover · focus · active · disabled · loading · error · success
  * contrast: pass (APCA / WCAG 2.1 AAA)
  */
@@ -9,6 +9,7 @@ import React from 'react';
 import { ChapterStats, DifficultyLevel } from '../lib/types';
 import { DICTIONARY_DATABASE } from '../lib/mockData';
 import { Gauge, BookA, Sliders, Volume2, Sparkles } from 'lucide-react';
+import { Badge, IconButton } from '@astryxdesign/core';
 
 interface StudySidebarProps {
   stats: ChapterStats;
@@ -55,22 +56,22 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
         </div>
 
         <div className="grid grid-cols-3 gap-2">
-          <div className="bg-[var(--color-paper-elevated)] p-2.5 rounded-lg border border-[var(--color-rule)] text-center shadow-2xs font-meta-mono">
+          <div className="bg-[var(--color-paper-elevated)] p-2.5 rounded-xl border border-[var(--color-rule)] text-center shadow-2xs font-meta-mono">
             <span className="text-[10px] text-[var(--color-ink-muted)] block font-medium">CEFR</span>
             <span className="text-base font-bold text-[var(--color-accent)]">{stats.cefr}</span>
           </div>
-          <div className="bg-[var(--color-paper-elevated)] p-2.5 rounded-lg border border-[var(--color-rule)] text-center shadow-2xs font-meta-mono">
+          <div className="bg-[var(--color-paper-elevated)] p-2.5 rounded-xl border border-[var(--color-rule)] text-center shadow-2xs font-meta-mono">
             <span className="text-[10px] text-[var(--color-ink-muted)] block font-medium">蓝思</span>
             <span className="text-base font-bold text-[var(--color-ink)]">{stats.lexile}</span>
           </div>
-          <div className="bg-[var(--color-paper-elevated)] p-2.5 rounded-lg border border-[var(--color-rule)] text-center shadow-2xs font-meta-mono">
+          <div className="bg-[var(--color-paper-elevated)] p-2.5 rounded-xl border border-[var(--color-rule)] text-center shadow-2xs font-meta-mono">
             <span className="text-[10px] text-[var(--color-ink-muted)] block font-medium">易读性</span>
             <span className="text-base font-bold text-emerald-400">{stats.fleschScore}</span>
           </div>
         </div>
 
         {/* Vocabulary Composition Bar */}
-        <div className="space-y-2 bg-[var(--color-paper-elevated)] p-3 rounded-lg border border-[var(--color-rule)] shadow-2xs">
+        <div className="space-y-2 bg-[var(--color-paper-elevated)] p-3.5 rounded-xl border border-[var(--color-rule)] shadow-2xs">
           <div className="flex justify-between text-xs text-[var(--color-ink)] font-meta-mono">
             <span className="font-medium">词汇难度构成</span>
             <span className="text-[11px] text-[var(--color-ink-muted)]">{stats.wordCount} 词</span>
@@ -117,10 +118,10 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
             <button
               key={opt.value}
               onClick={() => onSelectLevelFilter(opt.value)}
-              className={`py-1.5 text-xs rounded-md font-medium transition-colors cursor-pointer ${
+              className={`py-1.5 text-xs rounded-lg font-medium transition-colors cursor-pointer border ${
                 selectedLevelFilter === opt.value
-                  ? 'bg-[var(--color-ink)] text-[var(--color-paper)] font-semibold shadow-2xs'
-                  : 'bg-[var(--color-paper-elevated)] text-[var(--color-ink-2)] border border-[var(--color-rule)] hover:border-[var(--color-ink-muted)]'
+                  ? 'bg-[var(--color-ink)] text-[var(--color-paper)] border-[var(--color-ink)] font-semibold shadow-2xs'
+                  : 'bg-[var(--color-paper-elevated)] text-[var(--color-ink-2)] border-[var(--color-rule)] hover:border-[var(--color-ink-muted)]'
               }`}
             >
               {opt.label}
@@ -147,7 +148,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
             <div
               key={rawKey}
               onClick={() => onSelectWord(rawKey)}
-              className="p-2 rounded-lg bg-[var(--color-paper-elevated)] border border-[var(--color-rule)] hover:border-[var(--color-accent)]/50 transition-colors cursor-pointer group flex items-start justify-between"
+              className="p-2.5 rounded-xl bg-[var(--color-paper-elevated)] border border-[var(--color-rule)] hover:border-[var(--color-accent)]/50 transition-colors cursor-pointer group flex items-start justify-between shadow-2xs"
             >
               <div>
                 <div className="flex items-center gap-1.5">
@@ -155,9 +156,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
                     {entry.word}
                   </span>
                   {entry.level && (
-                    <span className="text-[9px] font-meta-mono px-1 rounded bg-[var(--color-paper-2)] border border-[var(--color-rule)] text-[var(--color-ink-muted)]">
-                      {entry.level}
-                    </span>
+                    <Badge label={entry.level} variant="teal" />
                   )}
                 </div>
                 <p className="text-[11px] text-[var(--color-ink-muted)] line-clamp-1 mt-0.5">
@@ -165,13 +164,15 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
                 </p>
               </div>
 
-              <button
-                onClick={(e) => playWord(entry.word, e)}
-                className="opacity-0 group-hover:opacity-100 p-1 text-[var(--color-ink-muted)] hover:text-[var(--color-accent)] transition-opacity cursor-pointer"
-                title="朗读"
-              >
-                <Volume2 className="w-3 h-3" />
-              </button>
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                <IconButton
+                  label="朗读"
+                  icon={<Volume2 className="w-3.5 h-3.5" />}
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e: React.MouseEvent) => playWord(entry.word, e)}
+                />
+              </div>
             </div>
           ))}
         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-/* Hallmark · component: WordPopover · genre: editorial · theme: newsprint-warm / moroccan-leather
+/* Astryx · component: WordPopover · integrated with Meta Astryx Badge, Button, IconButton
  * states: default · hover · focus · active · disabled · loading · error · success
  * contrast: pass (APCA / WCAG 2.1 AAA)
  */
@@ -8,6 +8,7 @@
 import React from 'react';
 import { Volume2, Bookmark, Check, Sparkles, X } from 'lucide-react';
 import { DictEntry } from '../lib/mockData';
+import { Badge, Button, IconButton } from '@astryxdesign/core';
 
 interface WordPopoverProps {
   wordEntry: DictEntry;
@@ -39,24 +40,24 @@ export const WordPopover: React.FC<WordPopoverProps> = ({
     }
   };
 
-  const getBadgeColor = (level?: string) => {
+  const getBadgeVariant = (level?: string) => {
     switch (level) {
       case 'GRE':
-        return 'bg-purple-950/60 text-purple-300 border-purple-800/60';
+        return 'purple';
       case 'KY':
-        return 'bg-rose-950/60 text-rose-300 border-rose-800/60';
+        return 'orange';
       case 'CET6':
-        return 'bg-amber-950/60 text-amber-300 border-amber-800/60';
+        return 'blue';
       case 'CET4':
-        return 'bg-emerald-950/60 text-emerald-300 border-emerald-800/60';
+        return 'green';
       default:
-        return 'bg-[var(--color-paper-2)] text-[var(--color-ink-muted)] border-[var(--color-rule)]';
+        return 'neutral';
     }
   };
 
   return (
     <div
-      className={`fixed z-50 transform -translate-x-1/2 w-80 sm:w-88 bg-[var(--color-paper-elevated)] text-[var(--color-ink)] rounded-xl shadow-xl border border-[var(--color-rule)] p-4 animate-in fade-in zoom-in-95 duration-150 ${
+      className={`fixed z-50 transform -translate-x-1/2 w-80 sm:w-88 bg-[var(--color-paper-elevated)] text-[var(--color-ink)] rounded-2xl shadow-2xl border border-[var(--color-rule)] p-4 animate-in fade-in zoom-in-95 duration-150 ${
         position.placeAbove ? '-translate-y-full' : ''
       }`}
       style={{
@@ -73,28 +74,27 @@ export const WordPopover: React.FC<WordPopoverProps> = ({
               {wordEntry.word}
             </h4>
             {wordEntry.level && (
-              <span className={`text-[10px] font-meta-mono font-semibold px-2 py-0.5 rounded border ${getBadgeColor(wordEntry.level)}`}>
-                {wordEntry.level}
-              </span>
+              <Badge label={wordEntry.level} variant={getBadgeVariant(wordEntry.level) as any} />
             )}
           </div>
-          <div className="flex items-center gap-2 mt-0.5 text-[var(--color-ink-muted)] text-xs">
+          <div className="flex items-center gap-1.5 mt-0.5 text-[var(--color-ink-muted)] text-xs">
             <span className="font-meta-mono">{wordEntry.phonetic}</span>
-            <button
+            <IconButton
+              label="标准美音发音"
+              icon={<Volume2 className="w-3.5 h-3.5" />}
+              variant="ghost"
+              size="sm"
               onClick={playAudio}
-              className="p-1 text-[var(--color-ink-muted)] hover:text-[var(--color-accent)] rounded transition-colors cursor-pointer"
-              title="标准发音"
-            >
-              <Volume2 className="w-3.5 h-3.5" />
-            </button>
+            />
           </div>
         </div>
-        <button
+        <IconButton
+          label="关闭词典浮窗"
+          icon={<X className="w-3.5 h-3.5" />}
+          variant="ghost"
+          size="sm"
           onClick={onClose}
-          className="text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] p-1 rounded hover:bg-[var(--color-paper-2)] transition-colors cursor-pointer"
-        >
-          <X className="w-4 h-4" />
-        </button>
+        />
       </div>
 
       {/* Body: Editorial Definitions */}
@@ -130,26 +130,22 @@ export const WordPopover: React.FC<WordPopoverProps> = ({
 
       {/* Footer Actions */}
       <div className="pt-2.5 border-t border-[var(--color-rule)] flex items-center justify-between text-xs">
-        <button
+        <Button
+          label={isSaved ? '已录生词本' : '加生词本'}
+          size="sm"
+          variant={isSaved ? 'primary' : 'secondary'}
+          icon={isSaved ? <Check className="w-3.5 h-3.5" /> : <Bookmark className="w-3.5 h-3.5" />}
           onClick={onSave}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-medium transition-colors cursor-pointer ${
-            isSaved
-              ? 'bg-[var(--color-paper-2)] text-[var(--color-accent)] border border-[var(--color-accent)]/40'
-              : 'hover:bg-[var(--color-paper-2)] text-[var(--color-ink-2)] border border-[var(--color-rule)]'
-          }`}
-        >
-          {isSaved ? <Check className="w-3.5 h-3.5 text-[var(--color-accent)]" /> : <Bookmark className="w-3.5 h-3.5" />}
-          <span>{isSaved ? '已录生词本' : '加生词本'}</span>
-        </button>
+        />
 
         {onDeepDive && (
-          <button
+          <Button
+            label="语境助记"
+            size="sm"
+            variant="ghost"
+            icon={<Sparkles className="w-3.5 h-3.5 text-[var(--color-accent)]" />}
             onClick={onDeepDive}
-            className="flex items-center gap-1 text-[var(--color-accent)] hover:underline font-medium cursor-pointer"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>语境助记</span>
-          </button>
+          />
         )}
       </div>
     </div>

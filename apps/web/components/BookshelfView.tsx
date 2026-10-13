@@ -24,7 +24,7 @@ import {
   Library,
   ChevronLeft,
 } from 'lucide-react';
-import { Badge, Button, IconButton } from '@astryxdesign/core';
+import { Badge, Button, IconButton, Dialog, DialogHeader } from '@astryxdesign/core';
 
 interface BookshelfViewProps {
   onSelectBook: (bookId: string) => void;
@@ -968,131 +968,127 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
       </footer>
 
       {/* 3. Upload EPUB Modal */}
-      {isUploadModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-[var(--color-paper-2)] border border-[var(--color-rule)] rounded-2xl max-w-lg w-full p-6 sm:p-8 shadow-xl relative space-y-6">
-            <button
-              onClick={() => setIsUploadModalOpen(false)}
-              className="absolute right-5 top-5 text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] p-1.5 rounded-md hover:bg-[var(--color-paper)] transition-colors cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <div>
-              <h3 className="font-book-serif font-medium text-xl text-[var(--color-ink)] flex items-center gap-2">
-                <FileUp className="w-5 h-5 text-[var(--color-accent)]" />
-                导入 EPUB 原著
-              </h3>
-              <p className="text-xs text-[var(--color-ink-muted)] mt-1.5 leading-relaxed">
-                上传自有电子书文件，系统将在服务端清洗章节、建立索引并计算全书蓝思可读性与词汇难度。
-              </p>
+      <Dialog
+        isOpen={isUploadModalOpen}
+        onOpenChange={(open) => setIsUploadModalOpen(open)}
+        width={520}
+        padding={5}
+      >
+        <DialogHeader
+          title="导入 EPUB 原著"
+          subtitle="上传自有电子书文件，服务端将清洗章节、建立索引并完成蓝思分级评测"
+          onOpenChange={(open) => setIsUploadModalOpen(open)}
+          startContent={
+            <div className="p-1.5 rounded-md bg-[var(--color-paper-2)] text-[var(--color-accent)] border border-[var(--color-rule)]">
+              <FileUp className="w-4 h-4" />
             </div>
+          }
+        />
 
-            {/* Drop Zone */}
-            {uploadStatus !== 'success' ? (
-              <div
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                    handleFileUpload(e.dataTransfer.files[0]);
+        <div className="pt-2">
+          {uploadStatus !== 'success' ? (
+            <div
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                  handleFileUpload(e.dataTransfer.files[0]);
+                }
+              }}
+              onClick={() => fileInputRef.current?.click()}
+              className="border-2 border-dashed border-[var(--color-rule)] hover:border-[var(--color-accent)] bg-[var(--color-paper-elevated)] rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-[border-color] duration-150 space-y-3"
+            >
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept=".epub"
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    handleFileUpload(e.target.files[0]);
                   }
                 }}
-                onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-[var(--color-rule)] hover:border-[var(--color-accent)] bg-[var(--color-paper-elevated)] rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-[border-color] duration-150 space-y-3"
-              >
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  accept=".epub"
-                  className="hidden"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      handleFileUpload(e.target.files[0]);
+              />
+
+              {uploadStatus === 'idle' && (
+                <>
+                  <div className="w-12 h-12 rounded-full bg-[var(--color-paper)] flex items-center justify-center text-[var(--color-accent)] shadow-2xs">
+                    <Upload className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm text-[var(--color-ink)]">点击选择或将 EPUB 文件拖入此处</p>
+                    <p className="text-xs text-[var(--color-ink-muted)] mt-1 font-meta-mono">支持标准 .epub 电子书</p>
+                  </div>
+                </>
+              )}
+
+              {(uploadStatus === 'uploading' || uploadStatus === 'analyzing') && (
+                <div className="space-y-3 py-4">
+                  <Loader2 className="w-7 h-7 text-[var(--color-accent)] animate-spin mx-auto" />
+                  <p className="text-sm font-medium text-[var(--color-ink)]">{uploadMessage}</p>
+                  <p className="text-xs text-[var(--color-ink-muted)]">正在进行蓝思分级评测，通常需要 2–3 秒...</p>
+                </div>
+              )}
+
+              {uploadStatus === 'error' && (
+                <div className="space-y-2 py-2 text-rose-500">
+                  <p className="text-sm font-semibold">{uploadMessage}</p>
+                  <p className="text-xs text-[var(--color-ink-muted)]">点击此处可重新选择文件上传</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Success View */
+            <div className="p-5 rounded-xl bg-[var(--color-paper-elevated)] border border-emerald-500/40 space-y-4">
+              <div className="flex items-center gap-3 text-emerald-400">
+                <CheckCircle2 className="w-5 h-5 shrink-0" />
+                <div>
+                  <h4 className="font-book-serif font-medium text-base text-[var(--color-ink)]">{uploadedBook?.title || '解析完成'}</h4>
+                  <p className="text-xs text-[var(--color-ink-muted)]">{uploadedBook?.author} ({uploadedBook?.publishedYear})</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 py-2 border-y border-[var(--color-rule)] text-center font-meta-mono">
+                <div className="p-2 bg-[var(--color-paper-2)] rounded-md">
+                  <div className="text-[10px] text-[var(--color-ink-muted)]">总章节</div>
+                  <div className="font-bold text-sm text-[var(--color-ink)]">{uploadedBook?.totalChapters} 章</div>
+                </div>
+                <div className="p-2 bg-[var(--color-paper-2)] rounded-md">
+                  <div className="text-[10px] text-[var(--color-ink-muted)]">总词数</div>
+                  <div className="font-bold text-sm text-[var(--color-ink)]">{uploadedBook?.wordCount?.toLocaleString()} 词</div>
+                </div>
+                <div className="p-2 bg-[var(--color-paper-2)] rounded-md">
+                  <div className="text-[10px] text-[var(--color-ink-muted)]">难度评级</div>
+                  <div className="font-bold text-sm text-[var(--color-accent)]">{uploadedBook?.cefr} · {uploadedBook?.lexile}</div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <Button
+                  label="立即打开阅读"
+                  variant="primary"
+                  size="md"
+                  onClick={() => {
+                    setIsUploadModalOpen(false);
+                    if (uploadedBook?.id) {
+                      onSelectBook(uploadedBook.id);
                     }
                   }}
                 />
-
-                {uploadStatus === 'idle' && (
-                  <>
-                    <div className="w-12 h-12 rounded-full bg-[var(--color-paper)] flex items-center justify-center text-[var(--color-accent)] shadow-2xs">
-                      <Upload className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm text-[var(--color-ink)]">点击选择或将 EPUB 文件拖入此处</p>
-                      <p className="text-xs text-[var(--color-ink-muted)] mt-1">支持标准 .epub 电子书</p>
-                    </div>
-                  </>
-                )}
-
-                {(uploadStatus === 'uploading' || uploadStatus === 'analyzing') && (
-                  <div className="space-y-3 py-4">
-                    <Loader2 className="w-7 h-7 text-[var(--color-accent)] animate-spin mx-auto" />
-                    <p className="text-sm font-medium text-[var(--color-ink)]">{uploadMessage}</p>
-                    <p className="text-xs text-[var(--color-ink-muted)]">正在进行蓝思分级评测，通常需要 2–3 秒...</p>
-                  </div>
-                )}
-
-                {uploadStatus === 'error' && (
-                  <div className="space-y-2 py-2 text-rose-500">
-                    <p className="text-sm font-semibold">{uploadMessage}</p>
-                    <p className="text-xs text-[var(--color-ink-muted)]">点击此处可重新选择文件上传</p>
-                  </div>
-                )}
+                <Button
+                  label="继续上传"
+                  variant="secondary"
+                  size="md"
+                  onClick={() => {
+                    setUploadStatus('idle');
+                    setUploadedBook(null);
+                  }}
+                />
               </div>
-            ) : (
-              /* Success View */
-              <div className="p-6 rounded-xl bg-[var(--color-paper-elevated)] border border-emerald-500/40 space-y-4">
-                <div className="flex items-center gap-3 text-emerald-400">
-                  <CheckCircle2 className="w-5 h-5 shrink-0" />
-                  <div>
-                    <h4 className="font-book-serif font-medium text-base text-[var(--color-ink)]">{uploadedBook?.title || '解析完成'}</h4>
-                    <p className="text-xs text-[var(--color-ink-muted)]">{uploadedBook?.author} ({uploadedBook?.publishedYear})</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 py-2 border-y border-[var(--color-rule)] text-center font-meta-mono">
-                  <div className="p-2 bg-[var(--color-paper-2)] rounded-md">
-                    <div className="text-[10px] text-[var(--color-ink-muted)]">总章节</div>
-                    <div className="font-bold text-sm text-[var(--color-ink)]">{uploadedBook?.totalChapters} 章</div>
-                  </div>
-                  <div className="p-2 bg-[var(--color-paper-2)] rounded-md">
-                    <div className="text-[10px] text-[var(--color-ink-muted)]">总词数</div>
-                    <div className="font-bold text-sm text-[var(--color-ink)]">{uploadedBook?.wordCount?.toLocaleString()} 词</div>
-                  </div>
-                  <div className="p-2 bg-[var(--color-paper-2)] rounded-md">
-                    <div className="text-[10px] text-[var(--color-ink-muted)]">难度评级</div>
-                    <div className="font-bold text-sm text-[var(--color-accent)]">{uploadedBook?.cefr} · {uploadedBook?.lexile}</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 pt-2">
-                  <button
-                    onClick={() => {
-                      setIsUploadModalOpen(false);
-                      if (uploadedBook?.id) {
-                        onSelectBook(uploadedBook.id);
-                      }
-                    }}
-                    className="flex-1 py-2.5 rounded-lg bg-[var(--color-ink)] hover:bg-[var(--color-ink-2)] text-[var(--color-paper)] font-medium text-xs tracking-wider uppercase shadow-xs transition-colors cursor-pointer"
-                  >
-                    立即打开阅读
-                  </button>
-                  <button
-                    onClick={() => {
-                      setUploadStatus('idle');
-                      setUploadedBook(null);
-                    }}
-                    className="px-4 py-2.5 rounded-lg bg-[var(--color-paper-2)] hover:bg-[var(--color-paper)] text-[var(--color-ink-2)] font-medium text-xs border border-[var(--color-rule)] transition-colors cursor-pointer"
-                  >
-                    继续上传
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
-      )}
+      </Dialog>
     </div>
   );
 };

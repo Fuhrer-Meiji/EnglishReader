@@ -28,6 +28,8 @@ import { SentenceDrawer } from '../components/SentenceDrawer';
 import { StudySidebar } from '../components/StudySidebar';
 import { VocabDrawer } from '../components/VocabDrawer';
 import { useReaderTheme } from '../components/AstryxProvider';
+import { AuthUser } from '../lib/auth';
+import { AuthModal } from '../components/AuthModal';
 
 export default function Home() {
   const [activeView, setActiveView] = useState<'reader' | 'bookshelf'>('bookshelf');
@@ -46,6 +48,11 @@ export default function Home() {
   const [isBookmarked, setIsBookmarked] = useState<boolean>(true);
   const [isTOCOpen, setIsTOCOpen] = useState<boolean>(false);
 
+  // Account & Cloud Sync
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+
   // Popovers & Drawers
   const [popoverState, setPopoverState] = useState<{
     wordEntry: DictEntry;
@@ -57,12 +64,159 @@ export default function Home() {
   const [isVocabOpen, setIsVocabOpen] = useState<boolean>(false);
   const [vocabItems, setVocabItems] = useState<VocabularyItem[]>(INITIAL_VOCAB_ITEMS);
 
+  const gatherClientDataForMerge = () => {
+    if (typeof window === 'undefined') return {};
+    const clientProgress: Record<string, { chap: number; page: number }> = {};
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('er_chap_')) {
+          const bookId = key.replace('er_chap_', '');
+          const chap = parseInt(localStorage.getItem(key) || '0', 10);
+          const page = parseInt(localStorage.getItem(`er_page_${bookId}`) || '0', 10);
+          if (!isNaN(chap)) {
+            clientProgress[bookId] = { chap, page: isNaN(page) ? 0 : page };
+          }
+        }
+      }
+    } catch (e) {}
+
+    let clientVocab: VocabularyItem[] = [];
+    try {
+      const rawVocab = localStorage.getItem('er_vocab_items');
+      if (rawVocab) {
+        clientVocab = JSON.parse(rawVocab);
+      }
+    } catch (e) {}
+
+    const clientBookmarks: Record<string, boolean> = {};
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('er_bookmarked_')) {
+          const bookId = key.replace('er_bookmarked_', '');
+          clientBookmarks[bookId] = localStorage.getItem(key) === 'true';
+        }
+      }
+    } catch (e) {}
+
+    const clientSettings = {
+      fontSize,
+      isSerif,
+      theme,
+      readingMode,
+    };
+
+    return {
+      clientProgress,
+      clientVocab,
+      clientBookmarks,
+      clientSettings,
+    };
+  };
+
+  const applyCloudDataToClient = (cloudData: any) => {
+    if (!cloudData || typeof window === 'undefined') return;
+
+    if (cloudData.progress && typeof cloudData.progress === 'object') {
+      for (const [bookId, p] of Object.entries(cloudData.progress as Record<string, { chap: number; page: number }>)) {
+        if (typeof p?.chap === 'number') {
+          localStorage.setItem(`er_chap_${bookId}`, String(p.chap));
+          localStorage.setItem(`er_page_${bookId}`, String(p.page || 0));
+          if (bookId === currentBookId) {
+            setCurrentChapterIndex(p.chap);
+            setCurrentPage(p.page || 0);
+          }
+        }
+      }
+    }
+
+    if (Array.isArray(cloudData.vocabulary)) {
+      setVocabItems(cloudData.vocabulary);
+      try {
+        localStorage.setItem('er_vocab_items', JSON.stringify(cloudData.vocabulary));
+      } catch (e) {}
+    }
+
+    if (cloudData.bookmarks && typeof cloudData.bookmarks === 'object') {
+      for (const [bookId, isBm] of Object.entries(cloudData.bookmarks as Record<string, boolean>)) {
+        localStorage.setItem(`er_bookmarked_${bookId}`, String(isBm));
+        if (bookId === currentBookId) {
+          setIsBookmarked(Boolean(isBm));
+        }
+      }
+    }
+
+    if (cloudData.settings) {
+      if (typeof cloudData.settings.fontSize === 'number') {
+        setFontSize(cloudData.settings.fontSize);
+        localStorage.setItem('er_font_size', String(cloudData.settings.fontSize));
+      }
+      if (typeof cloudData.settings.isSerif === 'boolean') {
+        setIsSerif(cloudData.settings.isSerif);
+        localStorage.setItem('er_is_serif', String(cloudData.settings.isSerif));
+      }
+      if (cloudData.settings.theme && ['light', 'sepia', 'dark'].includes(cloudData.settings.theme)) {
+        setTheme(cloudData.settings.theme);
+      }
+      if (cloudData.settings.readingMode && ['zen', 'study'].includes(cloudData.settings.readingMode)) {
+        setReadingMode(cloudData.settings.readingMode);
+      }
+    }
+  };
+
+  const syncWithCloud = async () => {
+    if (!user) return;
+    setIsSyncing(true);
+    try {
+      const payload = gatherClientDataForMerge();
+      const res = await fetch('/api/user/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        const result = await res.json();
+        if (result.data) {
+          applyCloudDataToClient(result.data);
+        }
+      }
+    } catch (err) {
+      console.warn('[Sync] Manual sync error:', err);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleAuthSuccess = (loggedUser: AuthUser, syncedData?: any) => {
+    setUser(loggedUser);
+    if (syncedData) {
+      applyCloudDataToClient(syncedData);
+    } else {
+      syncWithCloud();
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (e) {}
+    setUser(null);
+  };
+
   const persistVocabItems = (items: VocabularyItem[]) => {
     setVocabItems(items);
     if (typeof window !== 'undefined') {
       try {
         localStorage.setItem('er_vocab_items', JSON.stringify(items));
       } catch (e) {}
+    }
+    if (user) {
+      fetch('/api/user/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientVocab: items }),
+      }).catch((e) => console.warn('[VocabSync] Warning:', e));
     }
   };
 
@@ -98,6 +252,35 @@ export default function Home() {
     }
   }, []);
 
+  // Check user session and sync cloud data on mount
+  useEffect(() => {
+    let isMounted = true;
+    async function checkUserSession() {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && data.user) {
+            setUser(data.user);
+            const syncRes = await fetch('/api/user/sync');
+            if (syncRes.ok) {
+              const syncData = await syncRes.json();
+              if (isMounted && syncData.data) {
+                applyCloudDataToClient(syncData.data);
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('[Auth] Check session error:', err);
+      }
+    }
+    checkUserSession();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // Sync bookmark state per book
   useEffect(() => {
     if (typeof window !== 'undefined' && currentBookId) {
@@ -116,17 +299,36 @@ export default function Home() {
     if (typeof window !== 'undefined' && currentBookId) {
       localStorage.setItem(`er_bookmarked_${currentBookId}`, String(next));
     }
+    if (user && currentBookId) {
+      fetch('/api/user/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientBookmarks: { [currentBookId]: next } }),
+      }).catch((e) => console.warn('[BookmarkSync] Warning:', e));
+    }
   };
 
-  // Save current progress to localStorage ONLY when user is actively inside the reader
+  // Save current progress to localStorage and cloud ONLY when user is actively inside the reader
   useEffect(() => {
     if (typeof window !== 'undefined' && activeView === 'reader' && currentBookId) {
       localStorage.setItem('er_last_read_active', 'true');
       localStorage.setItem('er_last_book_id', currentBookId);
       localStorage.setItem(`er_chap_${currentBookId}`, String(currentChapterIndex));
       localStorage.setItem(`er_page_${currentBookId}`, String(currentPage));
+
+      if (user) {
+        fetch('/api/user/progress', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            bookId: currentBookId,
+            chapterIndex: currentChapterIndex,
+            pageIndex: currentPage,
+          }),
+        }).catch((e) => console.warn('[ProgressSync] Warning:', e));
+      }
     }
-  }, [activeView, currentBookId, currentChapterIndex, currentPage]);
+  }, [activeView, currentBookId, currentChapterIndex, currentPage, user]);
 
   // Load compiled book from API if available
   useEffect(() => {
@@ -279,21 +481,34 @@ export default function Home() {
   // View 1: WeChat Read Styled Bookshelf & Library
   if (activeView === 'bookshelf') {
     return (
-      <BookshelfView
-        onSelectBook={(bookId) => {
-          setCurrentBookId(bookId);
-          if (typeof window !== 'undefined') {
-            const savedChap = parseInt(localStorage.getItem(`er_chap_${bookId}`) || '0', 10);
-            const savedPage = parseInt(localStorage.getItem(`er_page_${bookId}`) || '0', 10);
-            setCurrentChapterIndex(savedChap);
-            setCurrentPage(savedPage);
-          } else {
-            setCurrentChapterIndex(0);
-            setCurrentPage(0);
-          }
-          setActiveView('reader');
-        }}
-      />
+      <>
+        <BookshelfView
+          onSelectBook={(bookId) => {
+            setCurrentBookId(bookId);
+            if (typeof window !== 'undefined') {
+              const savedChap = parseInt(localStorage.getItem(`er_chap_${bookId}`) || '0', 10);
+              const savedPage = parseInt(localStorage.getItem(`er_page_${bookId}`) || '0', 10);
+              setCurrentChapterIndex(savedChap);
+              setCurrentPage(savedPage);
+            } else {
+              setCurrentChapterIndex(0);
+              setCurrentPage(0);
+            }
+            setActiveView('reader');
+          }}
+          user={user}
+          onOpenAuth={() => setIsAuthModalOpen(true)}
+          onLogout={handleLogout}
+          onManualSync={syncWithCloud}
+          isSyncing={isSyncing}
+        />
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          onSuccess={handleAuthSuccess}
+          clientDataToMerge={gatherClientDataForMerge()}
+        />
+      </>
     );
   }
 
@@ -316,6 +531,11 @@ export default function Home() {
         isBookmarked={isBookmarked}
         onToggleBookmark={handleToggleBookmark}
         onGoBookshelf={() => setActiveView('bookshelf')}
+        user={user}
+        onOpenAuth={() => setIsAuthModalOpen(true)}
+        onLogout={handleLogout}
+        onManualSync={syncWithCloud}
+        isSyncing={isSyncing}
       />
 
       {/* 2. Main Reader Canvas with Optional Study Sidebar */}
@@ -449,6 +669,14 @@ export default function Home() {
             )
           )
         }
+      />
+
+      {/* 8. User Auth & Sync Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={handleAuthSuccess}
+        clientDataToMerge={gatherClientDataForMerge()}
       />
     </div>
   );

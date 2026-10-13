@@ -25,9 +25,16 @@ import {
   ChevronLeft,
 } from 'lucide-react';
 import { Badge, Button, IconButton, Dialog, DialogHeader } from '@astryxdesign/core';
+import { UserMenu } from './UserMenu';
+import { AuthUser } from '../lib/auth';
 
 interface BookshelfViewProps {
   onSelectBook: (bookId: string) => void;
+  user?: AuthUser | null;
+  onOpenAuth?: () => void;
+  onLogout?: () => void;
+  onManualSync?: () => Promise<void>;
+  isSyncing?: boolean;
 }
 
 interface CatalogBookItem {
@@ -125,7 +132,14 @@ function attachRealProgress(books: BookCardInfo[]): BookCardInfo[] {
   });
 }
 
-export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) => {
+export const BookshelfView: React.FC<BookshelfViewProps> = ({
+  onSelectBook,
+  user,
+  onOpenAuth,
+  onLogout,
+  onManualSync,
+  isSyncing,
+}) => {
   const [activeTab, setActiveTab] = useState<'my-shelf' | 'public-library'>('my-shelf');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCefr, setSelectedCefr] = useState<string>('ALL');
@@ -178,7 +192,7 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
 
   useEffect(() => {
     fetchMyBooks();
-  }, []);
+  }, [user]);
 
   // 2. Fetch full catalog from backend
   const fetchFullCatalog = async (
@@ -406,6 +420,17 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
                 setIsUploadModalOpen(true);
               }}
             />
+
+            {/* User Account & Cloud Sync Menu */}
+            {onOpenAuth && (
+              <UserMenu
+                user={user || null}
+                onOpenAuth={onOpenAuth}
+                onLogout={onLogout || (() => {})}
+                onManualSync={onManualSync}
+                isSyncing={isSyncing}
+              />
+            )}
           </div>
         </div>
       </header>

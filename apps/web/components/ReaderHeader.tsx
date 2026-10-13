@@ -9,6 +9,8 @@ import React from 'react';
 import { ReadingMode } from '../lib/types';
 import { BookOpen, BookmarkCheck, BookmarkPlus, Sparkles, Feather } from 'lucide-react';
 import { Badge, Button, IconButton } from '@astryxdesign/core';
+import { UserMenu } from './UserMenu';
+import { AuthUser } from '../lib/auth';
 
 interface ReaderHeaderProps {
   readingMode: ReadingMode;
@@ -18,6 +20,11 @@ interface ReaderHeaderProps {
   isBookmarked: boolean;
   onToggleBookmark: () => void;
   onGoBookshelf: () => void;
+  user?: AuthUser | null;
+  onOpenAuth?: () => void;
+  onLogout?: () => void;
+  onManualSync?: () => Promise<void>;
+  isSyncing?: boolean;
 }
 
 export const ReaderHeader: React.FC<ReaderHeaderProps> = ({
@@ -28,6 +35,11 @@ export const ReaderHeader: React.FC<ReaderHeaderProps> = ({
   isBookmarked,
   onToggleBookmark,
   onGoBookshelf,
+  user,
+  onOpenAuth,
+  onLogout,
+  onManualSync,
+  isSyncing,
 }) => {
   return (
     <header className="sticky top-0 z-30 border-b border-[var(--color-rule)] bg-[var(--color-paper-2)]/95 backdrop-blur-md px-4 sm:px-8 py-3 text-[var(--color-ink)] transition-[background-color,border-color] duration-150">
@@ -89,18 +101,26 @@ export const ReaderHeader: React.FC<ReaderHeaderProps> = ({
           </button>
         </div>
 
-        {/* Right: Shelf Navigation */}
-        <div className="flex items-center gap-3 text-xs text-[var(--color-ink-muted)] font-meta-mono">
+        {/* Right: Shelf Navigation & User Account */}
+        <div className="flex items-center gap-2.5 text-xs text-[var(--color-ink-muted)] font-meta-mono">
           <Button
             label="返回文库"
             size="sm"
             variant="ghost"
             onClick={onGoBookshelf}
           />
-          <span className="text-[var(--color-rule)] hidden sm:inline">|</span>
-          <div className="w-7 h-7 rounded-md bg-[var(--color-paper-elevated)] border border-[var(--color-rule)] flex items-center justify-center text-[var(--color-ink)] font-bold text-xs select-none shadow-2xs">
-            ER
-          </div>
+          {onOpenAuth && (
+            <>
+              <span className="text-[var(--color-rule)] hidden sm:inline">|</span>
+              <UserMenu
+                user={user || null}
+                onOpenAuth={onOpenAuth}
+                onLogout={onLogout || (() => {})}
+                onManualSync={onManualSync}
+                isSyncing={isSyncing}
+              />
+            </>
+          )}
         </div>
       </div>
     </header>

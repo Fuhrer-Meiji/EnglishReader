@@ -56,6 +56,10 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   hasPrevChapter = false,
   hasNextChapter = false,
 }) => {
+  const activeFontFamily = isSerif
+    ? 'var(--font-newsreader), Newsreader, Charter, "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif'
+    : 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+
   // Check if a word should have study highlights
   const shouldHighlightWord = (level?: DifficultyLevel) => {
     if (readingMode === 'zen' || selectedLevelFilter === 'OFF' || !level) return false;
@@ -123,7 +127,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                 const rect = e.currentTarget.getBoundingClientRect();
                 onWordClick(token, rect);
               }}
-              style={{ fontSize: 'inherit' }}
+              style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
               className={`cursor-pointer transition-colors duration-100 ${
                 isHighlighted
                   ? getWordHighlightClass(dictEntry?.level)
@@ -259,6 +263,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                   className={`select-text ${isSerif ? 'font-book-serif' : 'font-book-sans'}`}
                   style={{
                     fontSize: `${fontSize}px`,
+                    fontFamily: activeFontFamily,
                     lineHeight: fontSize >= 28 ? 1.65 : fontSize >= 22 ? 1.74 : 1.82,
                     letterSpacing: '0.005em',
                   }}
@@ -266,9 +271,12 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                   {leftParagraphs.map((para, pIdx) => (
                     <p
                       key={pIdx}
-                      className="text-left indent-[2em] mb-6 text-[var(--color-ink)]"
+                      className={`text-left indent-[2em] mb-6 text-[var(--color-ink)] ${
+                        isSerif ? 'font-book-serif' : 'font-book-sans'
+                      }`}
                       style={{
                         fontSize: `${fontSize}px`,
+                        fontFamily: activeFontFamily,
                         lineHeight: fontSize >= 28 ? 1.65 : fontSize >= 22 ? 1.74 : 1.82,
                       }}
                     >
@@ -327,6 +335,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                   className={`select-text ${isSerif ? 'font-book-serif' : 'font-book-sans'}`}
                   style={{
                     fontSize: `${fontSize}px`,
+                    fontFamily: activeFontFamily,
                     lineHeight: fontSize >= 28 ? 1.65 : fontSize >= 22 ? 1.74 : 1.82,
                     letterSpacing: '0.005em',
                   }}
@@ -334,9 +343,12 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                   {rightParagraphs.map((para, pIdx) => (
                     <p
                       key={pIdx}
-                      className="text-left indent-[2em] mb-6 text-[var(--color-ink)]"
+                      className={`text-left indent-[2em] mb-6 text-[var(--color-ink)] ${
+                        isSerif ? 'font-book-serif' : 'font-book-sans'
+                      }`}
                       style={{
                         fontSize: `${fontSize}px`,
+                        fontFamily: activeFontFamily,
                         lineHeight: fontSize >= 28 ? 1.65 : fontSize >= 22 ? 1.74 : 1.82,
                       }}
                     >
@@ -421,6 +433,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
         className={`select-text ${isSerif ? 'font-book-serif' : 'font-book-sans'}`}
         style={{
           fontSize: `${fontSize}px`,
+          fontFamily: activeFontFamily,
           lineHeight: fontSize >= 28 ? 1.66 : fontSize >= 22 ? 1.75 : 1.85,
           letterSpacing: '0.005em',
         }}
@@ -428,9 +441,12 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
         {allParagraphs.map((para, pIdx) => (
           <p
             key={pIdx}
-            className="text-left indent-[2em] mb-7 text-[var(--color-ink)]"
+            className={`text-left indent-[2em] mb-7 text-[var(--color-ink)] ${
+              isSerif ? 'font-book-serif' : 'font-book-sans'
+            }`}
             style={{
               fontSize: `${fontSize}px`,
+              fontFamily: activeFontFamily,
               lineHeight: fontSize >= 28 ? 1.66 : fontSize >= 22 ? 1.75 : 1.85,
             }}
           >

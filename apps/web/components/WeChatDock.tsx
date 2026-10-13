@@ -32,6 +32,7 @@ interface WeChatDockProps {
   onSetFontSize?: (size: number) => void;
   isSerif: boolean;
   onToggleFontFamily: () => void;
+  onSelectFontFamily?: (serif: boolean) => void;
   onOpenVocab: () => void;
   onOpenTOC: () => void;
   vocabCount: number;
@@ -65,6 +66,7 @@ export const WeChatDock: React.FC<WeChatDockProps> = ({
   onSetFontSize,
   isSerif,
   onToggleFontFamily,
+  onSelectFontFamily,
   onOpenVocab,
   onOpenTOC,
   vocabCount,
@@ -173,7 +175,13 @@ export const WeChatDock: React.FC<WeChatDockProps> = ({
             <span className="text-xs text-[var(--color-ink-2)] block">正文字体风格</span>
             <div className="grid grid-cols-2 gap-2">
               <button
-                onClick={() => onToggleFontFamily()}
+                onClick={() => {
+                  if (onSelectFontFamily) {
+                    onSelectFontFamily(true);
+                  } else if (!isSerif) {
+                    onToggleFontFamily();
+                  }
+                }}
                 className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs transition-colors cursor-pointer ${
                   isSerif
                     ? 'bg-[var(--color-ink)] text-[var(--color-paper)] border-[var(--color-ink)] shadow-2xs'
@@ -184,7 +192,13 @@ export const WeChatDock: React.FC<WeChatDockProps> = ({
                 <span className="font-book-serif font-medium">古典衬线</span>
               </button>
               <button
-                onClick={() => onToggleFontFamily()}
+                onClick={() => {
+                  if (onSelectFontFamily) {
+                    onSelectFontFamily(false);
+                  } else if (isSerif) {
+                    onToggleFontFamily();
+                  }
+                }}
                 className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs transition-colors cursor-pointer ${
                   !isSerif
                     ? 'bg-[var(--color-ink)] text-[var(--color-paper)] border-[var(--color-ink)] shadow-2xs'

@@ -156,14 +156,17 @@ export default function Home() {
     }
   };
 
-  const handleToggleFontFamily = () => {
-    const next = !isSerif;
-    setIsSerif(next);
+  const handleSelectFontFamily = (serif: boolean) => {
+    setIsSerif(serif);
     if (typeof window !== 'undefined') {
       try {
-        localStorage.setItem('er_is_serif', String(next));
+        localStorage.setItem('er_is_serif', String(serif));
       } catch (e) {}
     }
+  };
+
+  const handleToggleFontFamily = () => {
+    handleSelectFontFamily(!isSerif);
   };
 
   // Instant 770,000-word ECDICT lookup
@@ -335,6 +338,7 @@ export default function Home() {
         onSetFontSize={handleSetFontSize}
         isSerif={isSerif}
         onToggleFontFamily={handleToggleFontFamily}
+        onSelectFontFamily={handleSelectFontFamily}
         onOpenVocab={() => setIsVocabOpen(true)}
         onOpenTOC={() => setIsTOCOpen(true)}
         vocabCount={vocabItems.length}

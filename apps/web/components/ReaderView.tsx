@@ -163,7 +163,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
     return Array.from(pMap.values());
   };
 
-  // Dynamic spread pagination based on sentence/word density
+  // Dynamic spread pagination based on sentence/word density & current font size
   const spreads = useMemo(() => {
     const list = chapter.sentences || [];
     if (list.length === 0) {
@@ -175,7 +175,15 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
     let currentRight: SentenceAnalysis[] = [];
     let currentColumnWords = 0;
     let isFillingLeft = true;
-    const WORDS_PER_COLUMN = 140;
+
+    // Dynamically adjust capacity based on font size (18px = ~135 words, 14px = ~210 words, 26px = ~72 words, 32px = ~50 words)
+    const baseCapacity = 135;
+    const effectiveFontSize = Math.max(fontSize, 12);
+    const WORDS_PER_COLUMN = Math.max(
+      35,
+      Math.round(baseCapacity * Math.pow(18 / effectiveFontSize, 1.65))
+    );
+    const minSentencesPerColumn = effectiveFontSize >= 28 ? 1 : 2;
 
     for (const sent of list) {
       const wordsInSent = sent.rawText.split(/\s+/).length;
@@ -183,14 +191,14 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
       if (isFillingLeft) {
         currentLeft.push(sent);
         currentColumnWords += wordsInSent;
-        if (currentColumnWords >= WORDS_PER_COLUMN && currentLeft.length >= 3) {
+        if (currentColumnWords >= WORDS_PER_COLUMN && currentLeft.length >= minSentencesPerColumn) {
           isFillingLeft = false;
           currentColumnWords = 0;
         }
       } else {
         currentRight.push(sent);
         currentColumnWords += wordsInSent;
-        if (currentColumnWords >= WORDS_PER_COLUMN && currentRight.length >= 3) {
+        if (currentColumnWords >= WORDS_PER_COLUMN && currentRight.length >= minSentencesPerColumn) {
           result.push({ left: currentLeft, right: currentRight });
           currentLeft = [];
           currentRight = [];
@@ -205,7 +213,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
     }
 
     return result.length > 0 ? result : [{ left: [], right: [] }];
-  }, [chapter.sentences]);
+  }, [chapter.sentences, fontSize]);
 
   const totalPages = spreads.length;
   const safePage = Math.min(Math.max(currentPage, 0), totalPages - 1);
@@ -250,12 +258,12 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                   className={`select-text ${isSerif ? 'font-book-serif' : 'font-book-sans'}`}
                   style={{
                     fontSize: `${fontSize}px`,
-                    lineHeight: 1.82,
+                    lineHeight: fontSize >= 28 ? 1.65 : fontSize >= 22 ? 1.74 : 1.82,
                     letterSpacing: '0.005em',
                   }}
                 >
                   {leftParagraphs.map((para, pIdx) => (
-                    <p key={pIdx} className="text-left indent-[2em] mb-6 leading-[1.82] text-[var(--color-ink)]">
+                    <p key={pIdx} className="text-left indent-[2em] mb-6 text-[var(--color-ink)]" style={{ lineHeight: 'inherit' }}>
                       {para.map((sent, sIdx) => (
                         <React.Fragment key={sent.id}>
                           {sIdx > 0 ? ' ' : ''}
@@ -311,12 +319,12 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                   className={`select-text ${isSerif ? 'font-book-serif' : 'font-book-sans'}`}
                   style={{
                     fontSize: `${fontSize}px`,
-                    lineHeight: 1.82,
+                    lineHeight: fontSize >= 28 ? 1.65 : fontSize >= 22 ? 1.74 : 1.82,
                     letterSpacing: '0.005em',
                   }}
                 >
                   {rightParagraphs.map((para, pIdx) => (
-                    <p key={pIdx} className="text-left indent-[2em] mb-6 leading-[1.82] text-[var(--color-ink)]">
+                    <p key={pIdx} className="text-left indent-[2em] mb-6 text-[var(--color-ink)]" style={{ lineHeight: 'inherit' }}>
                       {para.map((sent, sIdx) => (
                         <React.Fragment key={sent.id}>
                           {sIdx > 0 ? ' ' : ''}
@@ -398,12 +406,12 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
         className={`select-text ${isSerif ? 'font-book-serif' : 'font-book-sans'}`}
         style={{
           fontSize: `${fontSize}px`,
-          lineHeight: 1.85,
+          lineHeight: fontSize >= 28 ? 1.66 : fontSize >= 22 ? 1.75 : 1.85,
           letterSpacing: '0.005em',
         }}
       >
         {allParagraphs.map((para, pIdx) => (
-          <p key={pIdx} className="text-left indent-[2em] mb-7 leading-[1.85] text-[var(--color-ink)]">
+          <p key={pIdx} className="text-left indent-[2em] mb-7 text-[var(--color-ink)]" style={{ lineHeight: 'inherit' }}>
             {para.map((sent, sIdx) => (
               <React.Fragment key={sent.id}>
                 {sIdx > 0 ? ' ' : ''}

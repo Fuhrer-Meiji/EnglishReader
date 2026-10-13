@@ -68,6 +68,14 @@ export default function Home() {
         setCurrentChapterIndex(savedChap);
         setCurrentPage(savedPage);
       }
+      const savedFontSize = parseInt(localStorage.getItem('er_font_size') || '18', 10);
+      if (savedFontSize >= 13 && savedFontSize <= 40) {
+        setFontSize(savedFontSize);
+      }
+      const savedSerif = localStorage.getItem('er_is_serif');
+      if (savedSerif !== null) {
+        setIsSerif(savedSerif === 'true');
+      }
     }
   }, []);
 
@@ -135,6 +143,26 @@ export default function Home() {
       case 'light':
       default:
         return 'bg-[var(--color-paper)] text-[var(--color-ink)]';
+    }
+  };
+
+  const handleSetFontSize = (size: number) => {
+    const clamped = Math.min(Math.max(size, 13), 38);
+    setFontSize(clamped);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('er_font_size', String(clamped));
+      } catch (e) {}
+    }
+  };
+
+  const handleToggleFontFamily = () => {
+    const next = !isSerif;
+    setIsSerif(next);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('er_is_serif', String(next));
+      } catch (e) {}
     }
   };
 
@@ -303,11 +331,10 @@ export default function Home() {
         theme={theme}
         onSelectTheme={setTheme}
         fontSize={fontSize}
-        onChangeFontSize={(delta) =>
-          setFontSize((prev) => Math.min(Math.max(prev + delta, 14), 26))
-        }
+        onChangeFontSize={(delta) => handleSetFontSize(fontSize + delta)}
+        onSetFontSize={handleSetFontSize}
         isSerif={isSerif}
-        onToggleFontFamily={() => setIsSerif(!isSerif)}
+        onToggleFontFamily={handleToggleFontFamily}
         onOpenVocab={() => setIsVocabOpen(true)}
         onOpenTOC={() => setIsTOCOpen(true)}
         vocabCount={vocabItems.length}

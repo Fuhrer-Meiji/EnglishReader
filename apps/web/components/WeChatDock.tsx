@@ -29,12 +29,29 @@ interface WeChatDockProps {
   onSelectTheme: (theme: ThemeMode) => void;
   fontSize: number;
   onChangeFontSize: (delta: number) => void;
+  onSetFontSize?: (size: number) => void;
   isSerif: boolean;
   onToggleFontFamily: () => void;
   onOpenVocab: () => void;
   onOpenTOC: () => void;
   vocabCount: number;
 }
+
+const FONT_PRESETS = [
+  { label: '小号', size: 14 },
+  { label: '经典', size: 18 },
+  { label: '舒适', size: 22 },
+  { label: '大字', size: 26 },
+  { label: '特大', size: 32 },
+];
+
+const getFontSizeLabel = (size: number) => {
+  if (size <= 15) return '精致小号';
+  if (size <= 19) return '经典书刊';
+  if (size <= 23) return '舒适阅读';
+  if (size <= 28) return '清晰大字';
+  return '特大沉浸';
+};
 
 export const WeChatDock: React.FC<WeChatDockProps> = ({
   layoutMode,
@@ -45,6 +62,7 @@ export const WeChatDock: React.FC<WeChatDockProps> = ({
   onSelectTheme,
   fontSize,
   onChangeFontSize,
+  onSetFontSize,
   isSerif,
   onToggleFontFamily,
   onOpenVocab,
@@ -57,64 +75,124 @@ export const WeChatDock: React.FC<WeChatDockProps> = ({
     setActivePanel((prev) => (prev === panel ? null : panel));
   };
 
+  const handleUpdateFontSize = (newSize: number) => {
+    const clamped = Math.min(Math.max(newSize, 13), 38);
+    if (onSetFontSize) {
+      onSetFontSize(clamped);
+    } else {
+      onChangeFontSize(clamped - fontSize);
+    }
+  };
+
   return (
     <aside className="fixed right-5 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center gap-3">
       {/* Settings Popup Flyout Panel */}
       {activePanel === 'font' && (
         <div
-          className="absolute right-14 top-1/2 -translate-y-1/2 w-64 bg-[var(--color-paper-elevated)] text-[var(--color-ink)] border border-[var(--color-rule)] rounded-xl shadow-xl p-4 animate-in fade-in zoom-in-95 duration-150 space-y-3.5 z-50"
+          className="absolute right-14 top-1/2 -translate-y-1/2 w-76 sm:w-80 bg-[var(--color-paper-elevated)] text-[var(--color-ink)] border border-[var(--color-rule)] rounded-2xl shadow-2xl p-4.5 animate-in fade-in zoom-in-95 duration-150 space-y-4 z-50"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between pb-2 border-b border-[var(--color-rule)]">
-            <span className="text-xs font-semibold font-book-serif text-[var(--color-ink)]">字号与版式</span>
-            <button onClick={() => setActivePanel(null)} className="text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] cursor-pointer">
+          {/* Header with Title and Current Size Badge */}
+          <div className="flex items-center justify-between pb-2.5 border-b border-[var(--color-rule)]">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold font-book-serif text-[var(--color-ink)]">字号与版式</span>
+              <span className="text-[10px] font-meta-mono text-[var(--color-accent)] bg-[var(--color-paper-2)] px-2 py-0.5 rounded-full border border-[var(--color-rule)] font-medium">
+                {fontSize}px · {getFontSizeLabel(fontSize)}
+              </span>
+            </div>
+            <button
+              onClick={() => setActivePanel(null)}
+              className="text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] cursor-pointer p-0.5 rounded hover:bg-[var(--color-paper-2)] transition-colors"
+            >
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-[var(--color-ink-2)]">排版字号</span>
-            <div className="flex items-center gap-2 bg-[var(--color-paper-2)] p-1 rounded-md border border-[var(--color-rule)]">
+          {/* Stepper + Continuous Range Slider */}
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between text-xs text-[var(--color-ink-2)]">
+              <span>阅读字号大小</span>
+              <span className="font-meta-mono text-[11px] text-[var(--color-ink-muted)]">13px - 38px</span>
+            </div>
+
+            <div className="flex items-center gap-2.5">
               <button
-                onClick={() => onChangeFontSize(-1)}
-                disabled={fontSize <= 15}
-                className="px-2 py-0.5 text-xs font-semibold hover:bg-[var(--color-paper-elevated)] rounded disabled:opacity-30 cursor-pointer"
+                onClick={() => handleUpdateFontSize(fontSize - 2)}
+                disabled={fontSize <= 13}
+                className="w-8 h-8 shrink-0 flex items-center justify-center text-xs font-bold font-meta-mono bg-[var(--color-paper-2)] hover:bg-[var(--color-paper)] border border-[var(--color-rule)] rounded-lg disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-2xs"
+                title="缩小字号 (2px)"
               >
                 A-
               </button>
-              <span className="text-xs font-meta-mono px-1">{fontSize}px</span>
+
+              <div className="flex-1 relative flex items-center px-1">
+                <input
+                  type="range"
+                  min="13"
+                  max="38"
+                  step="1"
+                  value={fontSize}
+                  onChange={(e) => handleUpdateFontSize(Number(e.target.value))}
+                  className="w-full h-1.5 bg-[var(--color-rule)] rounded-lg appearance-none cursor-pointer accent-[var(--color-accent)] focus:outline-none"
+                />
+              </div>
+
               <button
-                onClick={() => onChangeFontSize(1)}
-                disabled={fontSize >= 26}
-                className="px-2 py-0.5 text-xs font-semibold hover:bg-[var(--color-paper-elevated)] rounded disabled:opacity-30 cursor-pointer"
+                onClick={() => handleUpdateFontSize(fontSize + 2)}
+                disabled={fontSize >= 38}
+                className="w-8 h-8 shrink-0 flex items-center justify-center text-sm font-bold font-meta-mono bg-[var(--color-paper-2)] hover:bg-[var(--color-paper)] border border-[var(--color-rule)] rounded-lg disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-2xs"
+                title="放大字号 (2px)"
               >
                 A+
               </button>
             </div>
+
+            {/* Quick Preset Pills */}
+            <div className="grid grid-cols-5 gap-1.5 pt-1">
+              {FONT_PRESETS.map((p) => {
+                const isActive = fontSize === p.size;
+                return (
+                  <button
+                    key={p.size}
+                    onClick={() => handleUpdateFontSize(p.size)}
+                    className={`py-1 rounded-md text-[11px] font-meta-mono transition-colors border cursor-pointer ${
+                      isActive
+                        ? 'bg-[var(--color-ink)] text-[var(--color-paper)] border-[var(--color-ink)] font-semibold shadow-2xs'
+                        : 'bg-[var(--color-paper-2)] text-[var(--color-ink-2)] border-[var(--color-rule)] hover:border-[var(--color-accent)]/50'
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-[var(--color-ink-2)]">正文字体</span>
-            <div className="flex gap-1.5">
+          {/* Typography Font Family */}
+          <div className="space-y-2 pt-2 border-t border-[var(--color-rule)]">
+            <span className="text-xs text-[var(--color-ink-2)] block">正文字体风格</span>
+            <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => onToggleFontFamily()}
-                className={`px-2.5 py-1 text-xs rounded-md font-medium border transition-colors cursor-pointer ${
+                className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs transition-colors cursor-pointer ${
                   isSerif
-                    ? 'bg-[var(--color-ink)] text-[var(--color-paper)] border-[var(--color-ink)] font-book-serif'
-                    : 'bg-[var(--color-paper-2)] text-[var(--color-ink-2)] border-[var(--color-rule)] font-book-serif'
+                    ? 'bg-[var(--color-ink)] text-[var(--color-paper)] border-[var(--color-ink)] shadow-2xs'
+                    : 'bg-[var(--color-paper-2)] text-[var(--color-ink-2)] border-[var(--color-rule)] hover:border-[var(--color-accent)]/50'
                 }`}
               >
-                古典衬线
+                <span className="font-book-serif text-sm font-bold">Aa</span>
+                <span className="font-book-serif font-medium">古典衬线</span>
               </button>
               <button
                 onClick={() => onToggleFontFamily()}
-                className={`px-2.5 py-1 text-xs rounded-md font-medium border transition-colors cursor-pointer ${
+                className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs transition-colors cursor-pointer ${
                   !isSerif
-                    ? 'bg-[var(--color-ink)] text-[var(--color-paper)] border-[var(--color-ink)] font-book-sans'
-                    : 'bg-[var(--color-paper-2)] text-[var(--color-ink-2)] border-[var(--color-rule)] font-book-sans'
+                    ? 'bg-[var(--color-ink)] text-[var(--color-paper)] border-[var(--color-ink)] shadow-2xs'
+                    : 'bg-[var(--color-paper-2)] text-[var(--color-ink-2)] border-[var(--color-rule)] hover:border-[var(--color-accent)]/50'
                 }`}
               >
-                现代无衬
+                <span className="font-book-sans text-sm font-bold">Aa</span>
+                <span className="font-book-sans font-medium">现代无衬</span>
               </button>
             </div>
           </div>

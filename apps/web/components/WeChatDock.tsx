@@ -165,7 +165,7 @@ export const WeChatDock: React.FC<WeChatDockProps> = ({
               <div className="w-6 h-6 rounded-full bg-[#ede1c7] border border-[#d6c4a0] shadow-2xs flex items-center justify-center">
                 <Coffee className="w-3.5 h-3.5 text-[#594433]" />
               </div>
-              <span className="text-[10px] text-[#594433] dark:text-[#d3bc9f] font-meta-mono">羊皮纸</span>
+              <span className="text-[10px] text-[var(--color-ink-2)] font-meta-mono">羊皮纸</span>
             </button>
 
             <button

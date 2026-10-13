@@ -27,6 +27,7 @@ import { WordPopover } from '../components/WordPopover';
 import { SentenceDrawer } from '../components/SentenceDrawer';
 import { StudySidebar } from '../components/StudySidebar';
 import { VocabDrawer } from '../components/VocabDrawer';
+import { useReaderTheme } from '../components/AstryxProvider';
 
 export default function Home() {
   const [activeView, setActiveView] = useState<'reader' | 'bookshelf'>('bookshelf');
@@ -36,7 +37,7 @@ export default function Home() {
 
   const [readingMode, setReadingMode] = useState<ReadingMode>('zen');
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('double');
-  const [theme, setTheme] = useState<ThemeMode>('dark');
+  const { theme, setTheme } = useReaderTheme();
   const [fontSize, setFontSize] = useState<number>(18);
   const [isSerif, setIsSerif] = useState<boolean>(true);
   const [selectedLevelFilter, setSelectedLevelFilter] = useState<DifficultyLevel | 'ALL' | 'OFF'>('CET6');

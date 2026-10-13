@@ -69,15 +69,22 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
 
   const getWordHighlightClass = (level?: DifficultyLevel) => {
     if (!level) return '';
+    const isDark = theme === 'dark';
     switch (level) {
       case 'GRE':
-        return 'text-purple-400 border-b border-purple-400/80 font-medium';
+        return isDark
+          ? 'text-purple-300 border-b border-purple-400/80 font-medium'
+          : 'text-purple-800 border-b border-purple-700/80 font-medium';
       case 'KY':
-        return 'text-rose-400 border-b border-rose-400/80 font-medium';
+        return isDark
+          ? 'text-rose-300 border-b border-rose-400/80 font-medium'
+          : 'text-rose-800 border-b border-rose-700/80 font-medium';
       case 'CET6':
         return 'text-[var(--color-accent)] border-b border-[var(--color-accent)]/80 font-medium';
       case 'CET4':
-        return 'text-emerald-400 border-b border-emerald-400/80 font-medium';
+        return isDark
+          ? 'text-emerald-300 border-b border-emerald-400/80 font-medium'
+          : 'text-emerald-800 border-b border-emerald-700/80 font-medium';
       default:
         return '';
     }
@@ -119,7 +126,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
               className={`cursor-pointer transition-colors duration-100 ${
                 isHighlighted
                   ? getWordHighlightClass(dictEntry?.level)
-                  : 'hover:text-[var(--color-accent)]'
+                  : 'text-[var(--color-ink)] hover:text-[var(--color-accent)]'
               }`}
             >
               {token}
@@ -248,7 +255,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                   }}
                 >
                   {leftParagraphs.map((para, pIdx) => (
-                    <p key={pIdx} className="text-left indent-[2em] mb-6 leading-[1.82]">
+                    <p key={pIdx} className="text-left indent-[2em] mb-6 leading-[1.82] text-[var(--color-ink)]">
                       {para.map((sent, sIdx) => (
                         <React.Fragment key={sent.id}>
                           {sIdx > 0 ? ' ' : ''}
@@ -309,7 +316,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                   }}
                 >
                   {rightParagraphs.map((para, pIdx) => (
-                    <p key={pIdx} className="text-left indent-[2em] mb-6 leading-[1.82]">
+                    <p key={pIdx} className="text-left indent-[2em] mb-6 leading-[1.82] text-[var(--color-ink)]">
                       {para.map((sent, sIdx) => (
                         <React.Fragment key={sent.id}>
                           {sIdx > 0 ? ' ' : ''}
@@ -396,7 +403,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
         }}
       >
         {allParagraphs.map((para, pIdx) => (
-          <p key={pIdx} className="text-left indent-[2em] mb-7 leading-[1.85]">
+          <p key={pIdx} className="text-left indent-[2em] mb-7 leading-[1.85] text-[var(--color-ink)]">
             {para.map((sent, sIdx) => (
               <React.Fragment key={sent.id}>
                 {sIdx > 0 ? ' ' : ''}

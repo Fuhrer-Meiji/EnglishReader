@@ -8,8 +8,11 @@
  * pre-emit critique: P5 H5 E5 S5 R5 V5
  */
 
-:root {
-  /* Warm Parchment / Literary Paper - Hallmark Rule: tint toward anchor hue, no pure #fff */
+:root,
+html[data-theme="light"],
+[data-theme="light"] {
+  color-scheme: light;
+  /* Warm Natural Paper - Hallmark Rule: tint toward anchor hue, no pure #fff */
   --color-paper: oklch(96.8% 0.012 75);
   --color-paper-2: oklch(93.8% 0.015 75);
   --color-paper-elevated: oklch(98.8% 0.008 75);
@@ -22,9 +25,44 @@
 
   --background: var(--color-paper);
   --foreground: var(--color-ink);
+
+  /* Astryx token bridging */
+  --color-text-primary: var(--color-ink);
+  --color-text-secondary: var(--color-ink-2);
+  --color-text-muted: var(--color-ink-muted);
+  --color-icon-primary: var(--color-ink);
+  --color-icon-secondary: var(--color-ink-2);
 }
 
-.dark, [data-theme="dark"] {
+/* Eye-care Parchment / Warm Sepia */
+html[data-theme="sepia"],
+[data-theme="sepia"] {
+  color-scheme: light;
+  --color-paper: oklch(92.5% 0.024 78);
+  --color-paper-2: oklch(88.5% 0.028 78);
+  --color-paper-elevated: oklch(95.0% 0.020 78);
+  --color-ink: oklch(22.0% 0.025 65);
+  --color-ink-2: oklch(42.0% 0.020 65);
+  --color-ink-muted: oklch(58.0% 0.016 65);
+  --color-rule: oklch(80.0% 0.022 78);
+  --color-accent: oklch(52.0% 0.160 48);
+  --color-focus: oklch(48.0% 0.160 50);
+
+  --background: var(--color-paper);
+  --foreground: var(--color-ink);
+
+  /* Astryx token bridging */
+  --color-text-primary: var(--color-ink);
+  --color-text-secondary: var(--color-ink-2);
+  --color-text-muted: var(--color-ink-muted);
+  --color-icon-primary: var(--color-ink);
+  --color-icon-secondary: var(--color-ink-2);
+}
+
+.dark,
+html[data-theme="dark"],
+[data-theme="dark"] {
+  color-scheme: dark;
   /* Library Midnight / Moroccan Leather - Hallmark Rule: never pure #000 */
   --color-paper: oklch(16.5% 0.009 55);
   --color-paper-2: oklch(20.5% 0.011 55);
@@ -38,22 +76,13 @@
 
   --background: var(--color-paper);
   --foreground: var(--color-ink);
-}
 
-/* Eye-care Parchment / Warm Sepia */
-[data-theme="sepia"] {
-  --color-paper: oklch(92.5% 0.024 78);
-  --color-paper-2: oklch(88.5% 0.028 78);
-  --color-paper-elevated: oklch(95.0% 0.020 78);
-  --color-ink: oklch(22.0% 0.025 65);
-  --color-ink-2: oklch(42.0% 0.020 65);
-  --color-ink-muted: oklch(58.0% 0.016 65);
-  --color-rule: oklch(80.0% 0.022 78);
-  --color-accent: oklch(52.0% 0.160 48);
-  --color-focus: oklch(48.0% 0.160 50);
-
-  --background: var(--color-paper);
-  --foreground: var(--color-ink);
+  /* Astryx token bridging */
+  --color-text-primary: var(--color-ink);
+  --color-text-secondary: var(--color-ink-2);
+  --color-text-muted: var(--color-ink-muted);
+  --color-icon-primary: var(--color-ink);
+  --color-icon-secondary: var(--color-ink-2);
 }
 
 @theme inline {
@@ -82,17 +111,35 @@ body {
   color: var(--color-ink);
 }
 
+/* Astryx Theme Bridge: Ensure elements inside Astryx scope inherit Hallmark theme ink colors */
+[data-astryx-theme] {
+  --color-text-primary: var(--color-ink);
+  --color-text-secondary: var(--color-ink-2);
+  --color-text-muted: var(--color-ink-muted);
+  --color-icon-primary: var(--color-ink);
+  --color-icon-secondary: var(--color-ink-2);
+}
+
+/* Global Typography color contract: ensures <p>, headings, and book content never turn invisible */
+p,
+article,
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-ink);
+}
+
 /* Authentic book typography */
 .font-book-serif {
   font-family: var(--font-newsreader), Charter, 'Bitstream Charter', 'Sitka Text', Cambria, Georgia, serif;
   font-feature-settings: "liga" 1, "kern" 1, "calt" 1;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  color: var(--color-ink);
 }
 
 .font-book-sans {
   font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-feature-settings: "liga" 1, "kern" 1;
+  color: var(--color-ink);
 }
 
 .font-meta-mono {

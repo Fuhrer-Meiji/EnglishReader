@@ -24,6 +24,7 @@ import {
   Library,
   ChevronLeft,
 } from 'lucide-react';
+import { Badge, Button, IconButton } from '@astryxdesign/core';
 
 interface BookshelfViewProps {
   onSelectBook: (bookId: string) => void;
@@ -367,18 +368,18 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
             </button>
 
             {/* Upload EPUB Action */}
-            <button
+            <Button
+              label="导入书籍"
+              variant="secondary"
+              size="sm"
+              icon={<FileUp className="w-3.5 h-3.5 text-[var(--color-accent)]" />}
               onClick={() => {
                 setUploadStatus('idle');
                 setUploadMessage('');
                 setUploadedBook(null);
                 setIsUploadModalOpen(true);
               }}
-              className="px-3 py-1.5 rounded-md bg-[var(--color-paper-elevated)] hover:bg-[var(--color-paper)] border border-[var(--color-rule)] text-[var(--color-ink)] font-medium text-xs flex items-center gap-1.5 transition-[background-color,border-color] duration-150 shadow-2xs cursor-pointer"
-            >
-              <FileUp className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-              <span className="hidden sm:inline">导入 EPUB</span>
-            </button>
+            />
           </div>
         </div>
       </header>
@@ -426,13 +427,10 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
                           <Clock className="w-3.5 h-3.5" />
                           正在阅读
                         </span>
-                        <span
-                          className={`text-[10px] px-2 py-0.5 rounded border font-semibold font-meta-mono ${getCefrBadgeStyle(
-                            currentlyReading.cefr
-                          )}`}
-                        >
-                          {currentlyReading.cefr} · 蓝思 {currentlyReading.lexile}
-                        </span>
+                        <Badge
+                          label={`${currentlyReading.cefr} · 蓝思 ${currentlyReading.lexile}`}
+                          variant="teal"
+                        />
                       </div>
 
                       <h2 className="text-2xl sm:text-3xl font-normal text-[var(--color-ink)] tracking-tight font-book-serif">
@@ -461,13 +459,13 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
                   </div>
 
                   {/* Primary CTA */}
-                  <button
+                  <Button
+                    label="继续翻阅"
+                    variant="primary"
+                    size="lg"
+                    endContent={<ChevronRight className="w-4 h-4" />}
                     onClick={() => onSelectBook(currentlyReading.id)}
-                    className="w-full sm:w-auto px-6 py-3 rounded-lg bg-[var(--color-ink)] hover:bg-[var(--color-ink-2)] text-[var(--color-paper)] font-medium text-xs tracking-wide uppercase flex items-center justify-center gap-2 shadow-xs transition-[background-color,transform] duration-150 shrink-0 cursor-pointer"
-                  >
-                    <span>继续翻阅</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
+                  />
                 </div>
               </section>
             )}
@@ -802,17 +800,17 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
                   <p className="text-xs text-[var(--color-ink-muted)] max-w-sm mx-auto">
                     在当前分类或筛选条件下无对应书目，您可以尝试清除检索词或切换文学分类。
                   </p>
-                  <button
+                  <Button
+                    label="重置所有分类与筛选"
+                    size="sm"
+                    variant="secondary"
                     onClick={() => {
                       setSelectedCatalogCategory('all');
                       setSelectedCatalogCefr('ALL');
                       setCatalogSearch('');
                       setCatalogPage(1);
                     }}
-                    className="mt-2 px-4 py-1.5 rounded-lg bg-[var(--color-paper-elevated)] hover:bg-[var(--color-paper)] border border-[var(--color-rule)] text-xs text-[var(--color-accent)] font-medium transition-colors cursor-pointer"
-                  >
-                    重置所有分类与筛选
-                  </button>
+                  />
                 </div>
               )}
 
@@ -849,23 +847,22 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
                           <div>
                             <div className="flex items-center gap-1.5 flex-wrap">
                               {book.categoryName && (
-                                <span className="text-[9px] px-1.5 py-0.5 rounded bg-[var(--color-paper-elevated)] text-[var(--color-accent)] border border-[var(--color-rule)] font-meta-mono font-semibold">
-                                  {book.categoryName}
-                                </span>
+                                <Badge label={book.categoryName} variant="teal" />
                               )}
                               {book.cefr && (
-                                <span
-                                  className={`text-[9px] px-1.5 py-0.5 rounded font-semibold border font-meta-mono ${getCefrBadgeStyle(
-                                    book.cefr
-                                  )}`}
-                                >
-                                  {book.cefr}
-                                </span>
+                                <Badge
+                                  label={book.cefr}
+                                  variant={
+                                    book.cefr.startsWith('C')
+                                      ? 'purple'
+                                      : book.cefr === 'B2'
+                                      ? 'blue'
+                                      : 'green'
+                                  }
+                                />
                               )}
                               {book.lexile && (
-                                <span className="text-[9px] px-1.5 py-0.5 rounded bg-[var(--color-paper-elevated)] text-[var(--color-ink-muted)] border border-[var(--color-rule)] font-meta-mono">
-                                  {book.lexile}
-                                </span>
+                                <Badge label={book.lexile} variant="neutral" />
                               )}
                             </div>
 
@@ -895,31 +892,22 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
                         </span>
 
                         {isImported ? (
-                          <button
+                          <Button
+                            label="已在书架 · 立即阅读"
+                            variant="secondary"
+                            size="sm"
+                            endContent={<ChevronRight className="w-3.5 h-3.5" />}
                             onClick={() => onSelectBook(book.id)}
-                            className="px-3 py-1 rounded-md bg-[var(--color-paper-elevated)] hover:bg-[var(--color-paper)] text-[var(--color-accent)] font-semibold text-xs flex items-center gap-1 border border-[var(--color-rule)] transition-colors cursor-pointer"
-                          >
-                            <span>已在书架 · 立即阅读</span>
-                            <ChevronRight className="w-3.5 h-3.5" />
-                          </button>
+                          />
                         ) : (
-                          <button
-                            disabled={isCurrentImporting}
+                          <Button
+                            label={isCurrentImporting ? '下载评测中...' : '一键入库阅读'}
+                            variant="primary"
+                            size="sm"
+                            isLoading={isCurrentImporting}
+                            icon={!isCurrentImporting ? <Plus className="w-3.5 h-3.5" /> : undefined}
                             onClick={() => handleImportPublicBook(book.slug, book.id, book.title)}
-                            className="px-3 py-1 rounded-md bg-[var(--color-ink)] hover:bg-[var(--color-ink-2)] disabled:opacity-50 text-[var(--color-paper)] font-medium text-xs flex items-center gap-1 shadow-2xs transition-[background-color] duration-150 cursor-pointer"
-                          >
-                            {isCurrentImporting ? (
-                              <>
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                <span>下载评测中...</span>
-                              </>
-                            ) : (
-                              <>
-                                <Plus className="w-3.5 h-3.5" />
-                                <span>一键入库阅读</span>
-                              </>
-                            )}
-                          </button>
+                          />
                         )}
                       </div>
                     </div>
@@ -930,27 +918,27 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
               {/* Pagination controls */}
               {catalogTotalPages > 1 && (
                 <div className="flex items-center justify-center gap-4 pt-6">
-                  <button
-                    disabled={catalogPage <= 1}
+                  <Button
+                    label="上一页"
+                    size="sm"
+                    variant="secondary"
+                    isDisabled={catalogPage <= 1}
+                    icon={<ChevronLeft className="w-3.5 h-3.5" />}
                     onClick={() => setCatalogPage((prev) => Math.max(prev - 1, 1))}
-                    className="px-4 py-2 rounded-md bg-[var(--color-paper-2)] border border-[var(--color-rule)] hover:bg-[var(--color-paper-elevated)] disabled:opacity-30 text-xs text-[var(--color-ink)] flex items-center gap-1 cursor-pointer transition-colors"
-                  >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                    <span>上一页</span>
-                  </button>
+                  />
 
-                  <span className="text-xs text-[var(--color-ink-muted)] font-meta-mono">
+                  <span className="text-xs text-[var(--color-ink-muted)] font-meta-mono px-2">
                     第 <strong className="text-[var(--color-ink)]">{catalogPage}</strong> / {catalogTotalPages} 页
                   </span>
 
-                  <button
-                    disabled={catalogPage >= catalogTotalPages}
+                  <Button
+                    label="下一页"
+                    size="sm"
+                    variant="secondary"
+                    isDisabled={catalogPage >= catalogTotalPages}
+                    endContent={<ChevronRight className="w-3.5 h-3.5" />}
                     onClick={() => setCatalogPage((prev) => Math.min(prev + 1, catalogTotalPages))}
-                    className="px-4 py-2 rounded-md bg-[var(--color-paper-2)] border border-[var(--color-rule)] hover:bg-[var(--color-paper-elevated)] disabled:opacity-30 text-xs text-[var(--color-ink)] flex items-center gap-1 cursor-pointer transition-colors"
-                  >
-                    <span>下一页</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
+                  />
                 </div>
               )}
             </section>

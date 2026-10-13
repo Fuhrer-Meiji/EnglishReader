@@ -24,13 +24,17 @@ export const metadata: Metadata = {
   description: "秉持典雅纸质排版美学的英文原著分级精读平台",
 };
 
+import { AstryxProvider } from "../components/AstryxProvider";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${newsreader.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <AstryxProvider>{children}</AstryxProvider>
+      </body>
     </html>
   );
 }

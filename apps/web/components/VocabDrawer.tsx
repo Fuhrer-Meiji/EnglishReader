@@ -1,6 +1,6 @@
 'use client';
 
-/* Hallmark · component: VocabDrawer · genre: editorial · theme: newsprint-warm / moroccan-leather
+/* Astryx · component: VocabDrawer · integrated with Meta Astryx Badge, Button, IconButton, EmptyState
  * states: default · hover · focus · active · disabled · loading · error · success
  * contrast: pass (APCA / WCAG 2.1 AAA)
  */
@@ -8,6 +8,7 @@
 import React, { useState } from 'react';
 import { X, Bookmark, Trash2, Volume2, Download, Search, CheckCircle2 } from 'lucide-react';
 import { VocabularyItem } from '../lib/types';
+import { Badge, Button, IconButton, EmptyState } from '@astryxdesign/core';
 
 interface VocabDrawerProps {
   isOpen: boolean;
@@ -78,20 +79,24 @@ export const VocabDrawer: React.FC<VocabDrawerProps> = ({
               <Bookmark className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-book-serif font-medium text-base text-[var(--color-ink)]">
-                语境生词本 ({vocabItems.length})
-              </h3>
-              <p className="text-xs text-[var(--color-ink-muted)] font-meta-mono">
+              <div className="flex items-center gap-2">
+                <h3 className="font-book-serif font-medium text-base text-[var(--color-ink)]">
+                  语境生词本
+                </h3>
+                <Badge label={`${vocabItems.length} 词`} variant="neutral" />
+              </div>
+              <p className="text-xs text-[var(--color-ink-muted)] font-meta-mono mt-0.5">
                 生词自动绑定原文出处与长句上下文
               </p>
             </div>
           </div>
-          <button
+          <IconButton
+            label="关闭生词本"
+            icon={<X className="w-4 h-4" />}
+            variant="ghost"
+            size="sm"
             onClick={onClose}
-            className="p-1.5 rounded text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-2)] transition-colors cursor-pointer"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          />
         </div>
 
         {/* Search & Actions Bar */}
@@ -107,16 +112,16 @@ export const VocabDrawer: React.FC<VocabDrawerProps> = ({
             />
           </div>
 
-          <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center justify-between text-xs gap-2">
             <div className="flex gap-1">
               {(['all', 'learning', 'mastered'] as const).map((st) => (
                 <button
                   key={st}
                   onClick={() => setFilterStatus(st)}
-                  className={`px-2 py-0.5 rounded text-xs font-medium transition-colors cursor-pointer ${
+                  className={`px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer border ${
                     filterStatus === st
-                      ? 'bg-[var(--color-ink)] text-[var(--color-paper)] font-semibold'
-                      : 'text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-elevated)]'
+                      ? 'bg-[var(--color-ink)] text-[var(--color-paper)] border-[var(--color-ink)] font-semibold shadow-2xs'
+                      : 'bg-[var(--color-paper-elevated)] text-[var(--color-ink-2)] hover:text-[var(--color-ink)] border-[var(--color-rule)]'
                   }`}
                 >
                   {st === 'all' ? '全部' : st === 'learning' ? '复习中' : '已掌握'}
@@ -124,77 +129,80 @@ export const VocabDrawer: React.FC<VocabDrawerProps> = ({
               ))}
             </div>
 
-            <button
+            <Button
+              label="导出 Anki"
+              size="sm"
+              variant="secondary"
+              icon={<Download className="w-3.5 h-3.5" />}
+              isDisabled={vocabItems.length === 0}
               onClick={exportToAnki}
-              disabled={vocabItems.length === 0}
-              className="flex items-center gap-1 text-[11px] font-medium text-[var(--color-accent)] hover:underline disabled:opacity-30 cursor-pointer font-meta-mono"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>导出 Anki</span>
-            </button>
+            />
           </div>
         </div>
 
         {/* Word Cards List */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {filteredItems.length === 0 ? (
-            <div className="text-center py-12 text-[var(--color-ink-muted)] text-xs">
-              暂无匹配的生词，在阅读时点击单词即可快速收藏。
+            <div className="py-12">
+              <EmptyState
+                title="暂无匹配的生词"
+                description="在阅读正文时点击任意词汇，即可触发查词弹窗并一键收藏至语境生词本。"
+                isCompact
+              />
             </div>
           ) : (
             filteredItems.map((item) => (
               <div
                 key={item.id}
-                className="p-3.5 rounded-lg border border-[var(--color-rule)] bg-[var(--color-paper-2)] hover:border-[var(--color-accent)]/50 transition-colors space-y-2 shadow-2xs"
+                className="p-3.5 rounded-xl border border-[var(--color-rule)] bg-[var(--color-paper-2)] hover:border-[var(--color-accent)]/50 transition-colors space-y-2 shadow-2xs"
               >
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="font-book-serif font-medium text-sm text-[var(--color-ink)]">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-book-serif font-medium text-base text-[var(--color-ink)]">
                       {item.word}
                     </span>
                     <span className="text-xs text-[var(--color-ink-muted)] font-meta-mono">{item.phonetic}</span>
-                    <button
+                    <IconButton
+                      label="播放发音"
+                      icon={<Volume2 className="w-3.5 h-3.5" />}
+                      variant="ghost"
+                      size="sm"
                       onClick={() => playAudio(item.word)}
-                      className="p-1 text-[var(--color-ink-muted)] hover:text-[var(--color-accent)] rounded cursor-pointer"
-                    >
-                      <Volume2 className="w-3 h-3" />
-                    </button>
+                    />
                     {item.level && (
-                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-[var(--color-paper-elevated)] border border-[var(--color-rule)] text-[var(--color-accent)] font-meta-mono">
-                        {item.level}
-                      </span>
+                      <Badge label={item.level} variant="teal" />
                     )}
+                    <Badge
+                      label={item.status === 'mastered' ? '已掌握' : '复习中'}
+                      variant={item.status === 'mastered' ? 'success' : 'neutral'}
+                    />
                   </div>
 
-                  <div className="flex items-center gap-1">
-                    <button
+                  <div className="flex items-center gap-1 shrink-0">
+                    <IconButton
+                      label={item.status === 'mastered' ? '标为复习中' : '标为已掌握'}
+                      icon={<CheckCircle2 className={`w-3.5 h-3.5 ${item.status === 'mastered' ? 'text-emerald-500' : ''}`} />}
+                      variant="ghost"
+                      size="sm"
                       onClick={() => onToggleStatus(item.id)}
-                      className={`p-1 rounded transition-colors cursor-pointer ${
-                        item.status === 'mastered'
-                          ? 'text-emerald-400 hover:text-emerald-300'
-                          : 'text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]'
-                      }`}
-                      title={item.status === 'mastered' ? '标为复习中' : '标为已掌握'}
-                    >
-                      <CheckCircle2 className="w-4 h-4" />
-                    </button>
-                    <button
+                    />
+                    <IconButton
+                      label="删除生词"
+                      icon={<Trash2 className="w-3.5 h-3.5 text-rose-500" />}
+                      variant="ghost"
+                      size="sm"
                       onClick={() => onRemoveItem(item.id)}
-                      className="p-1 rounded text-[var(--color-ink-muted)] hover:text-rose-400 transition-colors cursor-pointer"
-                      title="移除生词"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    />
                   </div>
                 </div>
 
                 <div className="text-xs text-[var(--color-ink)]">
-                  <span className="font-book-serif italic text-[var(--color-accent)] mr-1.5">{item.pos}</span>
+                  <span className="font-book-serif italic text-[var(--color-accent)] mr-1.5 font-medium">{item.pos}</span>
                   {item.translation}
                 </div>
 
                 {item.contextSentence && (
-                  <div className="p-2 rounded bg-[var(--color-paper)] border-l-2 border-[var(--color-accent)] text-[11px] text-[var(--color-ink-2)] font-book-serif italic leading-relaxed">
+                  <div className="p-2.5 rounded-lg bg-[var(--color-paper)] border-l-2 border-[var(--color-accent)] text-[11px] text-[var(--color-ink-2)] font-book-serif italic leading-relaxed">
                     “{item.contextSentence}”
                   </div>
                 )}

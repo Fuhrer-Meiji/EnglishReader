@@ -1,6 +1,6 @@
 'use client';
 
-/* Hallmark · component: ReaderHeader · genre: editorial · theme: newsprint-warm / moroccan-leather
+/* Astryx · component: ReaderHeader · integrated with Meta Astryx Badge, Button, IconButton
  * states: default · hover · focus · active · disabled · loading · error · success
  * contrast: pass (APCA / WCAG 2.1 AAA)
  */
@@ -8,6 +8,7 @@
 import React from 'react';
 import { ReadingMode } from '../lib/types';
 import { BookOpen, BookmarkCheck, BookmarkPlus, Sparkles, Feather } from 'lucide-react';
+import { Badge, Button, IconButton } from '@astryxdesign/core';
 
 interface ReaderHeaderProps {
   readingMode: ReadingMode;
@@ -35,32 +36,30 @@ export const ReaderHeader: React.FC<ReaderHeaderProps> = ({
         <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           <button
             onClick={onGoBookshelf}
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer group"
             title="返回书架"
           >
-            <div className="p-1.5 rounded-md bg-[var(--color-ink)] text-[var(--color-paper)]">
+            <div className="p-1.5 rounded-md bg-[var(--color-ink)] text-[var(--color-paper)] shadow-2xs">
               <BookOpen className="w-3.5 h-3.5" />
             </div>
-            <span className="font-book-serif font-medium text-sm text-[var(--color-ink)] truncate">
+            <span className="font-book-serif font-medium text-sm text-[var(--color-ink)] group-hover:text-[var(--color-accent)] transition-colors truncate">
               {bookTitle}
             </span>
           </button>
 
-          <button
+          <Button
+            label={isBookmarked ? '在架典藏' : '收入书架'}
+            size="sm"
+            variant={isBookmarked ? 'primary' : 'secondary'}
+            icon={
+              isBookmarked ? (
+                <BookmarkCheck className="w-3.5 h-3.5" />
+              ) : (
+                <BookmarkPlus className="w-3.5 h-3.5" />
+              )
+            }
             onClick={onToggleBookmark}
-            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md border font-meta-mono transition-[background-color,border-color,color] duration-150 cursor-pointer ${
-              isBookmarked
-                ? 'bg-[var(--color-paper-elevated)] text-[var(--color-accent)] border-[var(--color-accent)]/50'
-                : 'text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] border-[var(--color-rule)] hover:border-[var(--color-ink-muted)]'
-            }`}
-          >
-            {isBookmarked ? (
-              <BookmarkCheck className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-            ) : (
-              <BookmarkPlus className="w-3.5 h-3.5" />
-            )}
-            <span>{isBookmarked ? '在架典藏' : '收入书架'}</span>
-          </button>
+          />
         </div>
 
         {/* Center: Dual-Mode Switcher (Zen vs Study) */}
@@ -92,14 +91,14 @@ export const ReaderHeader: React.FC<ReaderHeaderProps> = ({
 
         {/* Right: Shelf Navigation */}
         <div className="flex items-center gap-3 text-xs text-[var(--color-ink-muted)] font-meta-mono">
-          <button
+          <Button
+            label="返回文库"
+            size="sm"
+            variant="ghost"
             onClick={onGoBookshelf}
-            className="hover:text-[var(--color-ink)] hidden sm:inline transition-colors cursor-pointer"
-          >
-            返回文库
-          </button>
+          />
           <span className="text-[var(--color-rule)] hidden sm:inline">|</span>
-          <div className="w-6 h-6 rounded-md bg-[var(--color-paper-elevated)] border border-[var(--color-rule)] flex items-center justify-center text-[var(--color-ink)] font-bold text-xs select-none">
+          <div className="w-7 h-7 rounded-md bg-[var(--color-paper-elevated)] border border-[var(--color-rule)] flex items-center justify-center text-[var(--color-ink)] font-bold text-xs select-none shadow-2xs">
             ER
           </div>
         </div>

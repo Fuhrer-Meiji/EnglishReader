@@ -1,6 +1,6 @@
 'use client';
 
-/* Hallmark · component: SentenceDrawer · genre: editorial · theme: newsprint-warm / moroccan-leather
+/* Astryx · component: SentenceDrawer · integrated with Meta Astryx Badge and IconButton
  * states: default · hover · focus · active · disabled · loading · error · success
  * contrast: pass (APCA / WCAG 2.1 AAA)
  */
@@ -9,6 +9,7 @@ import React from 'react';
 import { X, Volume2, Sparkles, BookOpen, Layers, Lightbulb, ChevronRight } from 'lucide-react';
 import { SentenceAnalysis } from '../lib/types';
 import { DICTIONARY_DATABASE } from '../lib/mockData';
+import { Badge, IconButton } from '@astryxdesign/core';
 
 interface SentenceDrawerProps {
   sentence: SentenceAnalysis | null;
@@ -42,20 +43,24 @@ export const SentenceDrawer: React.FC<SentenceDrawerProps> = ({
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="font-book-serif font-medium text-[var(--color-ink)] text-sm">
-              句法成分与原著深度拆解
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-book-serif font-medium text-[var(--color-ink)] text-sm">
+                句法成分与原著深度拆解
+              </h3>
+              <Badge label={sentence.difficultyTag} variant="purple" />
+            </div>
             <span className="text-[11px] text-[var(--color-ink-muted)] font-meta-mono">
-              难度评定：<span className="font-semibold text-[var(--color-accent)]">{sentence.difficultyTag}</span>
+              长难句解构 · 语法成分逐级剖析
             </span>
           </div>
         </div>
-        <button
+        <IconButton
+          label="关闭抽屉"
+          icon={<X className="w-4 h-4" />}
+          variant="ghost"
+          size="sm"
           onClick={onClose}
-          className="p-1.5 rounded text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper)] transition-colors cursor-pointer"
-        >
-          <X className="w-4 h-4" />
-        </button>
+        />
       </div>
 
       {/* Content */}
@@ -66,13 +71,13 @@ export const SentenceDrawer: React.FC<SentenceDrawerProps> = ({
             <p className="font-book-serif text-base sm:text-lg text-[var(--color-ink)] leading-relaxed font-normal">
               {sentence.rawText}
             </p>
-            <button
+            <IconButton
+              label="整句朗读"
+              icon={<Volume2 className="w-4 h-4" />}
+              variant="secondary"
+              size="sm"
               onClick={playSentenceAudio}
-              className="shrink-0 p-2 text-[var(--color-ink-muted)] hover:text-[var(--color-accent)] rounded-md bg-[var(--color-paper-elevated)] border border-[var(--color-rule)] shadow-2xs transition-colors cursor-pointer"
-              title="整句朗读"
-            >
-              <Volume2 className="w-4 h-4" />
-            </button>
+            />
           </div>
           <div className="pt-2 border-t border-[var(--color-rule)]">
             <p className="text-xs text-[var(--color-ink-2)] leading-relaxed">
@@ -94,9 +99,7 @@ export const SentenceDrawer: React.FC<SentenceDrawerProps> = ({
                 className="rounded-lg p-3 bg-[var(--color-paper-2)] border border-[var(--color-rule)] space-y-1.5"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-meta-mono font-semibold px-2 py-0.5 rounded bg-[var(--color-paper-elevated)] border border-[var(--color-rule)] text-[var(--color-accent)]">
-                    {comp.role}
-                  </span>
+                  <Badge label={comp.role} variant="teal" />
                 </div>
                 <p className="font-book-serif text-sm font-medium text-[var(--color-ink)] bg-[var(--color-paper-elevated)] px-2.5 py-1.5 rounded border border-[var(--color-rule)]/60">
                   {comp.content}
@@ -149,9 +152,7 @@ export const SentenceDrawer: React.FC<SentenceDrawerProps> = ({
                           </span>
                         )}
                         {entry?.level && (
-                          <span className="text-[10px] font-meta-mono font-medium px-1.5 py-0.2 rounded bg-[var(--color-paper-elevated)] border border-[var(--color-rule)] text-[var(--color-accent)]">
-                            {entry.level}
-                          </span>
+                          <Badge label={entry.level} variant="neutral" />
                         )}
                       </div>
                       <p className="text-xs text-[var(--color-ink-muted)] truncate max-w-[340px] mt-0.5">

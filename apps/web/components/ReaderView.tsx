@@ -123,6 +123,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                 const rect = e.currentTarget.getBoundingClientRect();
                 onWordClick(token, rect);
               }}
+              style={{ fontSize: 'inherit' }}
               className={`cursor-pointer transition-colors duration-100 ${
                 isHighlighted
                   ? getWordHighlightClass(dictEntry?.level)
@@ -263,7 +264,14 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                   }}
                 >
                   {leftParagraphs.map((para, pIdx) => (
-                    <p key={pIdx} className="text-left indent-[2em] mb-6 text-[var(--color-ink)]" style={{ lineHeight: 'inherit' }}>
+                    <p
+                      key={pIdx}
+                      className="text-left indent-[2em] mb-6 text-[var(--color-ink)]"
+                      style={{
+                        fontSize: `${fontSize}px`,
+                        lineHeight: fontSize >= 28 ? 1.65 : fontSize >= 22 ? 1.74 : 1.82,
+                      }}
+                    >
                       {para.map((sent, sIdx) => (
                         <React.Fragment key={sent.id}>
                           {sIdx > 0 ? ' ' : ''}
@@ -324,7 +332,14 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
                   }}
                 >
                   {rightParagraphs.map((para, pIdx) => (
-                    <p key={pIdx} className="text-left indent-[2em] mb-6 text-[var(--color-ink)]" style={{ lineHeight: 'inherit' }}>
+                    <p
+                      key={pIdx}
+                      className="text-left indent-[2em] mb-6 text-[var(--color-ink)]"
+                      style={{
+                        fontSize: `${fontSize}px`,
+                        lineHeight: fontSize >= 28 ? 1.65 : fontSize >= 22 ? 1.74 : 1.82,
+                      }}
+                    >
                       {para.map((sent, sIdx) => (
                         <React.Fragment key={sent.id}>
                           {sIdx > 0 ? ' ' : ''}
@@ -411,7 +426,14 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
         }}
       >
         {allParagraphs.map((para, pIdx) => (
-          <p key={pIdx} className="text-left indent-[2em] mb-7 text-[var(--color-ink)]" style={{ lineHeight: 'inherit' }}>
+          <p
+            key={pIdx}
+            className="text-left indent-[2em] mb-7 text-[var(--color-ink)]"
+            style={{
+              fontSize: `${fontSize}px`,
+              lineHeight: fontSize >= 28 ? 1.66 : fontSize >= 22 ? 1.75 : 1.85,
+            }}
+          >
             {para.map((sent, sIdx) => (
               <React.Fragment key={sent.id}>
                 {sIdx > 0 ? ' ' : ''}

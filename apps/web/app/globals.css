@@ -120,6 +120,15 @@ body {
   --color-icon-secondary: var(--color-ink-2);
 }
 
+/* Neutralize Astryx resets that prevent font-size & font-family inheritance */
+[data-astryx-theme] :where(p),
+:where(p) {
+  font-size: inherit;
+  font-family: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+
 /* Global Typography color contract: ensures <p>, headings, and book content never turn invisible */
 p,
 article,

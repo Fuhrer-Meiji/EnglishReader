@@ -527,6 +527,7 @@ export default function Home() {
           setPopoverState(null);
         }}
         bookTitle={currentBook.title}
+        chineseTitle={currentBook.chineseTitle}
         chapterTitle={currentChapter.title}
         isBookmarked={isBookmarked}
         onToggleBookmark={handleToggleBookmark}
@@ -619,6 +620,7 @@ export default function Home() {
           setIsTOCOpen(false);
         }}
         bookTitle={currentBook.title}
+        chineseTitle={currentBook.chineseTitle}
         author={currentBook.author}
       />
 

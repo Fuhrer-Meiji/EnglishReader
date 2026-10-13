@@ -17,6 +17,7 @@ interface TableOfContentsModalProps {
   currentChapterId: string;
   onSelectChapter: (chapterId: string) => void;
   bookTitle: string;
+  chineseTitle?: string;
   author: string;
 }
 
@@ -27,6 +28,7 @@ export const TableOfContentsModal: React.FC<TableOfContentsModalProps> = ({
   currentChapterId,
   onSelectChapter,
   bookTitle,
+  chineseTitle,
   author,
 }) => {
   return (
@@ -39,7 +41,7 @@ export const TableOfContentsModal: React.FC<TableOfContentsModalProps> = ({
       padding={4}
     >
       <DialogHeader
-        title={bookTitle}
+        title={chineseTitle ? `${chineseTitle} · ${bookTitle}` : bookTitle}
         subtitle={`${author} · 卷册全篇目录 (${chapters.length} 章节)`}
         onOpenChange={(open) => {
           if (!open) onClose();

@@ -758,7 +758,7 @@
       "stats": {
         "wordCount": 853,
         "cefr": "B1",
-        "fleschScore": 70.0,
+        "fleschScore": 70,
         "lexile": "1220L",
         "levelDistribution": {
           "basic": 23,
@@ -1446,7 +1446,7 @@
       "stats": {
         "wordCount": 798,
         "cefr": "B2",
-        "fleschScore": 69.0,
+        "fleschScore": 69,
         "lexile": "1230L",
         "levelDistribution": {
           "basic": 28,
@@ -25785,7 +25785,7 @@
       "stats": {
         "wordCount": 1734,
         "cefr": "C1",
-        "fleschScore": 43.0,
+        "fleschScore": 43,
         "lexile": "1600L",
         "levelDistribution": {
           "basic": 31,
@@ -35869,7 +35869,7 @@
       "stats": {
         "wordCount": 1564,
         "cefr": "B2",
-        "fleschScore": 59.0,
+        "fleschScore": 59,
         "lexile": "1400L",
         "levelDistribution": {
           "basic": 33,
@@ -78414,7 +78414,7 @@
       "stats": {
         "wordCount": 2434,
         "cefr": "B2",
-        "fleschScore": 60.0,
+        "fleschScore": 60,
         "lexile": "1330L",
         "levelDistribution": {
           "basic": 36,
@@ -82514,5 +82514,6 @@
         }
       }
     }
-  ]
+  ],
+  "chineseTitle": "傲慢与偏见"
 }

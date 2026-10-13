@@ -10,6 +10,16 @@ export async function GET(request: NextRequest) {
   try {
     const booksDir = path.join(process.cwd(), 'data', 'books');
     const catalogMap = new Map(PUBLIC_CATALOG_BOOKS.map((b) => [b.id, b]));
+
+    let fullCatalogMap = new Map();
+    try {
+      const fullCatalogPath = path.join(process.cwd(), 'data', 'full_public_catalog.json');
+      if (fs.existsSync(fullCatalogPath)) {
+        const rawCatalog = JSON.parse(fs.readFileSync(fullCatalogPath, 'utf-8'));
+        fullCatalogMap = new Map(rawCatalog.map((b: any) => [b.id, b]));
+      }
+    } catch (e) {}
+
     const localBooks: BookCardInfo[] = [];
 
     if (fs.existsSync(booksDir)) {
@@ -21,7 +31,8 @@ export async function GET(request: NextRequest) {
           const raw = fs.readFileSync(filePath, 'utf-8');
           const data = JSON.parse(raw);
 
-          const catalogMatch = catalogMap.get(data.id);
+          const fullMatch = fullCatalogMap.get(data.id);
+          const catalogMatch = catalogMap.get(data.id) || fullMatch;
           const totalWords = data.chapters
             ? data.chapters.reduce((sum: number, c: any) => sum + (c.stats?.wordCount || 0), 0)
             : 0;

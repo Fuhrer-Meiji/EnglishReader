@@ -158,7 +158,7 @@
       "stats": {
         "wordCount": 231,
         "cefr": "B1",
-        "fleschScore": 71.0,
+        "fleschScore": 71,
         "lexile": "1130L",
         "levelDistribution": {
           "basic": 28,
@@ -2188,7 +2188,7 @@
       "stats": {
         "wordCount": 2119,
         "cefr": "B1",
-        "fleschScore": 75.0,
+        "fleschScore": 75,
         "lexile": "1170L",
         "levelDistribution": {
           "basic": 32,
@@ -18030,7 +18030,7 @@
       "stats": {
         "wordCount": 679,
         "cefr": "B1",
-        "fleschScore": 82.0,
+        "fleschScore": 82,
         "lexile": "780L",
         "levelDistribution": {
           "basic": 32,
@@ -18040,5 +18040,6 @@
         }
       }
     }
-  ]
+  ],
+  "chineseTitle": "爱丽丝梦游仙境"
 }

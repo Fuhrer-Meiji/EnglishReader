@@ -16,6 +16,7 @@ interface ReaderHeaderProps {
   readingMode: ReadingMode;
   onToggleMode: (mode: ReadingMode) => void;
   bookTitle: string;
+  chineseTitle?: string;
   chapterTitle: string;
   isBookmarked: boolean;
   onToggleBookmark: () => void;
@@ -31,6 +32,7 @@ export const ReaderHeader: React.FC<ReaderHeaderProps> = ({
   readingMode,
   onToggleMode,
   bookTitle,
+  chineseTitle,
   chapterTitle,
   isBookmarked,
   onToggleBookmark,
@@ -55,7 +57,7 @@ export const ReaderHeader: React.FC<ReaderHeaderProps> = ({
               <BookOpen className="w-3.5 h-3.5" />
             </div>
             <span className="font-book-serif font-medium text-sm text-[var(--color-ink)] group-hover:text-[var(--color-accent)] transition-colors truncate">
-              {bookTitle}
+              {chineseTitle ? `${chineseTitle} · ${bookTitle}` : bookTitle}
             </span>
           </button>
 

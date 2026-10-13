@@ -25733,7 +25733,7 @@
       "stats": {
         "wordCount": 4403,
         "cefr": "A2",
-        "fleschScore": 87.0,
+        "fleschScore": 87,
         "lexile": "550L",
         "levelDistribution": {
           "basic": 37,
@@ -77857,5 +77857,6 @@
         }
       }
     }
-  ]
+  ],
+  "chineseTitle": "道林·格雷的画像"
 }

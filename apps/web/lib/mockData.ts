@@ -486,6 +486,7 @@ export const DICTIONARY_DATABASE: Record<string, DictEntry> = {
 export const SAMPLE_BOOK: Book = {
   id: 'the-great-gatsby',
   title: 'The Great Gatsby',
+  chineseTitle: '了不起的盖茨比',
   author: 'F. Scott Fitzgerald',
   publishedYear: 1925,
   source: 'Standard Ebooks',
@@ -841,6 +842,7 @@ export const INITIAL_VOCAB_ITEMS: VocabularyItem[] = [];
 export const LITTLE_PRINCE_BOOK: Book = {
   id: 'the-little-prince',
   title: 'The Little Prince',
+  chineseTitle: '小王子',
   author: 'Antoine de Saint-Exupéry',
   publishedYear: 1943,
   source: 'Standard Ebooks',

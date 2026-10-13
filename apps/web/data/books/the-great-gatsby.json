@@ -8231,7 +8231,7 @@
       "stats": {
         "wordCount": 4307,
         "cefr": "B1",
-        "fleschScore": 73.0,
+        "fleschScore": 73,
         "lexile": "1000L",
         "levelDistribution": {
           "basic": 40,
@@ -41775,5 +41775,6 @@
         }
       }
     }
-  ]
+  ],
+  "chineseTitle": "了不起的盖茨比"
 }

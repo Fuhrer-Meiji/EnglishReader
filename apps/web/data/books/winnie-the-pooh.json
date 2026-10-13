@@ -11666,7 +11666,7 @@
       "stats": {
         "wordCount": 2648,
         "cefr": "A2",
-        "fleschScore": 88.0,
+        "fleschScore": 88,
         "lexile": "590L",
         "levelDistribution": {
           "basic": 36,
@@ -22170,5 +22170,6 @@
         }
       }
     }
-  ]
+  ],
+  "chineseTitle": "小熊维尼"
 }

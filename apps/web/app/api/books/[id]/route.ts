@@ -18,6 +18,18 @@ export async function GET(
     try {
       const fileContent = fs.readFileSync(bookJsonPath, 'utf-8');
       const bookData = JSON.parse(fileContent);
+      if (!bookData.chineseTitle) {
+        try {
+          const catPath = path.join(process.cwd(), 'data', 'full_public_catalog.json');
+          if (fs.existsSync(catPath)) {
+            const catalog = JSON.parse(fs.readFileSync(catPath, 'utf-8'));
+            const match = catalog.find((b: any) => b.id === id);
+            if (match && match.chineseTitle) {
+              bookData.chineseTitle = match.chineseTitle;
+            }
+          }
+        } catch (e) {}
+      }
       return NextResponse.json(bookData);
     } catch (err) {
       console.error(`[BookAPI] Error loading JSON for ${id}:`, err);

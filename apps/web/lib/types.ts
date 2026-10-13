@@ -74,6 +74,7 @@ export interface BookCardInfo {
 export interface Book {
   id: string;
   title: string;
+  chineseTitle?: string;
   author: string;
   publishedYear: number;
   source: 'Standard Ebooks' | 'Project Gutenberg';

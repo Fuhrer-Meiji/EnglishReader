@@ -256,7 +256,7 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({
       const matchSearch =
         searchQuery === '' ||
         b.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        b.chineseTitle.includes(searchQuery) ||
+        (b.chineseTitle ? b.chineseTitle.includes(searchQuery) : false) ||
         b.author.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchCefr =
@@ -622,10 +622,10 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({
                           <span className={`text-[8px] ${binding.subtle} uppercase font-meta-mono tracking-wider`}>Classic</span>
                           <div>
                             <h4 className={`font-book-serif font-medium text-xs leading-snug line-clamp-3 ${binding.foil}`}>
-                              {book.title}
+                              {book.chineseTitle || book.title}
                             </h4>
                             <p className={`text-[9px] ${binding.subtle} font-book-serif truncate mt-0.5`}>
-                              {book.author}
+                              {book.chineseTitle ? book.title : book.author}
                             </p>
                           </div>
                           <span className={`text-[8px] ${binding.subtle} font-meta-mono`}>{book.publishedYear}</span>
@@ -650,10 +650,10 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({
                           </div>
 
                           <h4 className="font-book-serif font-medium text-base text-[var(--color-ink)] group-hover:text-[var(--color-accent)] transition-colors truncate">
-                            {book.title}
+                            {book.chineseTitle || book.title}
                           </h4>
-                          <p className="text-xs text-[var(--color-ink-2)] truncate">
-                            {book.chineseTitle}
+                          <p className="text-xs text-[var(--color-ink-2)] truncate font-book-serif">
+                            {book.chineseTitle ? book.title : book.author}
                           </p>
 
                           <p className="text-[11px] text-[var(--color-ink-muted)] line-clamp-2 leading-relaxed">
@@ -894,10 +894,10 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({
                           <span className={`text-[8px] ${binding.subtle} uppercase font-meta-mono tracking-wider`}>Standard</span>
                           <div>
                             <h4 className={`font-book-serif font-medium text-xs leading-snug line-clamp-3 ${binding.foil}`}>
-                              {book.title}
+                              {book.chineseTitle || book.title}
                             </h4>
                             <p className={`text-[9px] ${binding.subtle} font-book-serif truncate mt-1`}>
-                              {book.author}
+                              {book.chineseTitle ? book.title : book.author}
                             </p>
                           </div>
                           <span className={`text-[8px] ${binding.subtle} font-meta-mono`}>Ebooks</span>
@@ -928,13 +928,11 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({
                             </div>
 
                             <h4 className="font-book-serif font-medium text-base text-[var(--color-ink)] group-hover:text-[var(--color-accent)] transition-colors mt-1.5 line-clamp-2">
-                              {book.title}
+                              {book.chineseTitle || book.title}
                             </h4>
-                            {book.chineseTitle ? (
-                              <p className="text-xs text-[var(--color-ink-2)] truncate mt-0.5 font-book-serif">
-                                {book.chineseTitle}
-                              </p>
-                            ) : null}
+                            <p className="text-xs text-[var(--color-ink-2)] truncate mt-0.5 font-book-serif">
+                              {book.chineseTitle ? book.title : book.author}
+                            </p>
                             <p className="text-xs text-[var(--color-ink-muted)] truncate mt-0.5">
                               {book.author}
                             </p>

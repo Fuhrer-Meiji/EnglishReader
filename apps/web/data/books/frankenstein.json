@@ -5216,7 +5216,7 @@
       "stats": {
         "wordCount": 2731,
         "cefr": "B2",
-        "fleschScore": 59.0,
+        "fleschScore": 59,
         "lexile": "1410L",
         "levelDistribution": {
           "basic": 35,
@@ -12183,7 +12183,7 @@
       "stats": {
         "wordCount": 2355,
         "cefr": "B2",
-        "fleschScore": 63.0,
+        "fleschScore": 63,
         "lexile": "1380L",
         "levelDistribution": {
           "basic": 37,
@@ -38403,7 +38403,7 @@
       "stats": {
         "wordCount": 3525,
         "cefr": "B2",
-        "fleschScore": 63.0,
+        "fleschScore": 63,
         "lexile": "1380L",
         "levelDistribution": {
           "basic": 37,
@@ -49823,5 +49823,6 @@
         }
       }
     }
-  ]
+  ],
+  "chineseTitle": "弗兰肯斯坦（科学怪人）"
 }

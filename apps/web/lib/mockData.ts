@@ -836,34 +836,7 @@ export const SAMPLE_BOOK: Book = {
   ]
 };
 
-export const INITIAL_VOCAB_ITEMS: VocabularyItem[] = [
-  {
-    id: 'vocab-1',
-    word: 'vulnerable',
-    phonetic: '/ˈvʌlnərəbl/',
-    pos: 'adj.',
-    translation: '脆弱的；易受伤害的；（阅历）浅薄稚嫩的',
-    contextSentence: 'In my younger and more vulnerable years my father gave me some advice...',
-    bookTitle: 'The Great Gatsby',
-    chapterTitle: 'Chapter I',
-    addedAt: '2026-10-10',
-    level: 'CET6',
-    status: 'learning'
-  },
-  {
-    id: 'vocab-2',
-    word: 'privy',
-    phonetic: '/ˈprɪvi/',
-    pos: 'adj.',
-    translation: '私下知情的；准许获知秘密的',
-    contextSentence: '...because I was privy to the secret griefs of wild, unknown men.',
-    bookTitle: 'The Great Gatsby',
-    chapterTitle: 'Chapter I',
-    addedAt: '2026-10-10',
-    level: 'GRE',
-    status: 'new'
-  }
-];
+export const INITIAL_VOCAB_ITEMS: VocabularyItem[] = [];
 
 export const LITTLE_PRINCE_BOOK: Book = {
   id: 'the-little-prince',
@@ -980,7 +953,7 @@ export const LIBRARY_BOOKS: BookCardInfo[] = [
     description: '20世纪20年代爵士时代经典之作，以迷幻而清醒的笔触刻画了美国梦的幻灭。',
     category: '现代文学',
     recommendedAudience: '考研 / GRE / 托福',
-    readingProgress: 18,
+    readingProgress: 0,
     totalChapters: 9,
   },
   {
@@ -1012,7 +985,7 @@ export const LIBRARY_BOOKS: BookCardInfo[] = [
     description: '唯美主义大师王尔德唯一的长篇小说，辞藻华丽典雅，充满警句格言与人性思辨。',
     category: '唯美主义',
     recommendedAudience: 'GRE / 雅思 / 高级',
-    readingProgress: 5,
+    readingProgress: 0,
     totalChapters: 20,
   },
   {

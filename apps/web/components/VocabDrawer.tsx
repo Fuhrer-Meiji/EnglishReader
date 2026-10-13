@@ -145,8 +145,12 @@ export const VocabDrawer: React.FC<VocabDrawerProps> = ({
           {filteredItems.length === 0 ? (
             <div className="py-12">
               <EmptyState
-                title="暂无匹配的生词"
-                description="在阅读正文时点击任意词汇，即可触发查词弹窗并一键收藏至语境生词本。"
+                title={vocabItems.length === 0 ? "生词本暂无收录" : "暂无匹配的生词"}
+                description={
+                  vocabItems.length === 0
+                    ? "在阅读正文时点击任意词汇，即可触发查词弹窗并一键收藏至语境生词本。"
+                    : "未找到符合当前搜索或筛选条件的生词。"
+                }
                 isCompact
               />
             </div>

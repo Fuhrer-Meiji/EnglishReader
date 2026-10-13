@@ -57,7 +57,16 @@ export default function Home() {
   const [isVocabOpen, setIsVocabOpen] = useState<boolean>(false);
   const [vocabItems, setVocabItems] = useState<VocabularyItem[]>(INITIAL_VOCAB_ITEMS);
 
-  // Restore last read book and position from localStorage on mount
+  const persistVocabItems = (items: VocabularyItem[]) => {
+    setVocabItems(items);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('er_vocab_items', JSON.stringify(items));
+      } catch (e) {}
+    }
+  };
+
+  // Restore last read book, position, settings, and vocabulary on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedBookId = localStorage.getItem('er_last_book_id');
@@ -76,8 +85,37 @@ export default function Home() {
       if (savedSerif !== null) {
         setIsSerif(savedSerif === 'true');
       }
+      const savedVocab = localStorage.getItem('er_vocab_items');
+      if (savedVocab) {
+        try {
+          const parsed = JSON.parse(savedVocab);
+          if (Array.isArray(parsed)) {
+            setVocabItems(parsed);
+          }
+        } catch (e) {}
+      }
     }
   }, []);
+
+  // Sync bookmark state per book
+  useEffect(() => {
+    if (typeof window !== 'undefined' && currentBookId) {
+      const saved = localStorage.getItem(`er_bookmarked_${currentBookId}`);
+      if (saved !== null) {
+        setIsBookmarked(saved === 'true');
+      } else {
+        setIsBookmarked(true);
+      }
+    }
+  }, [currentBookId]);
+
+  const handleToggleBookmark = () => {
+    const next = !isBookmarked;
+    setIsBookmarked(next);
+    if (typeof window !== 'undefined' && currentBookId) {
+      localStorage.setItem(`er_bookmarked_${currentBookId}`, String(next));
+    }
+  };
 
   // Save current progress to localStorage
   useEffect(() => {
@@ -213,7 +251,7 @@ export default function Home() {
       (item) => item.word.toLowerCase() === entry.word.toLowerCase()
     );
     if (existingIndex >= 0) {
-      setVocabItems(vocabItems.filter((_, idx) => idx !== existingIndex));
+      persistVocabItems(vocabItems.filter((_, idx) => idx !== existingIndex));
     } else {
       const newItem: VocabularyItem = {
         id: `vocab-${Date.now()}`,
@@ -221,14 +259,14 @@ export default function Home() {
         phonetic: entry.phonetic,
         pos: entry.pos,
         translation: entry.translation,
-        contextSentence: activeSentence?.rawText || 'In my younger and more vulnerable years...',
+        contextSentence: activeSentence?.rawText || '',
         bookTitle: currentBook.title,
         chapterTitle: currentChapter.title,
         addedAt: new Date().toISOString().split('T')[0],
         level: entry.level,
         status: 'learning',
       };
-      setVocabItems([newItem, ...vocabItems]);
+      persistVocabItems([newItem, ...vocabItems]);
     }
   };
 
@@ -274,7 +312,7 @@ export default function Home() {
         bookTitle={currentBook.title}
         chapterTitle={currentChapter.title}
         isBookmarked={isBookmarked}
-        onToggleBookmark={() => setIsBookmarked(!isBookmarked)}
+        onToggleBookmark={handleToggleBookmark}
         onGoBookshelf={() => setActiveView('bookshelf')}
       />
 
@@ -396,9 +434,9 @@ export default function Home() {
         isOpen={isVocabOpen}
         onClose={() => setIsVocabOpen(false)}
         vocabItems={vocabItems}
-        onRemoveItem={(id) => setVocabItems(vocabItems.filter((i) => i.id !== id))}
+        onRemoveItem={(id) => persistVocabItems(vocabItems.filter((i) => i.id !== id))}
         onToggleStatus={(id) =>
-          setVocabItems(
+          persistVocabItems(
             vocabItems.map((item) =>
               item.id === id
                 ? {

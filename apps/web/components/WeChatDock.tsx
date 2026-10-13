@@ -323,7 +323,7 @@ export const WeChatDock: React.FC<WeChatDockProps> = ({
             </span>
           )}
           <span className="absolute right-11 bg-[var(--color-ink)] text-[var(--color-paper)] text-[10px] font-meta-mono px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-md">
-            生词本 ({vocabCount})
+            {vocabCount > 0 ? `生词本 (${vocabCount})` : '生词本'}
           </span>
         </button>
 

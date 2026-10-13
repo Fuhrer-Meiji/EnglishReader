@@ -21,7 +21,7 @@ export const PUBLIC_CATALOG_BOOKS: PublicCatalogBook[] = [
     description: '20世纪20年代爵士时代经典之作，以迷幻而清醒的笔触刻画了美国梦的幻灭。',
     category: '现代文学',
     recommendedAudience: '考研 / GRE / 托福',
-    readingProgress: 18,
+    readingProgress: 0,
     totalChapters: 9,
     isPublicDomain: true,
     tags: ['美国文学', '爵士时代', '现代主义']

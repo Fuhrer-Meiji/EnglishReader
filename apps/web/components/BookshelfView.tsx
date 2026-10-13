@@ -108,13 +108,25 @@ function getCefrBadgeStyle(cefr: string): string {
   }
 }
 
+function attachRealProgress(books: BookCardInfo[]): BookCardInfo[] {
+  if (typeof window === 'undefined') return books;
+  return books.map((b) => {
+    const chap = parseInt(localStorage.getItem(`er_chap_${b.id}`) || '-1', 10);
+    if (chap >= 0 && b.totalChapters > 0) {
+      const progress = Math.min(100, Math.round(((chap + 1) / b.totalChapters) * 100));
+      return { ...b, readingProgress: progress };
+    }
+    return { ...b, readingProgress: 0 };
+  });
+}
+
 export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) => {
   const [activeTab, setActiveTab] = useState<'my-shelf' | 'public-library'>('my-shelf');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCefr, setSelectedCefr] = useState<string>('ALL');
 
   // Books in local shelf
-  const [myBooks, setMyBooks] = useState<BookCardInfo[]>(LIBRARY_BOOKS);
+  const [myBooks, setMyBooks] = useState<BookCardInfo[]>(() => attachRealProgress(LIBRARY_BOOKS));
   const [isLoadingBooks, setIsLoadingBooks] = useState(true);
 
   // Full 1,528 catalog state
@@ -147,7 +159,9 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
         if (data.books && Array.isArray(data.books) && data.books.length > 0) {
           const existingIds = new Set(data.books.map((b: BookCardInfo) => b.id));
           const mockUnadded = LIBRARY_BOOKS.filter((b) => !existingIds.has(b.id));
-          setMyBooks([...data.books, ...mockUnadded]);
+          const merged = [...data.books, ...mockUnadded];
+          setMyBooks(attachRealProgress(merged));
+          return;
         }
       }
     } catch (err) {
@@ -237,9 +251,14 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
 
   const filteredMyBooks = filterList(myBooks);
 
-  // Pick currently reading book (first book with reading progress or Gatsby)
+  // Pick currently reading book (last read book with progress, or first book with progress, or library headliner)
+  const lastReadBookId = typeof window !== 'undefined' ? localStorage.getItem('er_last_book_id') : null;
   const currentlyReading =
-    myBooks.find((b) => b.readingProgress && b.readingProgress > 0) || myBooks[0];
+    myBooks.find((b) => b.id === lastReadBookId && (b.readingProgress ?? 0) > 0) ||
+    myBooks.find((b) => b.readingProgress && b.readingProgress > 0) ||
+    myBooks[0];
+
+  const hasStartedReading = Boolean(currentlyReading && currentlyReading.readingProgress && currentlyReading.readingProgress > 0);
 
   // 3. Handle EPUB Upload
   const handleFileUpload = async (file: File) => {
@@ -425,7 +444,7 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
                       <div className="flex items-center gap-2.5 justify-center sm:justify-start">
                         <span className="text-[11px] uppercase tracking-wider text-[var(--color-accent)] font-semibold flex items-center gap-1 font-meta-mono">
                           <Clock className="w-3.5 h-3.5" />
-                          正在阅读
+                          {hasStartedReading ? '正在阅读' : '开卷推荐'}
                         </span>
                         <Badge
                           label={`${currentlyReading.cefr} · 蓝思 ${currentlyReading.lexile}`}
@@ -446,21 +465,31 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({ onSelectBook }) =>
 
                       <div className="pt-2 flex items-center gap-4 text-xs text-[var(--color-ink-muted)] justify-center sm:justify-start">
                         <span className="font-meta-mono">
-                          已读进度：<strong className="text-[var(--color-ink)] font-semibold">{currentlyReading.readingProgress}%</strong>
+                          {hasStartedReading ? (
+                            <>
+                              已读进度：<strong className="text-[var(--color-ink)] font-semibold">{currentlyReading.readingProgress}%</strong>
+                            </>
+                          ) : (
+                            <span className="text-[var(--color-ink-muted)]">
+                              阅读状态：<span className="text-[var(--color-ink)] font-medium">崭新开卷 · 待读</span>
+                            </span>
+                          )}
                         </span>
-                        <div className="w-32 h-1 rounded-full bg-[var(--color-rule)] overflow-hidden">
-                          <div
-                            className="h-full bg-[var(--color-accent)] rounded-full transition-[width] duration-300"
-                            style={{ width: `${Math.max(5, currentlyReading.readingProgress)}%` }}
-                          />
-                        </div>
+                        {hasStartedReading && (
+                          <div className="w-32 h-1 rounded-full bg-[var(--color-rule)] overflow-hidden">
+                            <div
+                              className="h-full bg-[var(--color-accent)] rounded-full transition-[width] duration-300"
+                              style={{ width: `${Math.max(5, currentlyReading.readingProgress || 0)}%` }}
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
 
                   {/* Primary CTA */}
                   <Button
-                    label="继续翻阅"
+                    label={hasStartedReading ? '继续翻阅' : '开始阅读'}
                     variant="primary"
                     size="lg"
                     endContent={<ChevronRight className="w-4 h-4" />}

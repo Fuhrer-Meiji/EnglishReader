@@ -6,7 +6,15 @@ import path from 'node:path';
 export async function GET(request: NextRequest) {
   await headers();
   try {
-    const catalogPath = path.join(process.cwd(), 'data', 'full_public_catalog.json');
+    function getFullCatalogPath(): string {
+      const p1 = path.join(process.cwd(), 'data', 'full_public_catalog.json');
+      if (fs.existsSync(p1)) return p1;
+      const p2 = path.join(process.cwd(), 'apps', 'web', 'data', 'full_public_catalog.json');
+      if (fs.existsSync(p2)) return p2;
+      return p1;
+    }
+
+    const catalogPath = getFullCatalogPath();
     if (!fs.existsSync(catalogPath)) {
       return NextResponse.json({ total: 0, books: [] });
     }

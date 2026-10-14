@@ -8,12 +8,28 @@ import { PUBLIC_CATALOG_BOOKS } from '../../../lib/publicCatalog';
 export async function GET(request: NextRequest) {
   await headers();
   try {
-    const booksDir = path.join(process.cwd(), 'data', 'books');
+    function getBooksDir(): string {
+      const p1 = path.join(process.cwd(), 'data', 'books');
+      if (fs.existsSync(p1)) return p1;
+      const p2 = path.join(process.cwd(), 'apps', 'web', 'data', 'books');
+      if (fs.existsSync(p2)) return p2;
+      return p1;
+    }
+
+    function getFullCatalogPath(): string {
+      const p1 = path.join(process.cwd(), 'data', 'full_public_catalog.json');
+      if (fs.existsSync(p1)) return p1;
+      const p2 = path.join(process.cwd(), 'apps', 'web', 'data', 'full_public_catalog.json');
+      if (fs.existsSync(p2)) return p2;
+      return p1;
+    }
+
+    const booksDir = getBooksDir();
     const catalogMap = new Map(PUBLIC_CATALOG_BOOKS.map((b) => [b.id, b]));
 
     let fullCatalogMap = new Map();
     try {
-      const fullCatalogPath = path.join(process.cwd(), 'data', 'full_public_catalog.json');
+      const fullCatalogPath = getFullCatalogPath();
       if (fs.existsSync(fullCatalogPath)) {
         const rawCatalog = JSON.parse(fs.readFileSync(fullCatalogPath, 'utf-8'));
         fullCatalogMap = new Map(rawCatalog.map((b: any) => [b.id, b]));
@@ -30,6 +46,18 @@ export async function GET(request: NextRequest) {
           const filePath = path.join(booksDir, file);
           const raw = fs.readFileSync(filePath, 'utf-8');
           const data = JSON.parse(raw);
+
+          // Strictly filter out probe files, zero/single-chapter display mocks, or empty books
+          if (
+            !data.chapters ||
+            !Array.isArray(data.chapters) ||
+            data.chapters.length < 2 ||
+            data.id === 'the-little-prince' ||
+            file.startsWith('audit') ||
+            file.startsWith('wilde-audit')
+          ) {
+            continue;
+          }
 
           const fullMatch = fullCatalogMap.get(data.id);
           const catalogMatch = catalogMap.get(data.id) || fullMatch;
@@ -52,7 +80,7 @@ export async function GET(request: NextRequest) {
             wordCount: totalWords || catalogMatch?.wordCount || 30000,
             coverBg: catalogMatch?.coverBg || 'from-indigo-900 via-stone-900 to-black',
             description: catalogMatch?.description || data.description || '由 王尔德 (Wilde) 自动解析与分级评测。',
-            category: catalogMatch?.category || '自定义导入',
+            category: catalogMatch?.category || '经典著作',
             recommendedAudience: catalogMatch?.recommendedAudience || `${cefr} 进阶读者`,
             readingProgress: catalogMatch?.readingProgress || 0,
             totalChapters: data.totalChapters || data.chapters?.length || 1,

@@ -224,12 +224,14 @@ export default function Home() {
       const targetId = bookId || currentBookId;
 
       if (bookId) {
-        setCurrentBookId(bookId);
-        const targetBook = BOOKS_DATABASE[bookId] || SAMPLE_BOOK;
-        setCurrentBook(targetBook);
+        const validBookId = bookId === 'the-little-prince' ? 'the-great-gatsby' : bookId;
+        setCurrentBookId(validBookId);
+        if (BOOKS_DATABASE[validBookId]) {
+          setCurrentBook(BOOKS_DATABASE[validBookId]);
+        }
         if (typeof window !== 'undefined') {
-          const savedChap = parseInt(localStorage.getItem(`er_chap_${bookId}`) || '0', 10);
-          const savedPage = parseInt(localStorage.getItem(`er_page_${bookId}`) || '0', 10);
+          const savedChap = parseInt(localStorage.getItem(`er_chap_${validBookId}`) || '0', 10);
+          const savedPage = parseInt(localStorage.getItem(`er_page_${validBookId}`) || '0', 10);
           setCurrentChapterIndex(savedChap);
           setCurrentPage(savedPage);
         }
@@ -345,16 +347,17 @@ export default function Home() {
     const bookParam = params.get('book');
 
     if (viewParam === 'reader' && bookParam) {
-      if (BOOKS_DATABASE[bookParam]) {
-        setCurrentBookId(bookParam);
-        setCurrentBook(BOOKS_DATABASE[bookParam]);
-        const savedChap = parseInt(localStorage.getItem(`er_chap_${bookParam}`) || '0', 10);
-        const savedPage = parseInt(localStorage.getItem(`er_page_${bookParam}`) || '0', 10);
-        setCurrentChapterIndex(savedChap);
-        setCurrentPage(savedPage);
+      const validBookId = bookParam === 'the-little-prince' ? 'the-great-gatsby' : bookParam;
+      setCurrentBookId(validBookId);
+      if (BOOKS_DATABASE[validBookId]) {
+        setCurrentBook(BOOKS_DATABASE[validBookId]);
       }
+      const savedChap = parseInt(localStorage.getItem(`er_chap_${validBookId}`) || '0', 10);
+      const savedPage = parseInt(localStorage.getItem(`er_page_${validBookId}`) || '0', 10);
+      setCurrentChapterIndex(savedChap);
+      setCurrentPage(savedPage);
       setActiveView('reader');
-      window.history.replaceState({ view: 'reader', bookId: bookParam }, '', window.location.href);
+      window.history.replaceState({ view: 'reader', bookId: validBookId }, '', window.location.href);
     } else if (viewParam === 'bookshelf') {
       setActiveView('bookshelf');
       window.history.replaceState({ view: 'bookshelf' }, '', window.location.href);
@@ -371,11 +374,14 @@ export default function Home() {
       const targetBook = curBook || event.state?.bookId;
 
       setActiveView(targetView);
-      if (targetBook && BOOKS_DATABASE[targetBook]) {
-        setCurrentBookId(targetBook);
-        setCurrentBook(BOOKS_DATABASE[targetBook]);
-        const savedChap = parseInt(localStorage.getItem(`er_chap_${targetBook}`) || '0', 10);
-        const savedPage = parseInt(localStorage.getItem(`er_page_${targetBook}`) || '0', 10);
+      if (targetBook) {
+        const validBookId = targetBook === 'the-little-prince' ? 'the-great-gatsby' : targetBook;
+        setCurrentBookId(validBookId);
+        if (BOOKS_DATABASE[validBookId]) {
+          setCurrentBook(BOOKS_DATABASE[validBookId]);
+        }
+        const savedChap = parseInt(localStorage.getItem(`er_chap_${validBookId}`) || '0', 10);
+        const savedPage = parseInt(localStorage.getItem(`er_page_${validBookId}`) || '0', 10);
         setCurrentChapterIndex(savedChap);
         setCurrentPage(savedPage);
       }
@@ -472,6 +478,10 @@ export default function Home() {
       }
 
       if (!isCancelled) {
+        if (currentBookId === 'the-little-prince') {
+          setCurrentBookId('the-great-gatsby');
+          return;
+        }
         const fallback = BOOKS_DATABASE[currentBookId] || SAMPLE_BOOK;
         setCurrentBook(fallback);
       }

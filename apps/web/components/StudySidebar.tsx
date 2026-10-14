@@ -8,7 +8,7 @@
 import React, { useState } from 'react';
 import { ChapterStats, DifficultyLevel } from '../lib/types';
 import { DICTIONARY_DATABASE } from '../lib/mockData';
-import { Gauge, BookA, Sliders, Volume2, BookOpen, X, ChevronLeft } from 'lucide-react';
+import { Gauge, BookA, Sliders, Volume2, BookOpen, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Badge, IconButton } from '@astryxdesign/core';
 
 interface StudySidebarProps {
@@ -78,10 +78,10 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
           {onClose && (
             <button
               onClick={onClose}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-elevated)] border border-[var(--color-rule)] transition-all cursor-pointer shadow-2xs group"
-              title="退出精读模式 (收起侧边栏)"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-elevated)] border border-[var(--color-rule)] transition-all cursor-pointer shadow-2xs group active:scale-95"
+              title="收起研读助手边栏 (保持正文精读考纲高亮)"
             >
-              <X className="w-3.5 h-3.5 group-hover:rotate-90 transition-transform" />
+              <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
               <span>收起</span>
             </button>
           )}

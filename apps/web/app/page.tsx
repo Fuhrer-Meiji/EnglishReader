@@ -34,6 +34,7 @@ import { AuthModal } from '../components/AuthModal';
 import { WelcomeView } from '../components/WelcomeView';
 import { AIConfigModal } from '../components/AIConfigModal';
 import { QuoteCardModal } from '../components/QuoteCardModal';
+import { BookOpen, ChevronLeft } from 'lucide-react';
 
 export default function Home() {
   const [activeView, setActiveView] = useState<'welcome' | 'reader' | 'bookshelf'>('welcome');
@@ -42,6 +43,7 @@ export default function Home() {
   const [currentChapterIndex, setCurrentChapterIndex] = useState<number>(0);
 
   const [readingMode, setReadingMode] = useState<ReadingMode>('zen');
+  const [isStudySidebarOpen, setIsStudySidebarOpen] = useState<boolean>(true);
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('double');
   const { theme, setTheme } = useReaderTheme();
   const [fontSize, setFontSize] = useState<number>(18);
@@ -649,7 +651,16 @@ export default function Home() {
       <ReaderHeader
         readingMode={readingMode}
         onToggleMode={(mode) => {
-          setReadingMode(mode);
+          if (mode === 'study') {
+            if (readingMode === 'study') {
+              setIsStudySidebarOpen((prev) => !prev);
+            } else {
+              setReadingMode('study');
+              setIsStudySidebarOpen(true);
+            }
+          } else {
+            setReadingMode('zen');
+          }
           setPopoverState(null);
         }}
         bookTitle={currentBook.title}
@@ -725,14 +736,29 @@ export default function Home() {
         </div>
 
         {/* Study Mode: Right Information & Filter Sidebar */}
-        {readingMode === 'study' && (
+        {readingMode === 'study' && isStudySidebarOpen && (
           <StudySidebar
             stats={currentChapter.stats}
             selectedLevelFilter={selectedLevelFilter}
             onSelectLevelFilter={setSelectedLevelFilter}
             onSelectWord={handleSelectWordFromSidebar}
-            onClose={() => setReadingMode('zen')}
+            onClose={() => setIsStudySidebarOpen(false)}
           />
+        )}
+
+        {/* Study Mode: Floating Re-open Tab when sidebar is collapsed */}
+        {readingMode === 'study' && !isStudySidebarOpen && (
+          <button
+            onClick={() => setIsStudySidebarOpen(true)}
+            className="fixed right-0 top-1/2 -translate-y-1/2 z-40 bg-[var(--color-paper-elevated)] hover:bg-[var(--color-paper-3)] text-[var(--color-ink)] hover:text-[var(--color-accent)] border-l border-y border-[var(--color-rule)] rounded-l-xl px-2 py-3.5 shadow-xl flex flex-col items-center gap-2 transition-all hover:-translate-x-1 cursor-pointer font-meta-mono text-xs group active:scale-95"
+            title="展开精读研读助手 (词汇清单与考纲雷达)"
+          >
+            <BookOpen className="w-4 h-4 text-[var(--color-accent)] group-hover:scale-110 transition-transform" />
+            <span className="text-[11px] [writing-mode:vertical-rl] tracking-widest font-book-serif text-[var(--color-ink)] font-medium">
+              研读助手
+            </span>
+            <ChevronLeft className="w-3.5 h-3.5 text-[var(--color-ink-muted)] group-hover:text-[var(--color-accent)]" />
+          </button>
         )}
       </main>
 
@@ -744,7 +770,12 @@ export default function Home() {
           setCurrentPage(0);
         }}
         readingMode={readingMode}
-        onToggleReadingMode={setReadingMode}
+        onToggleReadingMode={(mode) => {
+          setReadingMode(mode);
+          if (mode === 'study') {
+            setIsStudySidebarOpen(true);
+          }
+        }}
         theme={theme}
         onSelectTheme={setTheme}
         fontSize={fontSize}

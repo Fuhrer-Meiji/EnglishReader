@@ -150,7 +150,7 @@ export const SentenceDrawer: React.FC<SentenceDrawerProps> = ({
         <div className="p-4 sm:p-5 border-b border-[var(--color-rule)] flex items-center justify-between bg-[var(--color-paper-2)]/80 backdrop-blur-md">
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 rounded-md bg-[var(--color-paper)] text-[var(--color-accent)] border border-[var(--color-rule)]">
-              <Sparkles className="w-4 h-4" />
+              <Layers className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -214,18 +214,18 @@ export const SentenceDrawer: React.FC<SentenceDrawerProps> = ({
           </div>
         </div>
 
-        {/* AI Analysis Trigger Bar */}
-        <div className="p-3.5 rounded-xl bg-linear-to-r from-[var(--color-accent)]/10 via-[var(--color-paper-2)] to-[var(--color-paper-2)] border border-[var(--color-accent)]/30 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-7 h-7 rounded-lg bg-[var(--color-accent)]/15 text-[var(--color-accent)] flex items-center justify-center shrink-0">
+        {/* Literary Analysis Trigger Bar */}
+        <div className="p-3.5 rounded-xl bg-[var(--color-paper-2)] border border-[var(--color-rule)] flex items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-[var(--color-accent)]/10 text-[var(--color-accent)] flex items-center justify-center shrink-0 border border-[var(--color-accent)]/20">
               <Feather className="w-4 h-4" />
             </div>
             <div className="min-w-0">
               <p className="text-xs font-medium text-[var(--color-ink)] truncate font-book-serif">
-                王尔德 AI 文学级深度伴读
+                原著语境与文学注脚解析
               </p>
               <p className="text-[10px] text-[var(--color-ink-muted)] font-meta-mono truncate">
-                {hasApiKey ? '大模型已连接 · 一键剖析修辞典故与复杂句式' : '自主配置 DeepSeek/OpenAI Key 开启大模型'}
+                {hasApiKey ? '大模型引擎已连接 · 解构修辞典故与深层句法' : '自主配置 API Key 开启大模型语境深度解构'}
               </p>
             </div>
           </div>
@@ -233,7 +233,7 @@ export const SentenceDrawer: React.FC<SentenceDrawerProps> = ({
           <button
             onClick={hasApiKey ? handleRunAIAnalysis : onOpenAIConfig}
             disabled={isAiLoading}
-            className="px-3 py-1.5 rounded-lg bg-[var(--color-accent)] text-white text-xs font-medium hover:opacity-90 transition-opacity cursor-pointer shrink-0 flex items-center gap-1.5 shadow-2xs disabled:opacity-50"
+            className="px-3 py-1.5 rounded-lg bg-[var(--color-accent)] text-white text-xs font-medium hover:opacity-90 active:scale-95 transition-all cursor-pointer shrink-0 flex items-center gap-1.5 shadow-2xs disabled:opacity-50"
           >
             {isAiLoading ? (
               <>
@@ -242,19 +242,19 @@ export const SentenceDrawer: React.FC<SentenceDrawerProps> = ({
               </>
             ) : hasApiKey ? (
               <>
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>{aiResult ? '重新分析' : 'AI 深度剖析'}</span>
+                <Layers className="w-3.5 h-3.5" />
+                <span>{aiResult ? '重新解构' : '深度解构'}</span>
               </>
             ) : (
               <>
                 <Key className="w-3.5 h-3.5" />
-                <span>配置 API</span>
+                <span>配置密钥</span>
               </>
             )}
           </button>
         </div>
 
-        {/* AI Error Warning */}
+        {/* Error Warning */}
         {aiError && (
           <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-300 text-xs flex items-center justify-between">
             <span>{aiError}</span>
@@ -269,12 +269,12 @@ export const SentenceDrawer: React.FC<SentenceDrawerProps> = ({
           </div>
         )}
 
-        {/* AI Literary Notes (if generated) */}
+        {/* Literary Notes (if generated) */}
         {aiResult?.literaryNotes && (
-          <div className="rounded-xl p-4 bg-[var(--color-paper-2)] border border-[var(--color-accent)]/40 space-y-2 shadow-2xs animate-in fade-in duration-200">
+          <div className="rounded-xl p-4 bg-[var(--color-paper-2)] border border-[var(--color-accent)]/30 space-y-2 shadow-2xs animate-in fade-in duration-200">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-[var(--color-accent)] font-meta-mono">
               <Quote className="w-3.5 h-3.5" />
-              <span>王尔德 AI · 文学隐喻与时代修辞</span>
+              <span>文学隐喻与时代修辞</span>
             </div>
             <p className="text-xs text-[var(--color-ink)] leading-relaxed font-book-serif">
               {aiResult.literaryNotes}
@@ -287,11 +287,11 @@ export const SentenceDrawer: React.FC<SentenceDrawerProps> = ({
           <div className="flex items-center justify-between text-xs font-semibold text-[var(--color-accent)] font-meta-mono uppercase tracking-wider">
             <div className="flex items-center gap-2">
               <Layers className="w-3.5 h-3.5" />
-              <span>{aiResult ? 'AI 句法成分层级拆解' : '句法成分层级拆解'}</span>
+              <span>{aiResult ? '句法成分层级解构' : '句法成分层级拆解'}</span>
             </div>
             {aiResult && (
               <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-normal">
-                ✓ 大模型增强
+                ✓ 语境精解
               </span>
             )}
           </div>
@@ -337,12 +337,12 @@ export const SentenceDrawer: React.FC<SentenceDrawerProps> = ({
           </div>
         </div>
 
-        {/* AI Key Expressions (if available) */}
+        {/* Key Expressions */}
         {aiResult?.keyExpressions && aiResult.keyExpressions.length > 0 && (
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-xs font-semibold text-[var(--color-accent)] font-meta-mono uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>AI 提炼重点习语与表达</span>
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>重点习语与原著搭配</span>
             </div>
             <div className="grid grid-cols-1 gap-2">
               {aiResult.keyExpressions.map((item, idx) => (

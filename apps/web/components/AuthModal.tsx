@@ -260,7 +260,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
         {/* Auto-merge hint */}
         <div className="p-3 rounded-lg bg-[var(--color-paper-2)] border border-[var(--color-rule)] text-[11px] text-[var(--color-ink-2)] flex items-start gap-2">
-          <Sparkles className="w-3.5 h-3.5 text-[var(--color-accent)] shrink-0 mt-0.5" />
+          <CloudCheck className="w-3.5 h-3.5 text-[var(--color-accent)] shrink-0 mt-0.5" />
           <p className="leading-relaxed">
             <strong>自动云端合并</strong>：登录或注册后，当前浏览器已产生的阅读进度和已收录生词将<strong>自动安全上传合并</strong>至您的专属账号中。
           </p>
@@ -281,7 +281,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               ) : tab === 'login' ? (
                 <User className="w-4 h-4" />
               ) : (
-                <Sparkles className="w-4 h-4" />
+                <CheckCircle2 className="w-4 h-4" />
               )
             }
           />

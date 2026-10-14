@@ -6,7 +6,7 @@
  */
 
 import React, { useEffect } from 'react';
-import { Volume2, Bookmark, Check, Sparkles, X } from 'lucide-react';
+import { Volume2, Bookmark, Check, BookOpen, X } from 'lucide-react';
 import { DictEntry } from '../lib/mockData';
 import { Badge, Button, IconButton } from '@astryxdesign/core';
 
@@ -153,7 +153,7 @@ export const WordPopover: React.FC<WordPopoverProps> = ({
             label="语境助记"
             size="sm"
             variant="ghost"
-            icon={<Sparkles className="w-3.5 h-3.5 text-[var(--color-accent)]" />}
+            icon={<BookOpen className="w-3.5 h-3.5 text-[var(--color-accent)]" />}
             onClick={onDeepDive}
           />
         )}

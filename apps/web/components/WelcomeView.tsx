@@ -10,7 +10,7 @@ import React, { useState } from 'react';
 import {
   BookOpen,
   Library,
-  Sparkles,
+  Feather,
   Lock,
   User,
   Mail,
@@ -61,11 +61,11 @@ const FEATURE_CARDS: FeatureCard[] = [
     icon: <BookA className="w-5 h-5 text-[var(--color-accent)]" />,
   },
   {
-    title: 'AI 文学伴读 · 自带密钥 (BYOK)',
+    title: '文学典故伴读 · 自带密钥 (BYOK)',
     subtitle: 'DeepSeek / OpenAI / 月之暗面 / 千问 任意接入',
     tag: '智能研读深度',
     desc: '独创王尔德文学风格提示词，对长难句提供信达雅译文、成分树状拆解、隐喻与时代典故深度注脚。零数据外泄，密钥安全保存在本地。',
-    icon: <Sparkles className="w-5 h-5 text-[var(--color-accent)]" />,
+    icon: <Feather className="w-5 h-5 text-[var(--color-accent)]" />,
   },
   {
     title: 'Standard Ebooks 数字化纸本版式',
@@ -366,7 +366,7 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
           {/* Left Wing (7 Cols): Editorial Manifest */}
           <div className="lg:col-span-7 space-y-6">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--color-paper-elevated)] border border-[var(--color-rule)] text-[11px] font-meta-mono text-[var(--color-accent)] font-semibold shadow-2xs">
-              <Sparkles className="w-3.5 h-3.5" />
+              <Feather className="w-3.5 h-3.5" />
               <span>EST. 2026 · 为深度读者与终身学习者打造的纯净书房</span>
             </div>
 

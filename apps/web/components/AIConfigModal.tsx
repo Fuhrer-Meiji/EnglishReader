@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Sparkles,
+  Sliders,
   X,
   Key,
   Globe,
@@ -160,11 +160,11 @@ export const AIConfigModal: React.FC<AIConfigModalProps> = ({
         <div className="p-5 border-b border-[var(--color-rule)] bg-[var(--color-paper-2)]/90 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-[var(--color-accent)]/15 text-[var(--color-accent)] flex items-center justify-center">
-              <Sparkles className="w-5 h-5" />
+              <Sliders className="w-5 h-5" />
             </div>
             <div>
               <h3 className="font-book-serif font-medium text-base text-[var(--color-ink)]">
-                AI 伴读与大模型接口配置 (BYOK)
+                大模型伴读接口配置 (BYOK)
               </h3>
               <p className="text-xs text-[var(--color-ink-muted)] font-meta-mono mt-0.5">
                 支持任何 OpenAI 兼容接口 · 私有密钥仅存于本地浏览器

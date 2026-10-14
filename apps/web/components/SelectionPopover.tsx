@@ -7,7 +7,8 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Sparkles,
+  Feather,
+  Layers,
   Volume2,
   Copy,
   Check,
@@ -16,7 +17,7 @@ import {
   Loader2,
   BookOpen,
   Languages,
-  ExternalLink,
+  Sliders,
   Share2,
 } from 'lucide-react';
 import { loadAIConfig } from '../lib/aiConfig';
@@ -178,13 +179,13 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
             划选翻译
           </span>
           {isAI ? (
-            <span className="text-[10px] text-[var(--color-accent)] font-meta-mono px-1.5 py-0.2 rounded border border-[var(--color-rule)] flex items-center gap-0.5 ml-1">
-              <Sparkles className="w-2.5 h-2.5" />
-              AI 文学译
+            <span className="text-[10px] text-[var(--color-accent)] font-meta-mono px-1.5 py-0.2 rounded border border-[var(--color-rule)] flex items-center gap-1 ml-1 font-medium">
+              <Feather className="w-2.5 h-2.5" />
+              原著文学对译
             </span>
           ) : (
             <span className="text-[10px] text-[var(--color-ink-muted)] font-meta-mono px-1.5 py-0.2 rounded border border-[var(--color-rule)] ml-1">
-              即时神经译
+              神经对译
             </span>
           )}
         </div>
@@ -194,7 +195,7 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
           {/* Read aloud */}
           <button
             onClick={handlePlayAudio}
-            className={`p-1.5 rounded-lg hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-2)] transition-colors cursor-pointer ${
+            className={`p-1.5 rounded-lg hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-2)] transition-colors cursor-pointer active:scale-95 ${
               isSpeaking ? 'text-[var(--color-accent)] bg-[var(--color-accent)]/10' : ''
             }`}
             title="朗读选文"
@@ -205,7 +206,7 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
           {/* Copy */}
           <button
             onClick={handleCopy}
-            className="p-1.5 rounded-lg hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-2)] transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-2)] transition-colors cursor-pointer active:scale-95"
             title="复制双语译文"
           >
             {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
@@ -215,7 +216,7 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
           {onSaveVocab && (
             <button
               onClick={handleSave}
-              className={`p-1.5 rounded-lg hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-2)] transition-colors cursor-pointer ${
+              className={`p-1.5 rounded-lg hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-2)] transition-colors cursor-pointer active:scale-95 ${
                 isSaved ? 'text-[var(--color-accent)] bg-[var(--color-accent)]/10' : ''
               }`}
               title="加入生词本/金句摘录"
@@ -232,8 +233,8 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
                 onGenerateCard(selectedText.trim(), translation || '');
                 onClose();
               }}
-              className="p-1.5 rounded-lg hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-2)] transition-colors cursor-pointer text-[var(--color-accent)]"
-              title="生成金句书签长图 (可下载/分享)"
+              className="p-1.5 rounded-lg hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-2)] transition-colors cursor-pointer text-[var(--color-accent)] active:scale-95"
+              title="制作金句书签卡片 (支持上传配图与导出)"
             >
               <Share2 className="w-3.5 h-3.5" />
             </button>
@@ -242,7 +243,7 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
           {/* Close */}
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-2)] transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-2)] transition-colors cursor-pointer active:scale-95"
             title="关闭浮窗 (Esc)"
           >
             <X className="w-3.5 h-3.5" />
@@ -270,16 +271,16 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
               {translation}
             </p>
 
-            {/* Bottom Tools & Deep AI Trigger */}
+            {/* Bottom Tools & Deep Grammar Trigger */}
             <div className="flex items-center justify-between pt-1 text-[11px] font-meta-mono text-[var(--color-ink-muted)] gap-2 flex-wrap">
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleTriggerDeepAnalysis}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[var(--color-accent)]/10 hover:bg-[var(--color-accent)]/20 text-[var(--color-accent)] border border-[var(--color-accent)]/30 transition-colors cursor-pointer font-medium shadow-2xs group"
-                  title="唤醒王尔德 AI 对该选段进行句法树与修辞典故深度剖析"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--color-paper-2)] hover:bg-[var(--color-paper-3)] active:scale-95 text-[var(--color-ink)] border border-[var(--color-rule)] transition-all cursor-pointer font-medium shadow-2xs"
+                  title="拆解原句语法成分层级与文学典故"
                 >
-                  <Sparkles className="w-3 h-3 group-hover:scale-110 transition-transform" />
-                  <span>AI 深度赏析</span>
+                  <Layers className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                  <span>句法典故拆解</span>
                 </button>
 
                 {onGenerateCard && (
@@ -289,11 +290,11 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
                       onGenerateCard(selectedText.trim(), translation || '');
                       onClose();
                     }}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[var(--color-paper-2)] hover:bg-[var(--color-paper-3)] text-[var(--color-ink)] border border-[var(--color-rule)] transition-colors cursor-pointer font-medium shadow-2xs"
-                    title="渲染典藏羊皮纸金句卡片并导出高清图"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--color-accent)]/10 hover:bg-[var(--color-accent)]/20 active:scale-95 text-[var(--color-accent)] border border-[var(--color-accent)]/30 transition-all cursor-pointer font-medium shadow-2xs"
+                    title="排版生成精美长图金句书签"
                   >
-                    <Share2 className="w-3 h-3 text-[var(--color-accent)]" />
-                    <span>生成金句卡片</span>
+                    <Share2 className="w-3.5 h-3.5" />
+                    <span>制作金句卡片</span>
                   </button>
                 )}
               </div>
@@ -304,10 +305,10 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
                     onClose();
                     onOpenAIConfig();
                   }}
-                  className="hover:text-[var(--color-ink)] hover:underline transition-colors cursor-pointer flex items-center gap-0.5"
+                  className="hover:text-[var(--color-ink)] hover:underline transition-colors cursor-pointer flex items-center gap-1 text-[11px]"
                 >
-                  <span>配置 AI 译文</span>
-                  <ExternalLink className="w-2.5 h-2.5" />
+                  <Sliders className="w-3 h-3 text-[var(--color-accent)]" />
+                  <span>配置伴读接口</span>
                 </button>
               )}
             </div>

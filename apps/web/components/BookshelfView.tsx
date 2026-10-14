@@ -14,7 +14,9 @@ import {
   BookOpen,
   Clock,
   ChevronRight,
-  Sparkles,
+  Compass,
+  BookA,
+  Sliders,
   Upload,
   Plus,
   FileUp,
@@ -459,10 +461,10 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({
                 <button
                   onClick={onOpenAIConfig}
                   className="flex items-center gap-1.5 text-xs text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] transition-colors cursor-pointer font-medium px-2 py-1 rounded hover:bg-[var(--color-paper-3)]"
-                  title="配置 OpenAI / DeepSeek 等大模型 API"
+                  title="配置 OpenAI / DeepSeek 等大模型伴读密钥"
                 >
-                  <Bot className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-                  <span>AI 设置</span>
+                  <Sliders className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                  <span>伴读设置</span>
                 </button>
               )}
 
@@ -471,7 +473,7 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({
                   onClick={onGoWelcome}
                   className="flex items-center gap-1.5 text-xs text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] transition-colors cursor-pointer font-medium"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                  <Compass className="w-3.5 h-3.5 text-[var(--color-accent)]" />
                   <span>文库导览</span>
                 </button>
               )}
@@ -643,9 +645,9 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({
                 <h3 className="font-book-serif text-lg font-medium text-[var(--color-ink)]">
                   书房典藏 ({filteredMyBooks.length})
                 </h3>
-                <span className="text-xs text-[var(--color-ink-muted)] font-meta-mono flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-                  770,000 离线词条即点即译
+                <span className="text-xs text-[var(--color-ink-muted)] font-meta-mono flex items-center gap-1.5">
+                  <BookA className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                  770,000 离线词库毫秒对译
                 </span>
               </div>
 

@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { ReadingMode } from '../lib/types';
-import { Sparkles, Feather, ChevronLeft } from 'lucide-react';
+import { BookOpen, Feather, ChevronLeft, Sliders } from 'lucide-react';
 import { UserMenu } from './UserMenu';
 import { AuthUser } from '../lib/auth';
 
@@ -83,13 +83,13 @@ export const ReaderHeader: React.FC<ReaderHeaderProps> = ({
 
           <button
             onClick={() => onToggleMode('study')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer active:scale-95 ${
               readingMode === 'study'
                 ? 'bg-[var(--color-ink)] text-[var(--color-paper)] font-semibold shadow-2xs'
                 : 'text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+            <BookOpen className={`w-3.5 h-3.5 ${readingMode === 'study' ? 'text-[var(--color-accent)]' : ''}`} />
             <span>Study 精读</span>
           </button>
         </div>
@@ -99,11 +99,11 @@ export const ReaderHeader: React.FC<ReaderHeaderProps> = ({
           {onOpenAIConfig && (
             <button
               onClick={onOpenAIConfig}
-              className="flex items-center gap-1 px-2 py-1 rounded-md bg-[var(--color-paper-elevated)] hover:bg-[var(--color-paper-3)] border border-[var(--color-rule)] text-[var(--color-accent)] hover:text-[var(--color-ink)] transition-colors cursor-pointer text-xs font-meta-mono shadow-2xs"
-              title="配置 AI 大模型伴读接口"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--color-paper-elevated)] hover:bg-[var(--color-paper-3)] active:scale-95 border border-[var(--color-rule)] text-[var(--color-accent)] hover:text-[var(--color-ink)] transition-all cursor-pointer text-xs font-meta-mono shadow-2xs"
+              title="配置大模型研读与伴读密钥"
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">AI 设置</span>
+              <Sliders className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">伴读设置</span>
             </button>
           )}
 

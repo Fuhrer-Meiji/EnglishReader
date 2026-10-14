@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { User, LogOut, RefreshCw, Cloud, Check, ChevronDown, Sparkles } from 'lucide-react';
+import { User, LogOut, RefreshCw, Cloud, Check, ChevronDown } from 'lucide-react';
 import { Button } from '@astryxdesign/core';
 import { AuthUser } from '../lib/auth';
 

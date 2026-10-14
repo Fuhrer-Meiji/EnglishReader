@@ -8,7 +8,7 @@
 import React, { useState } from 'react';
 import {
   Menu,
-  Sparkles,
+  BookOpen,
   Feather,
   Bookmark,
   Columns2,
@@ -350,11 +350,11 @@ export const WeChatDock: React.FC<WeChatDockProps> = ({
                 ? 'bg-[var(--color-ink)] text-[var(--color-paper)] shadow-2xs'
                 : 'hover:bg-[var(--color-paper-elevated)] hover:text-[var(--color-ink)]'
             }`}
-            title={readingMode === 'study' ? '切回 Zen 沉浸模式' : '开启 AI 精读模式'}
+            title={readingMode === 'study' ? '切回 Zen 沉浸模式' : '开启精读助读模式'}
           >
-            {readingMode === 'study' ? <Sparkles className="w-4 h-4 text-[var(--color-accent)]" /> : <Feather className="w-4 h-4" />}
+            {readingMode === 'study' ? <BookOpen className="w-4 h-4 text-[var(--color-accent)]" /> : <Feather className="w-4 h-4" />}
             <span className="absolute right-11 bg-[var(--color-ink)] text-[var(--color-paper)] text-[10px] font-meta-mono px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-md">
-              {readingMode === 'study' ? 'Zen 沉浸' : 'AI 精读'}
+              {readingMode === 'study' ? 'Zen 沉浸' : '精读研读'}
             </span>
           </button>
 
@@ -483,7 +483,7 @@ export const WeChatDock: React.FC<WeChatDockProps> = ({
           className="flex flex-col items-center gap-1 py-1 px-2 text-[var(--color-ink-2)] hover:text-[var(--color-ink)] cursor-pointer"
         >
           {readingMode === 'study' ? (
-            <Sparkles className="w-4.5 h-4.5 text-[var(--color-accent)]" />
+            <BookOpen className="w-4.5 h-4.5 text-[var(--color-accent)]" />
           ) : (
             <Feather className="w-4.5 h-4.5" />
           )}

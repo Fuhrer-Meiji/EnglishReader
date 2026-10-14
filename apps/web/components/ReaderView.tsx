@@ -15,7 +15,7 @@ import {
   SentenceAnalysis,
 } from '../lib/types';
 import { DICTIONARY_DATABASE } from '../lib/mockData';
-import { Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Layers, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ReaderViewProps {
   chapter: Chapter;
@@ -149,10 +149,10 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
               e.stopPropagation();
               onSentenceAnalyze(sent);
             }}
-            className="inline-flex items-center align-middle ml-1.5 p-0.5 rounded-sm text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15 transition-colors cursor-pointer"
-            title="语境难句拆解"
+            className="inline-flex items-center align-middle ml-1.5 p-0.5 rounded-sm text-[var(--color-accent)]/80 hover:text-[var(--color-accent)] hover:bg-[var(--color-accent)]/15 transition-all cursor-pointer"
+            title="句法解构与文学注脚"
           >
-            <Sparkles className="w-3.5 h-3.5 inline" />
+            <Layers className="w-3 h-3 inline" />
           </button>
         )}
       </span>

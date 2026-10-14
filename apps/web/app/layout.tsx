@@ -20,8 +20,8 @@ const newsreader = Newsreader({
 });
 
 export const metadata: Metadata = {
-  title: "EnglishReader - 英文原著经典文库",
-  description: "秉持典雅纸质排版美学的英文原著分级精读平台",
+  title: "王尔德 · Wilde - 英文原著分级精读典藏",
+  description: "以文为舟，重溯传世原著的阅读原野。收录 1,528 部 Standard Ebooks 精校世界名著，内置 ECDICT 770,000 离线词库与 CEFR 阶梯考纲标定。",
 };
 
 import { AstryxProvider } from "../components/AstryxProvider";

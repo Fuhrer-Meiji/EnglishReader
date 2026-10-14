@@ -369,19 +369,19 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({
               title={onGoWelcome ? '返回文库导览首页' : undefined}
             >
               <div className="w-8 h-8 rounded-md bg-[var(--color-ink)] text-[var(--color-paper)] flex items-center justify-center font-book-serif font-bold text-sm shadow-xs select-none">
-                ER
+                W
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="font-book-serif font-semibold text-lg tracking-tight text-[var(--color-ink)]">
-                    EnglishReader
+                    王尔德 · Wilde
                   </h1>
                   <span className="hidden sm:inline-block text-[10px] text-[var(--color-accent)] font-meta-mono uppercase tracking-wider font-semibold border border-[var(--color-rule)] px-1.5 py-0.5 rounded whitespace-nowrap">
                     原著分级典藏
                   </span>
                 </div>
                 <p className="text-[11px] text-[var(--color-ink-muted)] font-meta-mono hidden sm:block">
-                  标准数字化排版 · ECDICT 770,000 词库离线解析
+                  Standard Ebooks 标准数字化精校 · 1,528 卷传世经典
                 </p>
               </div>
             </div>
@@ -510,7 +510,7 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({
                             </p>
                           </div>
                           <div className={`text-[8px] uppercase tracking-wider ${binding.subtle} font-meta-mono`}>
-                            EnglishReader
+                            Wilde
                           </div>
                         </div>
                       );
@@ -1055,7 +1055,7 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-1">
             <p className="font-book-serif text-sm font-medium text-[var(--color-ink)]">
-              EnglishReader · 英文经典分级精读文库
+              王尔德 · Wilde · 英文经典分级精读文库
             </p>
             <p className="text-[11px] text-[var(--color-ink-muted)]">
               遵循真实纸书排版美学与双语浸润式阅读哲学 · 蓝思分级驱动

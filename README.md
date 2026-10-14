@@ -1,8 +1,8 @@
 <div align="center">
 
-# 📖 EnglishReader
+# 📖 王尔德 · Wilde
 
-### 原著分级精读典藏 · A Dignified Platform for Reading World Classics
+### 英文原著分级精读典藏 · A Dignified Platform for Reading World Classics
 
 **1,528 卷精校世界公版名著 · 770,000 离线词库毫秒点译 · CEFR 考纲阶梯拆解 · 微信读书式移动端沉浸体验**  
 *Curated 1,528 Standard Ebooks Canon · 770k Offline ECDICT Engine · CEFR Exam Vocabulary Heatmap · WeChat Read Immersive Mobile Experience*
@@ -45,7 +45,7 @@
 3. **粗制滥造的电子排版**：网传 EPUB 格式混乱、字体简陋，缺乏纸本书卷的呼吸感与排版尊严；
 4. **难度未知容易受挫**：盲目选书容易受挫弃读，缺乏精准分级指引。
 
-**EnglishReader** 专为终身学习者打造——以 **Standard Ebooks 世界标准精校文本** 为基石，融入 **ECDICT 770,000 权威离线词库**、**CEFR 梯级考纲拆解** 与 **微信读书式极简交互**，让每一次阅读都成为一场愉悦的精神深潜。
+**「王尔德 (Wilde)」** 专为终身学习者打造——以 **Standard Ebooks 世界标准精校文本** 为基石，融入 **ECDICT 770,000 权威离线词库**、**CEFR 梯级考纲拆解** 与 **微信读书式极简交互**，让每一次阅读都成为一场愉悦的精神深潜。
 
 ---
 
@@ -128,7 +128,7 @@ For non-native English readers and lifelong learners, reading original classical
 3. **Shoddy Digital Typesetting**: Downloaded EPUB files often feature inconsistent typography, missing drop caps, and cramped margins;
 4. **Mismatched Reading Difficulty**: Diving into classics without lexical grading leads to quick discouragement and abandoned books.
 
-**EnglishReader** resolves these challenges. Grounded in the **Standard Ebooks** typographical standard, powered by the **770,000-word ECDICT offline database**, **CEFR lexical ladder grading**, and **WeChat Read-style distraction-free controls**, EnglishReader restores dignity and serenity to deep digital reading.
+**Wilde (王尔德)** resolves these challenges. Grounded in the **Standard Ebooks** typographical standard, powered by the **770,000-word ECDICT offline database**, **CEFR lexical ladder grading**, and **WeChat Read-style distraction-free controls**, Wilde restores dignity and serenity to deep digital reading.
 
 ---
 

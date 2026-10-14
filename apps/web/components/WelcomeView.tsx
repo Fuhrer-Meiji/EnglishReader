@@ -283,12 +283,12 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
           {/* Brand Colophon */}
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-md bg-[var(--color-ink)] text-[var(--color-paper)] flex items-center justify-center font-book-serif font-bold text-sm shadow-xs select-none">
-              ER
+              W
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-book-serif font-semibold text-lg tracking-tight text-[var(--color-ink)]">
-                  EnglishReader
+                  王尔德 · Wilde
                 </span>
                 <span className="hidden sm:inline-block text-[10px] text-[var(--color-accent)] font-meta-mono uppercase tracking-wider font-semibold border border-[var(--color-rule)] px-1.5 py-0.5 rounded whitespace-nowrap">
                   原著分级典藏
@@ -354,7 +354,7 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
             </h1>
 
             <p className="text-sm sm:text-base text-[var(--color-ink-2)] leading-relaxed max-w-2xl font-book-sans">
-              告别浮躁的碎片阅读。EnglishReader 全量收录 <strong>1,528 部</strong> 经世界标准精校的世界公版英文名著。
+              告别浮躁的碎片阅读。「王尔德」全量收录 <strong>1,528 部</strong> 经世界标准精校的世界公版英文名著。
               内置 <strong>770,000 离线词库</strong> 毫秒点译、<strong>CEFR 考纲阶梯高亮</strong>与长难句树状语法拆解，
               让每一位读者在原汁原味的文学殿堂中自由深潜。
             </p>
@@ -753,9 +753,9 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-6 h-6 rounded bg-[var(--color-ink)] text-[var(--color-paper)] flex items-center justify-center font-book-serif font-bold text-xs select-none">
-              ER
+              W
             </div>
-            <span>EnglishReader · 原著分级精读典藏</span>
+            <span>王尔德 · Wilde · 英文原著分级精读典藏</span>
           </div>
           <div className="flex items-center gap-4 text-[11px]">
             <span>Standard Ebooks 数字化标准</span>
@@ -766,7 +766,7 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
           </div>
         </div>
         <p className="text-center text-[11px] text-[var(--color-ink-muted)]/80">
-          收录作品均属于公有领域（Public Domain）。排版引擎严谨遵循学术原典规范，致力为中文读者打造极致纯净的英文经典深读乐园。
+          “The artist is the creator of beautiful things.” — Oscar Wilde · 唯美主义原著数字化典藏
         </p>
       </footer>
     </div>

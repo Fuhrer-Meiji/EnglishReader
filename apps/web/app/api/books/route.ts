@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
             lexile: lexile,
             wordCount: totalWords || catalogMatch?.wordCount || 30000,
             coverBg: catalogMatch?.coverBg || 'from-indigo-900 via-stone-900 to-black',
-            description: catalogMatch?.description || data.description || '由 EnglishReader 自动解析与分级评测。',
+            description: catalogMatch?.description || data.description || '由 王尔德 (Wilde) 自动解析与分级评测。',
             category: catalogMatch?.category || '自定义导入',
             recommendedAudience: catalogMatch?.recommendedAudience || `${cefr} 进阶读者`,
             readingProgress: catalogMatch?.readingProgress || 0,

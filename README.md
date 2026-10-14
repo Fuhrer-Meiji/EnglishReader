@@ -1,136 +1,212 @@
-# EnglishReader (英文原著阅读平台)
+<div align="center">
 
-> **优雅、高效、深度的双模式英文原著阅读平台**  
-> 专为英语原著爱好者与学习者设计，兼顾「心流沉浸体验」与「深度精读吸收」。
+# 📖 EnglishReader
 
----
+### 原著分级精读典藏 · A Dignified Platform for Reading World Classics
 
-## 📖 项目愿景
+**1,528 卷精校世界公版名著 · 770,000 离线词库毫秒点译 · CEFR 考纲阶梯拆解 · 微信读书式移动端沉浸体验**  
+*Curated 1,528 Standard Ebooks Canon · 770k Offline ECDICT Engine · CEFR Exam Vocabulary Heatmap · WeChat Read Immersive Mobile Experience*
 
-对于非母语读者而言，英文原著阅读长期存在痛点：
-1. **频繁查词打断心流**：遇到生词停下来查字典，破坏阅读沉浸感；
-2. **长难句与文化鸿沟**：语法结构复杂、俚语典故难以靠单字字典理解；
-3. **生词脱节难吸收**：查完即忘，缺乏与上下文绑定的复习闭环；
-4. **书籍难度不匹配**：不知选哪本书，盲目阅读容易受挫弃坑。
-
-**EnglishReader** 旨在通过 **“双模式交互”** + **“自动化公版书难度分析流水线”** + **“AI 语境辅助”**，打造一套现代化的英文阅读新体验。
-
----
-
-## 🌟 核心特性
-
-### 1. 双模式阅读（One-click Mode Switch）
-* 🧘 **沉浸阅读模式 (Zen / Flow Mode)**
-  * 极简居中排版、纯净无打扰界面；
-  * **低打扰气泡查词**：轻点单词即弹极简释义，即查即走，保护阅读心流；
-  * 支持自定义排版、背景色温、无边框全屏阅读。
-* 🎓 **学习精读模式 (Study Mode)**
-  * **分级词汇热力图**：根据用户水平（CET-4/6、考研、托福、雅思、GRE）轻量标色超纲词汇；
-  * **AI 语法树与长难句拆解**：一键拆解从句嵌套、修饰成分与通顺地道意译；
-  * **深度词卡**：词根词缀、固定搭配、原句例句与发音音频；
-  * **文化背景注脚**：AI 即时解读文学隐喻、时代典故。
-
-### 2. 公版图书数据与难度评级流水线 (Data Pipeline)
-* **优质来源同步**：优先接入高质量排版的 [Standard Ebooks](https://standardebooks.org/) 与海量图书的 [Project Gutenberg](https://www.gutenberg.org/)；
-* **结构化清洗**：自动化提取章节、清理旧版排版杂质、规范化 HTML 片段；
-* **多维度难度评估**：
-  * **Flesch-Kincaid / 蓝思指数 (Lexile)** 可读性评分；
-  * **CEFR 分级 (A1 ~ C2)**；
-  * **词汇分布雷达**（展示 CET-4/6/GRE/Rare 词汇占比），读者挑书一目了然。
-
-### 3. 高性能与低成本查词体系
-* **L1 本地缓存**：浏览器 IndexedDB 缓存高频生词；
-* **L2 毫秒级离线词典**：基于开源 77 万词条的 `ECDICT`，单次检索 < 5ms，覆盖基础考纲标签与词频；
-* **L3 AI 语境释义**：仅对复杂长句、多义熟词生义按需调用 LLM，大幅降低 API 成本。
-
-### 4. 记忆闭环 (Vocabulary & SRS)
-* **语境生词本**：生词自动绑定原文出处句子与书籍章节；
-* **内置间隔重复算法 (SM-2 / FSRS)**：智能安排复习周期，支持一键导出到 Anki。
+<p align="center">
+  <a href="http://8.217.7.250">
+    <img src="https://img.shields.io/badge/🌐_Live_Demo-8.217.7.250-blue?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Live Demo" />
+  </a>
+  <a href="https://github.com/Fuhrer-Meiji/EnglishReader">
+    <img src="https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub Repo" />
+  </a>
+  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="MIT License" />
+  <img src="https://img.shields.io/badge/Next.js-16.4_Turbopack-black?style=for-the-badge&logo=next.js" alt="Next.js" />
+  <img src="https://img.shields.io/badge/ECDICT-770%2C000_Words-orange?style=for-the-badge" alt="ECDICT" />
+</p>
 
 ---
 
-## 🏗️ 系统架构图
+### 🌐 在线体验 / Live Preview
+👉 **[http://8.217.7.250](http://8.217.7.250)**  
+*(全库 1,528 卷经典已上线，支持访客免登录即刻开卷阅读，亦可 10 秒开启专属云端书房)*
 
-```mermaid
-flowchart TB
-    subgraph Client ["前端体验层 (Next.js 15 + React + TailwindCSS)"]
-        Home["书架与分级检索"]
-        Zen["沉浸阅读视图 (Zen)"]
-        Study["精读学习视图 (Study)"]
-        SRS["生词本 & 闪卡复习"]
-    end
+---
 
-    subgraph Service ["业务与接口层 (Fullstack API)"]
-        BookSvc["书籍与章节服务"]
-        DictSvc["离线高速字典 (ECDICT, <5ms)"]
-        AISvc["AI 长难句分析与语境中台"]
-        LearnSvc["进度与 SRS 学习同步"]
-    end
+[ 🇨🇳 简体中文 ](#-简体中文) &nbsp; | &nbsp; [ 🇺🇸 English ](#-english)
 
-    subgraph Pipeline ["Python 数据流水线 (Data Pipeline)"]
-        Scraper["公版书抓取 (Standard Ebooks / Gutenberg)"]
-        Cleaner["EPUB 解析与标准化清洗"]
-        NLP["难度评估 (Lexile / CEFR / 词频雷达)"]
-    end
+</div>
 
-    subgraph Storage ["存储与数据层"]
-        Postgres[(PostgreSQL - 关系业务数据)]
-        R2[(对象存储 Cloudflare R2 - 图书与封面)]
-        LocalDict[(SQLite - 77万词条 ECDICT)]
-    end
+<br />
 
-    Client <--> Service
-    Service --> Storage
-    Pipeline --> Storage
-    Service --> LocalDict
+---
+
+## 🇨🇳 简体中文
+
+### 🌿 项目哲学与初衷
+
+对于非母语英语学习者与深度阅读者而言，英文原著阅读长期面临难以调和的割裂：
+1. **频繁查词打断心流**：每遇生词反复跳出查词典，撕碎了文学审美的连续性；
+2. **生词脱节难以沉淀**：查完即忘，孤立的单词卡片缺乏那一刻原著上下文的温存；
+3. **粗制滥造的电子排版**：网传 EPUB 格式混乱、字体简陋，缺乏纸本书卷的呼吸感与排版尊严；
+4. **难度未知容易受挫**：盲目选书容易受挫弃读，缺乏精准分级指引。
+
+**EnglishReader** 专为终身学习者打造——以 **Standard Ebooks 世界标准精校文本** 为基石，融入 **ECDICT 770,000 权威离线词库**、**CEFR 梯级考纲拆解** 与 **微信读书式极简交互**，让每一次阅读都成为一场愉悦的精神深潜。
+
+---
+
+### ✨ 核心特性
+
+#### 1. 📚 1,528 卷精校世界公版名著全库 (Curated Canon)
+- 索引全量 **1,528 部** 世界公版英文文学巨作，涵盖莎士比亚、狄更斯、简·奥斯汀、毛姆、王尔德、马克·吐温等文豪原著；
+- 遵循 **Standard Ebooks** 现代数字化出版规范，严谨剔除历史排版瑕疵，保留精美首字下沉与段落节奏；
+- 支持 10 大文学流派检索（文学巨著、侦探推理、科幻奇幻、哲学随笔等），一键秒级在线解析入库。
+
+#### 2. ⚡ ECDICT 770,000 离线学术词典 (Offline Lexicon)
+- **毫秒级极速释义**：内置 SQLite 预编译 77 万词条词典，轻点单词即弹极简释义与音标，无需等待网络请求；
+- **权威学术标注**：完整呈现柯林斯星级、BNC 词频排名、动词变形、复数形式与派生考纲；
+- **长难句语法树拆解**：支持语境重点难句的语法成分树状深度拆解与通顺意译。
+
+#### 3. 🎓 CEFR 梯级难度与考纲高亮 (Lexical Grading)
+- 每部原著均标定 **CEFR 梯度（A2 ~ C1）** 与蓝思可读性指标；
+- **智能考纲筛选**：可按需开启 **四级+ (CET-4)、六级+ (CET-6)、考研 (KY)、GRE 高难** 重点词阶梯高亮，帮学习者精准扫除生词死角。
+
+#### 4. 📖 微信读书式双擎排版与移动端沉浸体验 (Typography & Gestures)
+- **纸本双擎排版**：
+  - **双栏精装开本**：左右双页书卷排版，键盘左右方向键沉浸翻页；
+  - **长卷连读模式**：传统纵向平滑滚动，适应长篇深读。
+- **三段典藏纸张色温**：晨光亮白（Natural）、羊皮纸护眼（Warm Sepia）、墨玉夜读（Midnight）；
+- **典藏衬线字体**：严选 Charter 与 Newsreader 原典衬线，支持多档字号与行间距精确调谐；
+- **移动端全沉浸交互**：
+  - 轻触屏幕空白处，自动收起全部顶栏与控制底栏，**文字 100% 满屏无遮挡**；
+  - 经典 6 键底栏与原生毛玻璃半屏底部抽屉（Bottom Sheet）。
+
+#### 5. ☁️ 私家语境生词本与跨端云迹 (Private Cloud & SRS)
+- **带原文例句入库**：加入生词本不仅记录单词，更自动封存那一刻的**原著上下文例句与章节出处**；
+- **全端无缝漫游**：账号体系自动沉淀阅读进度、页码记忆、生词掌握状态，更换电脑、平板、手机开卷即续。
+
+---
+
+### 🛠️ 技术栈一览
+
+| 层次 | 技术选型 | 说明 |
+| :--- | :--- | :--- |
+| **前端架构** | **Next.js 16 (App Router)** | 全局 Turbopack 高速编译、服务端静态优化 |
+| **UI 设计系统** | **Meta Astryx + Tailwind CSS v4** | Hallmark N6 Broadsheet 报头美学、OKLCH 典藏色彩令牌 |
+| **交互与图标** | **Lucide React** | 极简现代化矢量图标库 |
+| **离线词库引擎** | **ECDICT + SQLite** | 770,000 权威词条离线预载，单次查询 < 2ms |
+| **数据与账号** | **SQLite (WAL 模式) + Node.js Crypto** | 盐值 PBKDF2 安全哈希、轻量无外部依赖、持久化存储 |
+| **公版数据源** | **Standard Ebooks & Project Gutenberg** | 高水准数字化排版规范 |
+| **部署与运维** | **Alibaba Cloud ECS + PM2** | 持续集成、平滑热重载与守护进程管理 |
+
+---
+
+### 🚀 5 分钟本地运行指南
+
+```bash
+# 1. 克隆项目仓库
+git clone https://github.com/Fuhrer-Meiji/EnglishReader.git
+cd EnglishReader
+
+# 2. 安装项目依赖
+npm install
+
+# 3. 启动开发服务器
+npm run dev
+
+# 4. 在浏览器中打开
+open http://localhost:3000
 ```
 
 ---
 
-## 📁 规划目录结构
+<br />
 
-```text
-EnglishReader/
-├── apps/
-│   ├── web/                         # 前端应用 (Next.js 15 App Router + TailwindCSS)
-│   │   ├── app/                     # 路由系统 (书架、双模式阅读器、生词本、API)
-│   │   ├── components/              # 业务组件 (ZenReader, StudyDrawer, DictCard)
-│   │   └── lib/                     # 词典查询、CFI 锚点与阅读器逻辑
-│   │
-│   └── pipeline/                    # Python 数据处理流水线
-│       ├── scrapers/                # Standard Ebooks / Gutenberg 爬虫脚本
-│       ├── analyzers/               # 难度评估 (Flesch-Kincaid, CEFR, 词频统计)
-│       ├── cleaners/                # EPUB 提取规范化脚本
-│       └── main.py                  # CLI 入口
-│
-├── packages/
-│   ├── database/                    # 数据库模型 (Prisma / Drizzle ORM)
-│   └── types/                       # 共享 TypeScript 类型定义
-│
-└── README.md
+---
+
+## 🇺🇸 English
+
+### 🌿 Philosophy & Purpose
+
+For non-native English readers and lifelong learners, reading original classical literature often comes with enduring friction:
+1. **Flow Fragmented by Lookups**: Stumbling upon unfamiliar words forces readers to leave the page, breaking cognitive immersion;
+2. **Context Lost in Rote Memorization**: Vocabulary apps store words in isolation, detached from the literary nuances and historical cadences of the original text;
+3. **Shoddy Digital Typesetting**: Downloaded EPUB files often feature inconsistent typography, missing drop caps, and cramped margins;
+4. **Mismatched Reading Difficulty**: Diving into classics without lexical grading leads to quick discouragement and abandoned books.
+
+**EnglishReader** resolves these challenges. Grounded in the **Standard Ebooks** typographical standard, powered by the **770,000-word ECDICT offline database**, **CEFR lexical ladder grading**, and **WeChat Read-style distraction-free controls**, EnglishReader restores dignity and serenity to deep digital reading.
+
+---
+
+### ✨ Key Features
+
+#### 1. 📚 1,528-Volume Curated Classical Canon
+- Complete catalog of **1,528 public domain masterpieces**, featuring Shakespeare, Charles Dickens, Jane Austen, W. Somerset Maugham, Oscar Wilde, and Mark Twain;
+- Built upon **Standard Ebooks** digital typography standards with clean structure, drop caps, and authentic chapter layout;
+- Instant search across 10 literary categories (Classics, Mystery, Sci-Fi, Philosophy, etc.) with sub-second catalog ingestion.
+
+#### 2. ⚡ 770,000-Word ECDICT Offline Lexicon
+- **Sub-2ms Instant Definition**: Embedded pre-compiled SQLite dictionary, tap any word to display phonetics, definitions, and morphological variants without network delay;
+- **Scholarly Lexical Annotations**: Collins star ratings, BNC frequency ranks, past tense/plural forms, and exam syllabus tags;
+- **Syntactic Tree Breakdown**: Deep sentence structural parsing and idiom clarification for complex clauses.
+
+#### 3. 🎓 CEFR Lexical Grading & Exam Heatmaps
+- Every volume is annotated with **CEFR levels (A2 to C1)** and readability metrics;
+- **Targeted Exam Filters**: One-click highlights for **CET-4, CET-6, Postgraduate (KY), and GRE** high-frequency vocabulary.
+
+#### 4. 📖 WeChat Read Dual-Engine Typography & Immersive Gestures
+- **Dual-Engine Layout**:
+  - **Two-Column Hardcover Spread**: Authentic two-page book spread with keyboard arrow navigation;
+  - **Continuous Scroll Mode**: Smooth vertical scroll for modern responsive reading.
+- **Three Archival Color Temperatures**: Natural Paper, Warm Sepia (Parchment), and Midnight Dark;
+- **Editorial Serif Typography**: Charter & Newsreader typefaces with fine-tuned font sizes and line heights;
+- **Mobile Immersion Paradigm**:
+  - Tap canvas to collapse top header and bottom controls for a **100% full-screen unobstructed reading canvas**;
+  - Mobile bottom navigation bar and frosted glass bottom sheet.
+
+#### 5. ☁️ Contextual Vocabulary Vault & Private Cloud Sync
+- **Words Bound to Original Context**: Adding words to your vocabulary vault automatically captures the **exact sentence and chapter excerpt**;
+- **Cross-Device Progress Roaming**: Real-time cloud sync for reading bookmarks, page offsets, and mastered vocabulary across phone, tablet, and desktop.
+
+---
+
+### 🛠️ Architecture & Stack
+
+| Layer | Technology | Details |
+| :--- | :--- | :--- |
+| **Framework** | **Next.js 16 (App Router)** | Turbopack compilation & Server-Side Static Generation |
+| **Design System** | **Meta Astryx + Tailwind CSS v4** | Hallmark N6 broadsheet editorial style & OKLCH color tokens |
+| **Icons** | **Lucide React** | Clean, accessible SVG iconography |
+| **Dictionary Engine** | **ECDICT + SQLite** | 770,000 comprehensive English-Chinese dictionary entries |
+| **Database & Auth** | **SQLite (WAL Mode) + Crypto** | PBKDF2 secure password hashing & zero external DB dependencies |
+| **Canon Sources** | **Standard Ebooks & Project Gutenberg** | High-craft public domain open-access literature |
+| **Production** | **Alibaba Cloud ECS + PM2** | Production cluster with automated hot reload |
+
+---
+
+### 🚀 Quick Start (Local Setup)
+
+```bash
+# 1. Clone repository
+git clone https://github.com/Fuhrer-Meiji/EnglishReader.git
+cd EnglishReader
+
+# 2. Install dependencies
+npm install
+
+# 3. Start local development server
+npm run dev
+
+# 4. Open in browser
+open http://localhost:3000
 ```
 
 ---
 
-## 🚀 开发路线图 (Roadmap)
+## 📜 Acknowledgements & Credits
 
-- [ ] **Phase 1: 基础设施与数据验证**
-  - [ ] 搭建 Python 数据清洗脚本，跑通首批 Standard Ebooks 经典书籍（如《了不起的盖茨比》）；
-  - [ ] 实现文本难度评分与词频统计分析；
-  - [ ] 准备本地 ECDICT 词典 SQLite 数据源。
-- [ ] **Phase 2: 双模式阅读器 MVP**
-  - [ ] 初始化 Next.js 15 项目与 Tailwind 基础排版；
-  - [ ] 实现章节翻页与 Zen 模式 / Study 模式一键切换；
-  - [ ] 实现前端快速查词弹窗与侧边栏。
-- [ ] **Phase 3: AI 与深度学习闭环**
-  - [ ] 接入 LLM 流式长难句拆解与语法分析；
-  - [ ] 语境生词本、划线高亮保存与 SRS 复习模块。
-- [ ] **Phase 4: 多模态与沉浸伴读**
-  - [ ] 接入高拟真神经 TTS 伴读与文字同步高亮；
-  - [ ] 完善多端响应式（移动端/平板/桌面端）。
+- [Standard Ebooks](https://standardebooks.org/) for their world-class open-source typography and digital editorial standards.
+- [Project Gutenberg](https://www.gutenberg.org/) for preserving humanity's shared public domain literary heritage.
+- [ECDICT](https://github.com/skywind3000/ECDICT) by skywind3000 for the authoritative 770,000-word offline dictionary database.
+- [Meta Astryx](https://github.com/facebook/stylex) & [Tailwind CSS](https://tailwindcss.com/) for the modern design system foundations.
 
 ---
 
-## 📜 版权与开源协议
+## 📄 License
 
-本项目爬取与整理的书籍均来自公有领域（Public Domain，如 Standard Ebooks 与 Project Gutenberg），遵循宽松的开源与公开版权协议。
+This project is licensed under the [MIT License](LICENSE).  
+All literary texts indexed and presented are within the Public Domain.

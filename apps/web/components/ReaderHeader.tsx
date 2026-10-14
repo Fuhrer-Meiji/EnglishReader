@@ -7,8 +7,7 @@
 
 import React from 'react';
 import { ReadingMode } from '../lib/types';
-import { BookOpen, BookmarkCheck, BookmarkPlus, Sparkles, Feather } from 'lucide-react';
-import { Badge, Button, IconButton } from '@astryxdesign/core';
+import { Sparkles, Feather, ChevronLeft } from 'lucide-react';
 import { UserMenu } from './UserMenu';
 import { AuthUser } from '../lib/auth';
 
@@ -18,14 +17,13 @@ interface ReaderHeaderProps {
   bookTitle: string;
   chineseTitle?: string;
   chapterTitle: string;
-  isBookmarked: boolean;
-  onToggleBookmark: () => void;
   onGoBookshelf: () => void;
   user?: AuthUser | null;
   onOpenAuth?: () => void;
   onLogout?: () => void;
   onManualSync?: () => Promise<void>;
   isSyncing?: boolean;
+  isControlsVisible?: boolean;
 }
 
 export const ReaderHeader: React.FC<ReaderHeaderProps> = ({
@@ -34,50 +32,41 @@ export const ReaderHeader: React.FC<ReaderHeaderProps> = ({
   bookTitle,
   chineseTitle,
   chapterTitle,
-  isBookmarked,
-  onToggleBookmark,
   onGoBookshelf,
   user,
   onOpenAuth,
   onLogout,
   onManualSync,
   isSyncing,
+  isControlsVisible = true,
 }) => {
   return (
-    <header className="sticky top-0 z-30 border-b border-[var(--color-rule)] bg-[var(--color-paper-2)]/95 backdrop-blur-md px-4 sm:px-8 py-3 text-[var(--color-ink)] transition-[background-color,border-color] duration-150">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+    <header
+      className={`sticky top-0 z-30 border-b border-[var(--color-rule)] bg-[var(--color-paper-2)]/95 backdrop-blur-md px-3 sm:px-8 py-2.5 sm:py-3 text-[var(--color-ink)] transition-all duration-300 ease-in-out ${
+        isControlsVisible
+          ? 'translate-y-0 opacity-100'
+          : '-translate-y-full opacity-0 pointer-events-none'
+      }`}
+    >
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
         {/* Left: Book Title & Back to Shelf */}
-        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+        <div className="flex items-center gap-2 sm:gap-3.5 min-w-0">
           <button
             onClick={onGoBookshelf}
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer group"
+            className="flex items-center gap-1.5 sm:gap-2 hover:opacity-80 transition-opacity cursor-pointer group min-w-0"
             title="返回书架"
           >
-            <div className="p-1.5 rounded-md bg-[var(--color-ink)] text-[var(--color-paper)] shadow-2xs">
-              <BookOpen className="w-3.5 h-3.5" />
+            <div className="p-1.5 rounded-md bg-[var(--color-ink)] text-[var(--color-paper)] shadow-2xs shrink-0">
+              <ChevronLeft className="w-3.5 h-3.5" />
             </div>
-            <span className="font-book-serif font-medium text-sm text-[var(--color-ink)] group-hover:text-[var(--color-accent)] transition-colors truncate">
+            <span className="font-book-serif font-medium text-xs sm:text-sm text-[var(--color-ink)] group-hover:text-[var(--color-accent)] transition-colors truncate max-w-[180px] sm:max-w-[320px] md:max-w-[420px]">
               {chineseTitle ? `${chineseTitle} · ${bookTitle}` : bookTitle}
             </span>
           </button>
-
-          <Button
-            label={isBookmarked ? '在架典藏' : '收入书架'}
-            size="sm"
-            variant={isBookmarked ? 'primary' : 'secondary'}
-            icon={
-              isBookmarked ? (
-                <BookmarkCheck className="w-3.5 h-3.5" />
-              ) : (
-                <BookmarkPlus className="w-3.5 h-3.5" />
-              )
-            }
-            onClick={onToggleBookmark}
-          />
         </div>
 
-        {/* Center: Dual-Mode Switcher (Zen vs Study) */}
-        <div className="flex items-center bg-[var(--color-paper-elevated)] p-0.5 rounded-lg border border-[var(--color-rule)] shadow-2xs">
+        {/* Center: Dual-Mode Switcher (Zen vs Study) - Hidden on mobile, shown on md: */}
+        <div className="hidden md:flex items-center bg-[var(--color-paper-elevated)] p-0.5 rounded-lg border border-[var(--color-rule)] shadow-2xs">
           <button
             onClick={() => onToggleMode('zen')}
             className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
@@ -104,13 +93,13 @@ export const ReaderHeader: React.FC<ReaderHeaderProps> = ({
         </div>
 
         {/* Right: Shelf Navigation & User Account */}
-        <div className="flex items-center gap-2.5 text-xs text-[var(--color-ink-muted)] font-meta-mono">
-          <Button
-            label="返回文库"
-            size="sm"
-            variant="ghost"
+        <div className="flex items-center gap-2 sm:gap-2.5 text-xs text-[var(--color-ink-muted)] font-meta-mono shrink-0">
+          <button
             onClick={onGoBookshelf}
-          />
+            className="hidden sm:inline-flex text-xs px-2.5 py-1 rounded-md hover:bg-[var(--color-paper-elevated)] text-[var(--color-ink-2)] transition-colors cursor-pointer"
+          >
+            返回文库
+          </button>
           {onOpenAuth && (
             <>
               <span className="text-[var(--color-rule)] hidden sm:inline">|</span>

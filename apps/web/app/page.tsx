@@ -45,8 +45,8 @@ export default function Home() {
   const [selectedLevelFilter, setSelectedLevelFilter] = useState<DifficultyLevel | 'ALL' | 'OFF'>('CET6');
 
   const [currentPage, setCurrentPage] = useState<number>(0);
-  const [isBookmarked, setIsBookmarked] = useState<boolean>(true);
   const [isTOCOpen, setIsTOCOpen] = useState<boolean>(false);
+  const [isControlsVisible, setIsControlsVisible] = useState<boolean>(true);
 
   // Account & Cloud Sync
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -141,9 +141,6 @@ export default function Home() {
     if (cloudData.bookmarks && typeof cloudData.bookmarks === 'object') {
       for (const [bookId, isBm] of Object.entries(cloudData.bookmarks as Record<string, boolean>)) {
         localStorage.setItem(`er_bookmarked_${bookId}`, String(isBm));
-        if (bookId === currentBookId) {
-          setIsBookmarked(Boolean(isBm));
-        }
       }
     }
 
@@ -281,32 +278,6 @@ export default function Home() {
     };
   }, []);
 
-  // Sync bookmark state per book
-  useEffect(() => {
-    if (typeof window !== 'undefined' && currentBookId) {
-      const saved = localStorage.getItem(`er_bookmarked_${currentBookId}`);
-      if (saved !== null) {
-        setIsBookmarked(saved === 'true');
-      } else {
-        setIsBookmarked(true);
-      }
-    }
-  }, [currentBookId]);
-
-  const handleToggleBookmark = () => {
-    const next = !isBookmarked;
-    setIsBookmarked(next);
-    if (typeof window !== 'undefined' && currentBookId) {
-      localStorage.setItem(`er_bookmarked_${currentBookId}`, String(next));
-    }
-    if (user && currentBookId) {
-      fetch('/api/user/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clientBookmarks: { [currentBookId]: next } }),
-      }).catch((e) => console.warn('[BookmarkSync] Warning:', e));
-    }
-  };
 
   // Save current progress to localStorage and cloud ONLY when user is actively inside the reader
   useEffect(() => {
@@ -529,18 +500,39 @@ export default function Home() {
         bookTitle={currentBook.title}
         chineseTitle={currentBook.chineseTitle}
         chapterTitle={currentChapter.title}
-        isBookmarked={isBookmarked}
-        onToggleBookmark={handleToggleBookmark}
         onGoBookshelf={() => setActiveView('bookshelf')}
         user={user}
         onOpenAuth={() => setIsAuthModalOpen(true)}
         onLogout={handleLogout}
         onManualSync={syncWithCloud}
         isSyncing={isSyncing}
+        isControlsVisible={isControlsVisible}
       />
 
       {/* 2. Main Reader Canvas with Optional Study Sidebar */}
-      <main className="flex-1 flex overflow-hidden">
+      <main
+        className="flex-1 flex overflow-hidden cursor-default"
+        onClick={(e) => {
+          if (popoverState) {
+            setPopoverState(null);
+            return;
+          }
+          const target = e.target as HTMLElement;
+          if (
+            target.closest('button') ||
+            target.closest('a') ||
+            target.closest('input') ||
+            target.closest('[role="dialog"]')
+          ) {
+            return;
+          }
+          const selection = window.getSelection();
+          if (selection && selection.toString().trim().length > 0) {
+            return;
+          }
+          setIsControlsVisible((prev) => !prev);
+        }}
+      >
         <div className="flex-1 overflow-y-auto">
           <ReaderView
             chapter={currentChapter}
@@ -579,6 +571,7 @@ export default function Home() {
             selectedLevelFilter={selectedLevelFilter}
             onSelectLevelFilter={setSelectedLevelFilter}
             onSelectWord={handleSelectWordFromSidebar}
+            onClose={() => setReadingMode('zen')}
           />
         )}
       </main>
@@ -603,6 +596,8 @@ export default function Home() {
         onOpenVocab={() => setIsVocabOpen(true)}
         onOpenTOC={() => setIsTOCOpen(true)}
         vocabCount={vocabItems.length}
+        isControlsVisible={isControlsVisible}
+        onToggleControls={() => setIsControlsVisible((prev) => !prev)}
       />
 
       {/* 4. Table of Contents Modal */}

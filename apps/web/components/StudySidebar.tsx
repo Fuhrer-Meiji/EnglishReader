@@ -8,7 +8,7 @@
 import React from 'react';
 import { ChapterStats, DifficultyLevel } from '../lib/types';
 import { DICTIONARY_DATABASE } from '../lib/mockData';
-import { Gauge, BookA, Sliders, Volume2, Sparkles } from 'lucide-react';
+import { Gauge, BookA, Sliders, Volume2, Sparkles, X } from 'lucide-react';
 import { Badge, IconButton } from '@astryxdesign/core';
 
 interface StudySidebarProps {
@@ -16,6 +16,7 @@ interface StudySidebarProps {
   selectedLevelFilter: DifficultyLevel | 'ALL' | 'OFF';
   onSelectLevelFilter: (filter: DifficultyLevel | 'ALL' | 'OFF') => void;
   onSelectWord: (word: string) => void;
+  onClose?: () => void;
 }
 
 export const StudySidebar: React.FC<StudySidebarProps> = ({
@@ -23,6 +24,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
   selectedLevelFilter,
   onSelectLevelFilter,
   onSelectWord,
+  onClose,
 }) => {
   const filterOptions: { label: string; value: DifficultyLevel | 'ALL' | 'OFF' }[] = [
     { label: '全部标色', value: 'ALL' },
@@ -47,9 +49,33 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
   const highLevelWords = Object.entries(DICTIONARY_DATABASE);
 
   return (
-    <aside className="w-80 shrink-0 border-l border-[var(--color-rule)] bg-[var(--color-paper-2)]/95 text-[var(--color-ink)] p-4 space-y-6 overflow-y-auto">
-      {/* Chapter Readability Metrics */}
-      <div className="space-y-3">
+    <>
+      {/* Mobile backdrop */}
+      <div
+        className="md:hidden fixed inset-0 bg-black/40 backdrop-blur-xs z-50 animate-in fade-in duration-200"
+        onClick={onClose}
+      />
+
+      <aside className="fixed inset-y-0 right-0 z-50 w-80 max-w-[85vw] md:static md:w-80 shrink-0 border-l border-[var(--color-rule)] bg-[var(--color-paper-2)]/98 md:bg-[var(--color-paper-2)]/95 text-[var(--color-ink)] p-4 space-y-6 overflow-y-auto shadow-2xl md:shadow-none animate-in slide-in-from-right duration-200">
+        {/* Mobile Header with Close button */}
+        <div className="flex items-center justify-between pb-2 border-b border-[var(--color-rule)] md:hidden">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-[var(--color-accent)] font-meta-mono uppercase tracking-wider">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>AI 精读分析助手</span>
+          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-1 rounded-lg hover:bg-[var(--color-paper-elevated)] text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] transition-colors cursor-pointer"
+              title="收起精读边栏"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Chapter Readability Metrics */}
+        <div className="space-y-3">
         <div className="flex items-center gap-1.5 text-xs font-semibold text-[var(--color-accent)] font-meta-mono uppercase tracking-wider">
           <Gauge className="w-3.5 h-3.5" />
           <span>本章文本难度雷达</span>
@@ -178,5 +204,6 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
         </div>
       </div>
     </aside>
+    </>
   );
 };

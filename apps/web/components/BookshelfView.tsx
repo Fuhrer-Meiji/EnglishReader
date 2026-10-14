@@ -357,80 +357,109 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({
   return (
     <div className="min-h-screen bg-[var(--color-paper)] text-[var(--color-ink)] font-book-sans selection:bg-[var(--color-accent)]/20">
       {/* 1. Hallmark N6 Broadsheet / Library Masthead */}
-      <header className="sticky top-0 z-30 bg-[var(--color-paper-2)]/95 backdrop-blur-md border-b border-[var(--color-rule)] px-6 sm:px-12 py-3.5">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          {/* Brand Colophon */}
-          <div className="flex items-center gap-3.5">
-            <div className="w-8 h-8 rounded-md bg-[var(--color-ink)] text-[var(--color-paper)] flex items-center justify-center font-book-serif font-bold text-sm shadow-xs select-none">
-              ER
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="font-book-serif font-semibold text-lg tracking-tight text-[var(--color-ink)]">
-                  EnglishReader
-                </h1>
-                <span className="text-[10px] text-[var(--color-accent)] font-meta-mono uppercase tracking-wider font-semibold border border-[var(--color-rule)] px-1.5 py-0.5 rounded">
-                  原著分级典藏
-                </span>
+      <header className="sticky top-0 z-30 bg-[var(--color-paper-2)]/95 backdrop-blur-md border-b border-[var(--color-rule)] px-4 sm:px-12 py-3">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          {/* Top row on mobile / Left on desktop */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-md bg-[var(--color-ink)] text-[var(--color-paper)] flex items-center justify-center font-book-serif font-bold text-sm shadow-xs select-none">
+                ER
               </div>
-              <p className="text-[11px] text-[var(--color-ink-muted)] font-meta-mono hidden sm:block">
-                标准数字化排版 · ECDICT 770,000 词库离线解析
-              </p>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="font-book-serif font-semibold text-lg tracking-tight text-[var(--color-ink)]">
+                    EnglishReader
+                  </h1>
+                  <span className="hidden sm:inline-block text-[10px] text-[var(--color-accent)] font-meta-mono uppercase tracking-wider font-semibold border border-[var(--color-rule)] px-1.5 py-0.5 rounded whitespace-nowrap">
+                    原著分级典藏
+                  </span>
+                </div>
+                <p className="text-[11px] text-[var(--color-ink-muted)] font-meta-mono hidden sm:block">
+                  标准数字化排版 · ECDICT 770,000 词库离线解析
+                </p>
+              </div>
+            </div>
+
+            {/* Mobile Actions (Top Right) */}
+            <div className="flex items-center gap-2 md:hidden">
+              <button
+                onClick={() => {
+                  setUploadStatus('idle');
+                  setUploadMessage('');
+                  setUploadedBook(null);
+                  setIsUploadModalOpen(true);
+                }}
+                className="p-2 rounded-lg text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-3)] transition-colors cursor-pointer"
+                title="导入书籍"
+              >
+                <FileUp className="w-4 h-4 text-[var(--color-accent)]" />
+              </button>
+              {onOpenAuth && (
+                <UserMenu
+                  user={user || null}
+                  onOpenAuth={onOpenAuth}
+                  onLogout={onLogout || (() => {})}
+                  onManualSync={onManualSync}
+                  isSyncing={isSyncing}
+                />
+              )}
             </div>
           </div>
 
-          {/* Navigation Tabs */}
-          <div className="flex items-center gap-5 sm:gap-7 text-xs">
-            {/* Tab: My Bookshelf */}
-            <button
-              onClick={() => setActiveTab('my-shelf')}
-              className={`flex items-center gap-1.5 pb-1 font-medium transition-[color,border-color] duration-150 cursor-pointer ${
-                activeTab === 'my-shelf'
-                  ? 'text-[var(--color-accent)] border-b-2 border-[var(--color-accent)] font-semibold'
-                  : 'text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] border-b-2 border-transparent'
-              }`}
-            >
-              <BookOpen className="w-3.5 h-3.5" />
-              <span>我的书架 ({myBooks.length})</span>
-            </button>
+          {/* Bottom row on mobile (segmented tabs) / Desktop right-side nav */}
+          <div className="flex items-center justify-between md:justify-end gap-3 sm:gap-7 text-xs">
+            {/* Segmented switcher on mobile, normal tabs on desktop */}
+            <div className="flex items-center bg-[var(--color-paper-3)] md:bg-transparent p-1 md:p-0 rounded-xl md:rounded-none w-full md:w-auto gap-1 md:gap-6">
+              <button
+                onClick={() => setActiveTab('my-shelf')}
+                className={`flex-1 md:flex-initial flex items-center justify-center gap-1.5 py-1.5 md:py-0 md:pb-1 font-medium transition-[color,border-color,background-color] duration-150 cursor-pointer rounded-lg md:rounded-none ${
+                  activeTab === 'my-shelf'
+                    ? 'bg-[var(--color-paper)] md:bg-transparent text-[var(--color-accent)] shadow-xs md:shadow-none md:border-b-2 md:border-[var(--color-accent)] font-semibold'
+                    : 'text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] md:border-b-2 md:border-transparent'
+                }`}
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>我的书架 ({myBooks.length})</span>
+              </button>
 
-            {/* Tab: Public Library */}
-            <button
-              onClick={() => setActiveTab('public-library')}
-              className={`flex items-center gap-1.5 pb-1 font-medium transition-[color,border-color] duration-150 cursor-pointer ${
-                activeTab === 'public-library'
-                  ? 'text-[var(--color-accent)] border-b-2 border-[var(--color-accent)] font-semibold'
-                  : 'text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] border-b-2 border-transparent'
-              }`}
-            >
-              <Library className="w-3.5 h-3.5" />
-              <span>公版文库 (1,500+)</span>
-            </button>
+              <button
+                onClick={() => setActiveTab('public-library')}
+                className={`flex-1 md:flex-initial flex items-center justify-center gap-1.5 py-1.5 md:py-0 md:pb-1 font-medium transition-[color,border-color,background-color] duration-150 cursor-pointer rounded-lg md:rounded-none ${
+                  activeTab === 'public-library'
+                    ? 'bg-[var(--color-paper)] md:bg-transparent text-[var(--color-accent)] shadow-xs md:shadow-none md:border-b-2 md:border-[var(--color-accent)] font-semibold'
+                    : 'text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] md:border-b-2 md:border-transparent'
+                }`}
+              >
+                <Library className="w-3.5 h-3.5" />
+                <span>公版文库 (1,500+)</span>
+              </button>
+            </div>
 
-            {/* Upload EPUB Action */}
-            <Button
-              label="导入书籍"
-              variant="secondary"
-              size="sm"
-              icon={<FileUp className="w-3.5 h-3.5 text-[var(--color-accent)]" />}
-              onClick={() => {
-                setUploadStatus('idle');
-                setUploadMessage('');
-                setUploadedBook(null);
-                setIsUploadModalOpen(true);
-              }}
-            />
-
-            {/* User Account & Cloud Sync Menu */}
-            {onOpenAuth && (
-              <UserMenu
-                user={user || null}
-                onOpenAuth={onOpenAuth}
-                onLogout={onLogout || (() => {})}
-                onManualSync={onManualSync}
-                isSyncing={isSyncing}
+            {/* Desktop Actions */}
+            <div className="hidden md:flex items-center gap-5">
+              <Button
+                label="导入书籍"
+                variant="secondary"
+                size="sm"
+                icon={<FileUp className="w-3.5 h-3.5 text-[var(--color-accent)]" />}
+                onClick={() => {
+                  setUploadStatus('idle');
+                  setUploadMessage('');
+                  setUploadedBook(null);
+                  setIsUploadModalOpen(true);
+                }}
               />
-            )}
+
+              {onOpenAuth && (
+                <UserMenu
+                  user={user || null}
+                  onOpenAuth={onOpenAuth}
+                  onLogout={onLogout || (() => {})}
+                  onManualSync={onManualSync}
+                  isSyncing={isSyncing}
+                />
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -546,7 +575,7 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({
                 </div>
 
                 {/* CEFR Level Selector Pills */}
-                <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1">
+                <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 scrollbar-none no-scrollbar">
                   {[
                     { label: '全部书籍', value: 'ALL' },
                     { label: '入门 A2/B1 · 四级', value: 'B1' },

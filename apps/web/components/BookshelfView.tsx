@@ -368,26 +368,38 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           {/* Top row on mobile / Left on desktop */}
           <div className="flex items-center justify-between">
-            <div
-              onClick={onGoWelcome}
-              className={`flex items-center gap-3 ${onGoWelcome ? 'cursor-pointer hover:opacity-85 transition-opacity' : ''}`}
-              title={onGoWelcome ? '返回文库导览首页' : undefined}
-            >
-              <div className="w-8 h-8 rounded-md bg-[var(--color-ink)] text-[var(--color-paper)] flex items-center justify-center font-book-serif font-bold text-sm shadow-xs select-none">
-                W
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="font-book-serif font-semibold text-lg tracking-tight text-[var(--color-ink)]">
-                    王尔德 · Wilde
-                  </h1>
-                  <span className="hidden sm:inline-block text-[10px] text-[var(--color-accent)] font-meta-mono uppercase tracking-wider font-semibold border border-[var(--color-rule)] px-1.5 py-0.5 rounded whitespace-nowrap">
-                    原著分级典藏
-                  </span>
+            <div className="flex items-center gap-2.5 min-w-0">
+              {onGoWelcome && (
+                <button
+                  onClick={onGoWelcome}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[var(--color-paper-elevated)] hover:bg-[var(--color-paper-3)] border border-[var(--color-rule)] text-xs text-[var(--color-ink-2)] hover:text-[var(--color-ink)] transition-all cursor-pointer font-meta-mono shadow-2xs group active:scale-95 shrink-0"
+                  title="返回文库导览首页"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+                  <span className="font-medium text-[11px]">首页</span>
+                </button>
+              )}
+              <div
+                onClick={onGoWelcome}
+                className={`flex items-center gap-3 min-w-0 ${onGoWelcome ? 'cursor-pointer hover:opacity-85 transition-opacity' : ''}`}
+                title={onGoWelcome ? '返回文库导览首页' : undefined}
+              >
+                <div className="w-8 h-8 rounded-md bg-[var(--color-ink)] text-[var(--color-paper)] flex items-center justify-center font-book-serif font-bold text-sm shadow-xs select-none shrink-0">
+                  W
                 </div>
-                <p className="text-[11px] text-[var(--color-ink-muted)] font-meta-mono hidden sm:block">
-                  Standard Ebooks 标准数字化精校 · 1,528 卷传世经典
-                </p>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h1 className="font-book-serif font-semibold text-lg tracking-tight text-[var(--color-ink)] truncate">
+                      王尔德 · Wilde
+                    </h1>
+                    <span className="hidden sm:inline-block text-[10px] text-[var(--color-accent)] font-meta-mono uppercase tracking-wider font-semibold border border-[var(--color-rule)] px-1.5 py-0.5 rounded whitespace-nowrap">
+                      原著分级典藏
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[var(--color-ink-muted)] font-meta-mono hidden sm:block">
+                    Standard Ebooks 标准数字化精校 · 1,528 卷传世经典
+                  </p>
+                </div>
               </div>
             </div>
 

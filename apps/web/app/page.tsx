@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   ReadingMode,
   LayoutMode,
@@ -214,12 +214,78 @@ export default function Home() {
     }
   };
 
+  const navigateToView = useCallback(
+    (
+      newView: 'welcome' | 'reader' | 'bookshelf',
+      bookId?: string,
+      replace: boolean = false
+    ) => {
+      setActiveView(newView);
+      const targetId = bookId || currentBookId;
+
+      if (bookId) {
+        setCurrentBookId(bookId);
+        const targetBook = BOOKS_DATABASE[bookId] || SAMPLE_BOOK;
+        setCurrentBook(targetBook);
+        if (typeof window !== 'undefined') {
+          const savedChap = parseInt(localStorage.getItem(`er_chap_${bookId}`) || '0', 10);
+          const savedPage = parseInt(localStorage.getItem(`er_page_${bookId}`) || '0', 10);
+          setCurrentChapterIndex(savedChap);
+          setCurrentPage(savedPage);
+        }
+      }
+
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href);
+        if (newView === 'welcome') {
+          url.searchParams.delete('view');
+          url.searchParams.delete('book');
+        } else if (newView === 'bookshelf') {
+          url.searchParams.set('view', 'bookshelf');
+          url.searchParams.delete('book');
+        } else if (newView === 'reader') {
+          url.searchParams.set('view', 'reader');
+          url.searchParams.set('book', targetId);
+        }
+
+        const state = {
+          view: newView,
+          bookId: targetId,
+        };
+
+        const targetPath = url.pathname + (url.search ? url.search : '');
+        if (replace) {
+          window.history.replaceState(state, '', targetPath);
+        } else {
+          window.history.pushState(state, '', targetPath);
+        }
+      }
+    },
+    [currentBookId]
+  );
+
+  const handleGoBookshelf = useCallback(() => {
+    if (typeof window !== 'undefined' && window.history.state?.view === 'bookshelf') {
+      window.history.back();
+    } else {
+      navigateToView('bookshelf');
+    }
+  }, [navigateToView]);
+
+  const handleGoWelcome = useCallback(() => {
+    if (typeof window !== 'undefined' && window.history.state?.view === 'welcome') {
+      window.history.back();
+    } else {
+      navigateToView('welcome');
+    }
+  }, [navigateToView]);
+
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch (e) {}
     setUser(null);
-    setActiveView('welcome');
+    navigateToView('welcome', undefined, true);
   };
 
   const persistVocabItems = (items: VocabularyItem[]) => {
@@ -270,6 +336,55 @@ export default function Home() {
     }
   }, []);
 
+  // Initialize view from URL if present, and handle browser back/forward (popstate)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const params = new URLSearchParams(window.location.search);
+    const viewParam = params.get('view') as 'welcome' | 'reader' | 'bookshelf' | null;
+    const bookParam = params.get('book');
+
+    if (viewParam === 'reader' && bookParam) {
+      if (BOOKS_DATABASE[bookParam]) {
+        setCurrentBookId(bookParam);
+        setCurrentBook(BOOKS_DATABASE[bookParam]);
+        const savedChap = parseInt(localStorage.getItem(`er_chap_${bookParam}`) || '0', 10);
+        const savedPage = parseInt(localStorage.getItem(`er_page_${bookParam}`) || '0', 10);
+        setCurrentChapterIndex(savedChap);
+        setCurrentPage(savedPage);
+      }
+      setActiveView('reader');
+      window.history.replaceState({ view: 'reader', bookId: bookParam }, '', window.location.href);
+    } else if (viewParam === 'bookshelf') {
+      setActiveView('bookshelf');
+      window.history.replaceState({ view: 'bookshelf' }, '', window.location.href);
+    } else {
+      window.history.replaceState({ view: 'welcome' }, '', window.location.href);
+    }
+
+    const handlePopState = (event: PopStateEvent) => {
+      const currentParams = new URLSearchParams(window.location.search);
+      const curView = currentParams.get('view') as 'welcome' | 'reader' | 'bookshelf' | null;
+      const curBook = currentParams.get('book');
+
+      const targetView = curView || event.state?.view || 'welcome';
+      const targetBook = curBook || event.state?.bookId;
+
+      setActiveView(targetView);
+      if (targetBook && BOOKS_DATABASE[targetBook]) {
+        setCurrentBookId(targetBook);
+        setCurrentBook(BOOKS_DATABASE[targetBook]);
+        const savedChap = parseInt(localStorage.getItem(`er_chap_${targetBook}`) || '0', 10);
+        const savedPage = parseInt(localStorage.getItem(`er_page_${targetBook}`) || '0', 10);
+        setCurrentChapterIndex(savedChap);
+        setCurrentPage(savedPage);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   // Check user session and sync cloud data on mount
   useEffect(() => {
     let isMounted = true;
@@ -280,7 +395,13 @@ export default function Home() {
           const data = await res.json();
           if (isMounted && data.user) {
             setUser(data.user);
-            setActiveView('bookshelf');
+            // Only auto-switch to bookshelf if no explicit view is specified in URL
+            if (typeof window !== 'undefined') {
+              const params = new URLSearchParams(window.location.search);
+              if (!params.get('view')) {
+                navigateToView('bookshelf', undefined, true);
+              }
+            }
             const syncRes = await fetch('/api/user/sync');
             if (syncRes.ok) {
               const syncData = await syncRes.json();
@@ -296,14 +417,19 @@ export default function Home() {
       }
 
       if (isMounted) {
-        setActiveView('welcome');
+        if (typeof window !== 'undefined') {
+          const params = new URLSearchParams(window.location.search);
+          if (!params.get('view')) {
+            setActiveView('welcome');
+          }
+        }
       }
     }
     checkUserSession();
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [navigateToView]);
 
 
   // Save current progress to localStorage and cloud ONLY when user is actively inside the reader
@@ -562,24 +688,12 @@ export default function Home() {
     return (
       <>
         <WelcomeView
-          onEnterBookshelf={() => setActiveView('bookshelf')}
-          onSelectBook={(bookId) => {
-            setCurrentBookId(bookId);
-            if (typeof window !== 'undefined') {
-              const savedChap = parseInt(localStorage.getItem(`er_chap_${bookId}`) || '0', 10);
-              const savedPage = parseInt(localStorage.getItem(`er_page_${bookId}`) || '0', 10);
-              setCurrentChapterIndex(savedChap);
-              setCurrentPage(savedPage);
-            } else {
-              setCurrentChapterIndex(0);
-              setCurrentPage(0);
-            }
-            setActiveView('reader');
-          }}
+          onEnterBookshelf={() => navigateToView('bookshelf')}
+          onSelectBook={(bookId) => navigateToView('reader', bookId)}
           user={user}
           onAuthSuccess={(loggedUser, syncedData) => {
             handleAuthSuccess(loggedUser, syncedData);
-            setActiveView('bookshelf');
+            navigateToView('bookshelf');
           }}
           onLogout={handleLogout}
           clientDataToMerge={gatherClientDataForMerge()}
@@ -604,20 +718,8 @@ export default function Home() {
     return (
       <>
         <BookshelfView
-          onSelectBook={(bookId) => {
-            setCurrentBookId(bookId);
-            if (typeof window !== 'undefined') {
-              const savedChap = parseInt(localStorage.getItem(`er_chap_${bookId}`) || '0', 10);
-              const savedPage = parseInt(localStorage.getItem(`er_page_${bookId}`) || '0', 10);
-              setCurrentChapterIndex(savedChap);
-              setCurrentPage(savedPage);
-            } else {
-              setCurrentChapterIndex(0);
-              setCurrentPage(0);
-            }
-            setActiveView('reader');
-          }}
-          onGoWelcome={() => setActiveView('welcome')}
+          onSelectBook={(bookId) => navigateToView('reader', bookId)}
+          onGoWelcome={handleGoWelcome}
           onOpenAIConfig={() => setIsAIConfigOpen(true)}
           user={user}
           onOpenAuth={() => setIsAuthModalOpen(true)}
@@ -665,7 +767,7 @@ export default function Home() {
         bookTitle={currentBook.title}
         chineseTitle={currentBook.chineseTitle}
         chapterTitle={currentChapter.title}
-        onGoBookshelf={() => setActiveView('bookshelf')}
+        onGoBookshelf={handleGoBookshelf}
         user={user}
         onOpenAuth={() => setIsAuthModalOpen(true)}
         onLogout={handleLogout}

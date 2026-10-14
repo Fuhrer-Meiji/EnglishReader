@@ -50,6 +50,7 @@ export const AIConfigModal: React.FC<AIConfigModalProps> = ({
     latencyMs?: number;
   } | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [keyError, setKeyError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -57,6 +58,7 @@ export const AIConfigModal: React.FC<AIConfigModalProps> = ({
       setConfig(loaded);
       setTestResult(null);
       setSaveSuccess(false);
+      setKeyError(null);
     }
   }, [isOpen]);
 
@@ -128,6 +130,15 @@ export const AIConfigModal: React.FC<AIConfigModalProps> = ({
   };
 
   const handleSave = () => {
+    if (!config.apiKey.trim()) {
+      setKeyError('请先填写您的 API Key 密钥再保存并启用');
+      setTestResult({
+        success: false,
+        message: '未检测到 API Key，无法激活大模型伴读功能。请填写密钥，或点击「重置」停用。',
+      });
+      return;
+    }
+    setKeyError(null);
     saveAIConfig(config);
     setSaveSuccess(true);
     onConfigSaved?.(config);
@@ -140,7 +151,11 @@ export const AIConfigModal: React.FC<AIConfigModalProps> = ({
     const reset = { ...DEFAULT_AI_CONFIG, apiKey: '' };
     setConfig(reset);
     saveAIConfig(reset);
-    setTestResult(null);
+    setKeyError(null);
+    setTestResult({
+      success: true,
+      message: '已清空并停用大模型伴读配置',
+    });
     setSaveSuccess(false);
     onConfigSaved?.(reset);
   };
@@ -258,10 +273,15 @@ export const AIConfigModal: React.FC<AIConfigModalProps> = ({
                   value={config.apiKey}
                   onChange={(e) => {
                     setConfig({ ...config, apiKey: e.target.value.trim() });
+                    setKeyError(null);
                     setTestResult(null);
                   }}
                   placeholder="sk-..."
-                  className="w-full pl-3 pr-10 py-2.5 bg-[var(--color-paper-2)]/80 border border-[var(--color-rule)] rounded-xl text-xs font-mono text-[var(--color-ink)] placeholder-[var(--color-ink-muted)] focus:outline-hidden focus:border-[var(--color-accent)] transition-colors"
+                  className={`w-full pl-3 pr-10 py-2.5 bg-[var(--color-paper-2)]/80 border rounded-xl text-xs font-mono text-[var(--color-ink)] placeholder-[var(--color-ink-muted)] focus:outline-hidden transition-colors ${
+                    keyError
+                      ? 'border-rose-500 ring-2 ring-rose-500/20'
+                      : 'border-[var(--color-rule)] focus:border-[var(--color-accent)]'
+                  }`}
                 />
                 <button
                   type="button"
@@ -272,6 +292,12 @@ export const AIConfigModal: React.FC<AIConfigModalProps> = ({
                   {showKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                 </button>
               </div>
+              {keyError && (
+                <p className="text-[11px] text-rose-500 flex items-center gap-1 mt-1 font-meta-mono animate-in fade-in duration-150">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <span>{keyError}</span>
+                </p>
+              )}
             </div>
 
             {/* Base URL */}
@@ -386,8 +412,10 @@ export const AIConfigModal: React.FC<AIConfigModalProps> = ({
             </button>
             <button
               type="button"
+              disabled={!config.apiKey.trim()}
               onClick={handleSave}
-              className="px-5 py-2 rounded-xl bg-[var(--color-accent)] hover:opacity-90 text-white text-xs font-medium transition-opacity cursor-pointer shadow-xs flex items-center gap-1.5"
+              className="px-5 py-2 rounded-xl bg-[var(--color-accent)] hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-medium transition-all cursor-pointer shadow-xs flex items-center gap-1.5"
+              title={!config.apiKey.trim() ? '请先填写 API Key 密钥以保存启用' : '保存并激活 AI 伴读'}
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>保存并启用</span>

@@ -12,16 +12,17 @@
 html[data-theme="light"],
 [data-theme="light"] {
   color-scheme: light;
-  /* Warm Natural Paper - Hallmark Rule: tint toward anchor hue, no pure #fff */
-  --color-paper: oklch(96.8% 0.012 75);
-  --color-paper-2: oklch(93.8% 0.015 75);
-  --color-paper-elevated: oklch(98.8% 0.008 75);
-  --color-ink: oklch(18.2% 0.012 60);
-  --color-ink-2: oklch(42.0% 0.010 60);
-  --color-ink-muted: oklch(58.0% 0.008 60);
-  --color-rule: oklch(85.0% 0.012 75);
-  --color-accent: oklch(56.0% 0.165 48);
-  --color-focus: oklch(52.0% 0.170 50);
+  /* Clean Natural Daylight White Paper */
+  --color-paper: oklch(98.6% 0.003 95);
+  --color-paper-2: oklch(95.5% 0.005 95);
+  --color-paper-3: oklch(92.5% 0.007 95);
+  --color-paper-elevated: oklch(100% 0 0);
+  --color-ink: oklch(18.0% 0.005 60);
+  --color-ink-2: oklch(38.0% 0.005 60);
+  --color-ink-muted: oklch(56.0% 0.005 60);
+  --color-rule: oklch(89.0% 0.005 95);
+  --color-accent: oklch(54.0% 0.170 45);
+  --color-focus: oklch(50.0% 0.170 48);
 
   --background: var(--color-paper);
   --foreground: var(--color-ink);
@@ -38,15 +39,17 @@ html[data-theme="light"],
 html[data-theme="sepia"],
 [data-theme="sepia"] {
   color-scheme: light;
-  --color-paper: oklch(92.5% 0.024 78);
-  --color-paper-2: oklch(88.5% 0.028 78);
-  --color-paper-elevated: oklch(95.0% 0.020 78);
-  --color-ink: oklch(22.0% 0.025 65);
-  --color-ink-2: oklch(42.0% 0.020 65);
-  --color-ink-muted: oklch(58.0% 0.016 65);
-  --color-rule: oklch(80.0% 0.022 78);
-  --color-accent: oklch(52.0% 0.160 48);
-  --color-focus: oklch(48.0% 0.160 50);
+  /* Distinct Amber-Warm Antique Parchment / Tea Stained */
+  --color-paper: oklch(92.0% 0.040 82);
+  --color-paper-2: oklch(87.5% 0.044 82);
+  --color-paper-3: oklch(83.5% 0.046 82);
+  --color-paper-elevated: oklch(95.0% 0.034 82);
+  --color-ink: oklch(22.0% 0.035 60);
+  --color-ink-2: oklch(40.0% 0.030 60);
+  --color-ink-muted: oklch(56.0% 0.024 60);
+  --color-rule: oklch(80.0% 0.032 82);
+  --color-accent: oklch(50.0% 0.170 45);
+  --color-focus: oklch(46.0% 0.170 48);
 
   --background: var(--color-paper);
   --foreground: var(--color-ink);
@@ -66,7 +69,8 @@ html[data-theme="dark"],
   /* Library Midnight / Moroccan Leather - Hallmark Rule: never pure #000 */
   --color-paper: oklch(16.5% 0.009 55);
   --color-paper-2: oklch(20.5% 0.011 55);
-  --color-paper-elevated: oklch(24.0% 0.012 55);
+  --color-paper-3: oklch(24.5% 0.012 55);
+  --color-paper-elevated: oklch(26.0% 0.013 55);
   --color-ink: oklch(93.5% 0.006 75);
   --color-ink-2: oklch(72.0% 0.008 65);
   --color-ink-muted: oklch(56.0% 0.008 65);
@@ -90,6 +94,7 @@ html[data-theme="dark"],
   --color-foreground: var(--foreground);
   --color-paper: var(--color-paper);
   --color-paper-2: var(--color-paper-2);
+  --color-paper-3: var(--color-paper-3);
   --color-paper-elevated: var(--color-paper-elevated);
   --color-ink: var(--color-ink);
   --color-ink-2: var(--color-ink-2);
@@ -142,13 +147,13 @@ h1, h2, h3, h4, h5, h6 {
   font-feature-settings: "liga" 1, "kern" 1, "calt" 1;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  color: var(--color-ink);
 }
 
 .font-book-sans {
   font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
   font-feature-settings: "liga" 1, "kern" 1;
-  color: var(--color-ink);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 .font-meta-mono {

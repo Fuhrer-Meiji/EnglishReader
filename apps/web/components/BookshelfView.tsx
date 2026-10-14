@@ -30,6 +30,7 @@ import {
 import { Badge, Button, IconButton, Dialog, DialogHeader } from '@astryxdesign/core';
 import { UserMenu } from './UserMenu';
 import { AuthUser } from '../lib/auth';
+import { useReaderTheme } from './AstryxProvider';
 
 interface BookshelfViewProps {
   onSelectBook: (bookId: string) => void;
@@ -147,6 +148,7 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({
   onManualSync,
   isSyncing,
 }) => {
+  const { theme } = useReaderTheme();
   const [activeTab, setActiveTab] = useState<'my-shelf' | 'public-library'>('my-shelf');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCefr, setSelectedCefr] = useState<string>('ALL');
@@ -362,7 +364,10 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[var(--color-paper)] text-[var(--color-ink)] font-book-sans selection:bg-[var(--color-accent)]/20">
+    <div
+      data-theme={theme}
+      className="min-h-screen bg-[var(--color-paper)] text-[var(--color-ink)] font-book-sans selection:bg-[var(--color-accent)]/20 transition-colors duration-200"
+    >
       {/* 1. Hallmark N6 Broadsheet / Library Masthead */}
       <header className="sticky top-0 z-30 bg-[var(--color-paper-2)]/95 backdrop-blur-md border-b border-[var(--color-rule)] px-4 sm:px-12 py-3">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-3">

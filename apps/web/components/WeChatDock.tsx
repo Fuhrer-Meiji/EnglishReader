@@ -227,8 +227,8 @@ export const WeChatDock: React.FC<WeChatDockProps> = ({
                     : 'bg-[var(--color-paper-2)] text-[var(--color-ink-2)] border-[var(--color-rule)] hover:border-[var(--color-accent)]/50'
                 }`}
               >
-                <span className="font-book-serif text-sm font-bold">Aa</span>
-                <span className="font-book-serif font-medium">古典衬线</span>
+                <span className={`font-book-serif text-sm font-bold ${isSerif ? 'text-[var(--color-paper)]' : 'text-inherit'}`}>Aa</span>
+                <span className={`font-book-serif font-medium ${isSerif ? 'text-[var(--color-paper)]' : 'text-inherit'}`}>古典衬线</span>
               </button>
               <button
                 onClick={() => {
@@ -244,8 +244,8 @@ export const WeChatDock: React.FC<WeChatDockProps> = ({
                     : 'bg-[var(--color-paper-2)] text-[var(--color-ink-2)] border-[var(--color-rule)] hover:border-[var(--color-accent)]/50'
                 }`}
               >
-                <span className="font-book-sans text-sm font-bold">Aa</span>
-                <span className="font-book-sans font-medium">现代无衬</span>
+                <span className={`font-book-sans text-sm font-bold ${!isSerif ? 'text-[var(--color-paper)]' : 'text-inherit'}`}>Aa</span>
+                <span className={`font-book-sans font-medium ${!isSerif ? 'text-[var(--color-paper)]' : 'text-inherit'}`}>现代无衬</span>
               </button>
             </div>
           </div>

@@ -29,6 +29,8 @@ interface WeChatDockProps {
   onToggleLayoutMode: (mode: LayoutMode) => void;
   readingMode: ReadingMode;
   onToggleReadingMode: (mode: ReadingMode) => void;
+  isStudySidebarOpen?: boolean;
+  onToggleStudySidebar?: () => void;
   theme: ThemeMode;
   onSelectTheme: (theme: ThemeMode) => void;
   fontSize: number;
@@ -65,6 +67,8 @@ export const WeChatDock: React.FC<WeChatDockProps> = ({
   onToggleLayoutMode,
   readingMode,
   onToggleReadingMode,
+  isStudySidebarOpen = false,
+  onToggleStudySidebar,
   theme,
   onSelectTheme,
   fontSize,
@@ -100,7 +104,9 @@ export const WeChatDock: React.FC<WeChatDockProps> = ({
       {!isControlsVisible && onToggleControls && (
         <button
           onClick={onToggleControls}
-          className="fixed right-0 top-1/2 -translate-y-1/2 z-40 bg-[var(--color-paper-2)]/90 hover:bg-[var(--color-paper-elevated)] backdrop-blur-md border-y border-l border-[var(--color-rule)] rounded-l-xl px-1.5 py-3.5 text-[var(--color-ink-muted)] hover:text-[var(--color-accent)] shadow-md transition-all cursor-pointer flex flex-col items-center gap-1 group"
+          className={`fixed top-1/2 -translate-y-1/2 z-40 bg-[var(--color-paper-2)]/90 hover:bg-[var(--color-paper-elevated)] backdrop-blur-md border-y border-l border-[var(--color-rule)] rounded-l-xl px-1.5 py-3.5 text-[var(--color-ink-muted)] hover:text-[var(--color-accent)] shadow-md transition-all cursor-pointer flex flex-col items-center gap-1 group ${
+            isStudySidebarOpen ? 'right-[320px]' : 'right-0'
+          }`}
           title="展开阅读控制栏"
         >
           <ChevronLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
@@ -322,7 +328,9 @@ export const WeChatDock: React.FC<WeChatDockProps> = ({
 
       {/* 4. Desktop Floating Vertical Dock (hidden on mobile, shown on md:) */}
       <aside
-        className={`hidden md:flex fixed right-5 top-1/2 -translate-y-1/2 z-40 flex-col items-center gap-3 transition-all duration-300 ease-in-out ${
+        className={`hidden md:flex fixed top-1/2 -translate-y-1/2 z-40 flex-col items-center gap-3 transition-all duration-300 ease-in-out ${
+          isStudySidebarOpen ? 'right-[336px]' : 'right-5'
+        } ${
           isControlsVisible
             ? 'translate-x-0 opacity-100'
             : 'translate-x-[calc(100%+24px)] opacity-0 pointer-events-none'
@@ -342,19 +350,50 @@ export const WeChatDock: React.FC<WeChatDockProps> = ({
             </span>
           </button>
 
-          {/* 2. AI 深度语法树/精读模式切换 */}
+          {/* 2. AI 深度语法树/精读模式切换与研读助手联动 */}
           <button
-            onClick={() => onToggleReadingMode(readingMode === 'zen' ? 'study' : 'zen')}
-            className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors group relative cursor-pointer ${
+            onClick={() => {
+              if (readingMode === 'study') {
+                if (onToggleStudySidebar) {
+                  onToggleStudySidebar();
+                } else {
+                  onToggleReadingMode('zen');
+                }
+              } else {
+                onToggleReadingMode('study');
+              }
+            }}
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all group relative cursor-pointer ${
               readingMode === 'study'
-                ? 'bg-[var(--color-ink)] text-[var(--color-paper)] shadow-2xs'
+                ? isStudySidebarOpen
+                  ? 'bg-[var(--color-ink)] text-[var(--color-paper)] shadow-2xs'
+                  : 'bg-[var(--color-paper-elevated)] text-[var(--color-accent)] border border-[var(--color-accent)]/50 shadow-2xs'
                 : 'hover:bg-[var(--color-paper-elevated)] hover:text-[var(--color-ink)]'
             }`}
-            title={readingMode === 'study' ? '切回 Zen 沉浸模式' : '开启精读助读模式'}
+            title={
+              readingMode === 'study'
+                ? isStudySidebarOpen
+                  ? '收起研读助手边栏 (保持正文考纲高亮)'
+                  : '展开研读助手边栏 (考纲雷达与生词清单)'
+                : '开启精读助读模式'
+            }
           >
-            {readingMode === 'study' ? <BookOpen className="w-4 h-4 text-[var(--color-accent)]" /> : <Feather className="w-4 h-4" />}
+            {readingMode === 'study' ? (
+              <>
+                <BookOpen className="w-4 h-4 text-[var(--color-accent)]" />
+                {!isStudySidebarOpen && (
+                  <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] animate-pulse" />
+                )}
+              </>
+            ) : (
+              <Feather className="w-4 h-4" />
+            )}
             <span className="absolute right-11 bg-[var(--color-ink)] text-[var(--color-paper)] text-[10px] font-meta-mono px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-md">
-              {readingMode === 'study' ? 'Zen 沉浸' : '精读研读'}
+              {readingMode === 'study'
+                ? isStudySidebarOpen
+                  ? '收起研读助手'
+                  : '展开研读助手'
+                : '精读研读'}
             </span>
           </button>
 
@@ -477,9 +516,19 @@ export const WeChatDock: React.FC<WeChatDockProps> = ({
           <span className="text-[10px] font-meta-mono">{layoutMode === 'double' ? '双栏' : '滚动'}</span>
         </button>
 
-        {/* 3. 模式 */}
+        {/* 3. 模式与研读助手 */}
         <button
-          onClick={() => onToggleReadingMode(readingMode === 'zen' ? 'study' : 'zen')}
+          onClick={() => {
+            if (readingMode === 'study') {
+              if (onToggleStudySidebar) {
+                onToggleStudySidebar();
+              } else {
+                onToggleReadingMode('zen');
+              }
+            } else {
+              onToggleReadingMode('study');
+            }
+          }}
           className="flex flex-col items-center gap-1 py-1 px-2 text-[var(--color-ink-2)] hover:text-[var(--color-ink)] cursor-pointer"
         >
           {readingMode === 'study' ? (
@@ -487,7 +536,9 @@ export const WeChatDock: React.FC<WeChatDockProps> = ({
           ) : (
             <Feather className="w-4.5 h-4.5" />
           )}
-          <span className="text-[10px] font-meta-mono">{readingMode === 'study' ? '精读' : '沉浸'}</span>
+          <span className="text-[10px] font-meta-mono">
+            {readingMode === 'study' ? (isStudySidebarOpen ? '收起研读' : '展开研读') : '精读'}
+          </span>
         </button>
 
         {/* 4. 字号排版 */}

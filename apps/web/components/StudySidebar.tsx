@@ -8,7 +8,7 @@
 import React, { useState } from 'react';
 import { ChapterStats, DifficultyLevel } from '../lib/types';
 import { DICTIONARY_DATABASE } from '../lib/mockData';
-import { Gauge, BookA, Sliders, Volume2, BookOpen, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Gauge, BookA, Sliders, Volume2, BookOpen, X, ChevronLeft, ChevronRight, Feather } from 'lucide-react';
 import { Badge, IconButton } from '@astryxdesign/core';
 
 interface StudySidebarProps {
@@ -17,6 +17,7 @@ interface StudySidebarProps {
   onSelectLevelFilter: (filter: DifficultyLevel | 'ALL' | 'OFF') => void;
   onSelectWord: (word: string) => void;
   onClose?: () => void;
+  onExitStudyMode?: () => void;
 }
 
 export const StudySidebar: React.FC<StudySidebarProps> = ({
@@ -25,6 +26,7 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
   onSelectLevelFilter,
   onSelectWord,
   onClose,
+  onExitStudyMode,
 }) => {
   const [selectedWordKey, setSelectedWordKey] = useState<string | null>(null);
   const selectedEntry = selectedWordKey ? DICTIONARY_DATABASE[selectedWordKey] : null;
@@ -75,16 +77,28 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
               </span>
             </div>
           </div>
-          {onClose && (
-            <button
-              onClick={onClose}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-elevated)] border border-[var(--color-rule)] transition-all cursor-pointer shadow-2xs group active:scale-95"
-              title="收起研读助手边栏 (保持正文精读考纲高亮)"
-            >
-              <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-              <span>收起</span>
-            </button>
-          )}
+          <div className="flex items-center gap-1.5">
+            {onExitStudyMode && (
+              <button
+                onClick={onExitStudyMode}
+                className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-elevated)] border border-[var(--color-rule)] transition-all cursor-pointer shadow-2xs group active:scale-95"
+                title="退出精读模式 (切回禅模式)"
+              >
+                <Feather className="w-3.5 h-3.5 text-[var(--color-ink-muted)] group-hover:text-[var(--color-accent)] transition-colors" />
+                <span>退出</span>
+              </button>
+            )}
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-elevated)] border border-[var(--color-rule)] transition-all cursor-pointer shadow-2xs group active:scale-95"
+                title="收起研读助手边栏 (保持正文精读考纲高亮)"
+              >
+                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                <span>收起</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {selectedEntry ? (

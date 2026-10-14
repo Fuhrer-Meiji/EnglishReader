@@ -5,7 +5,7 @@
  * contrast: pass (APCA / WCAG 2.1 AAA)
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Volume2, Bookmark, Check, Sparkles, X } from 'lucide-react';
 import { DictEntry } from '../lib/mockData';
 import { Badge, Button, IconButton } from '@astryxdesign/core';
@@ -29,6 +29,16 @@ export const WordPopover: React.FC<WordPopoverProps> = ({
   onClose,
   onDeepDive,
 }) => {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   const playAudio = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -88,13 +98,13 @@ export const WordPopover: React.FC<WordPopoverProps> = ({
             />
           </div>
         </div>
-        <IconButton
-          label="关闭词典浮窗"
-          icon={<X className="w-3.5 h-3.5" />}
-          variant="ghost"
-          size="sm"
+        <button
           onClick={onClose}
-        />
+          className="p-1 rounded-lg text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-2)] border border-transparent hover:border-[var(--color-rule)] transition-colors cursor-pointer"
+          title="关闭词典浮窗 (Esc)"
+        >
+          <X className="w-4 h-4" />
+        </button>
       </div>
 
       {/* Body: Editorial Definitions */}

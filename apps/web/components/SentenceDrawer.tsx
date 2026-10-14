@@ -71,6 +71,16 @@ export const SentenceDrawer: React.FC<SentenceDrawerProps> = ({
     }
   }, [sentence?.id]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   if (!sentence) return null;
 
   const playSentenceAudio = () => {
@@ -126,33 +136,40 @@ export const SentenceDrawer: React.FC<SentenceDrawerProps> = ({
   };
 
   return (
-    <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-[480px] lg:w-[540px] bg-[var(--color-paper-elevated)] text-[var(--color-ink)] border-l border-[var(--color-rule)] shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
-      {/* Header */}
-      <div className="p-4 sm:p-5 border-b border-[var(--color-rule)] flex items-center justify-between bg-[var(--color-paper-2)]/80 backdrop-blur-md">
-        <div className="flex items-center gap-2.5">
-          <div className="p-1.5 rounded-md bg-[var(--color-paper)] text-[var(--color-accent)] border border-[var(--color-rule)]">
-            <Sparkles className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-book-serif font-medium text-[var(--color-ink)] text-sm">
-                句法成分与原著深度拆解
-              </h3>
-              <Badge label={sentence.difficultyTag} variant="purple" />
+    <>
+      {/* Backdrop overlay */}
+      <div
+        className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 animate-in fade-in duration-200"
+        onClick={onClose}
+      />
+      <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-[480px] lg:w-[540px] bg-[var(--color-paper-elevated)] text-[var(--color-ink)] border-l border-[var(--color-rule)] shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
+        {/* Header */}
+        <div className="p-4 sm:p-5 border-b border-[var(--color-rule)] flex items-center justify-between bg-[var(--color-paper-2)]/80 backdrop-blur-md">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 rounded-md bg-[var(--color-paper)] text-[var(--color-accent)] border border-[var(--color-rule)]">
+              <Sparkles className="w-4 h-4" />
             </div>
-            <span className="text-[11px] text-[var(--color-ink-muted)] font-meta-mono">
-              长难句解构 · 语法成分逐级剖析
-            </span>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-book-serif font-medium text-[var(--color-ink)] text-sm">
+                  句法成分与原著深度拆解
+                </h3>
+                <Badge label={sentence.difficultyTag} variant="purple" />
+              </div>
+              <span className="text-[11px] text-[var(--color-ink-muted)] font-meta-mono">
+                长难句解构 · 语法成分逐级剖析
+              </span>
+            </div>
           </div>
+          <button
+            onClick={onClose}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[var(--color-ink-2)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-3)] border border-[var(--color-rule)] transition-all cursor-pointer shadow-2xs group"
+            title="关闭抽屉 (Esc)"
+          >
+            <X className="w-4 h-4 group-hover:rotate-90 transition-transform" />
+            <span>关闭</span>
+          </button>
         </div>
-        <IconButton
-          label="关闭抽屉"
-          icon={<X className="w-4 h-4" />}
-          variant="ghost"
-          size="sm"
-          onClick={onClose}
-        />
-      </div>
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-5 space-y-6">
@@ -381,5 +398,6 @@ export const SentenceDrawer: React.FC<SentenceDrawerProps> = ({
         )}
       </div>
     </div>
+    </>
   );
 };

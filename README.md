@@ -84,6 +84,11 @@
 - **独创王尔德文学级提示词**：超越机械式机器翻译，提供信达雅文学译本、长难句语法成分树状深度拆解、修辞手法与时代典故深度注脚；
 - **隐私零泄露与毫秒测速**：用户 API 密钥仅保存在读者浏览器本地 `localStorage`，支持一键实时测速延迟，不落库不上传。
 
+#### 7. 🖍️ 自由划词/划句即时翻译与高阶工具栏 (Selection Translation Toolbar)
+- **多词/整句自由划选**：鼠标划选或触屏拖选任意单词、习语短语或多句段落，即刻弹出精致悬浮工具卡片；
+- **双模即时翻译**：自动呈现高精神经译文，若配置个人 AI 密钥更可一键享受定制王尔德文学风格信达雅润色；
+- **全能交互矩阵**：一键 **朗读 (TTS)**、**复制双语对照**、**摘录到生词/金句本**，并支持无缝跳转至 **AI 语法树与典故深度剖析**。
+
 ---
 
 ### 🛠️ 技术栈一览
@@ -171,6 +176,11 @@ For non-native English readers and lifelong learners, reading original classical
 - **Multi-Model Presets & Custom Endpoints**: Out-of-the-box presets for **DeepSeek, OpenAI (GPT-4o), Moonshot (Kimi), SiliconFlow, and Qwen**, plus arbitrary OpenAI-compatible custom endpoints and models;
 - **Wilde-Grade Literary Prompting**: Goes far beyond literal machine translation to deliver faithful & graceful literary renditions, syntactic tree breakdowns, rhetorical insights, and historical allusions;
 - **Zero Privacy Leakage & Latency Testing**: User API keys are stored strictly in client-side `localStorage`, verified via real-time latency ping, and never persisted to the server.
+
+#### 7. 🖍️ Free Selection Translation & Floating Reader Toolbar
+- **Drag-to-Select Words & Sentences**: Highlight arbitrary words, idiomatic phrases, or multi-sentence paragraphs to immediately summon an elegant floating action card;
+- **Dual-Mode Instant Translation**: Neural machine translation out-of-the-box, elevated to Wilde-grade literary polish when an AI key is connected;
+- **Integrated Action Suite**: One-click **Text-to-Speech playback**, **bilingual clipboard copy**, **save to vocabulary vault/quotes**, and direct escalation to **deep AI syntactic tree breakdown**.
 
 ---
 

@@ -24,6 +24,7 @@ import { BookshelfView } from '../components/BookshelfView';
 import { WeChatDock } from '../components/WeChatDock';
 import { TableOfContentsModal } from '../components/TableOfContentsModal';
 import { WordPopover } from '../components/WordPopover';
+import { SelectionPopover } from '../components/SelectionPopover';
 import { SentenceDrawer } from '../components/SentenceDrawer';
 import { StudySidebar } from '../components/StudySidebar';
 import { VocabDrawer } from '../components/VocabDrawer';
@@ -62,6 +63,12 @@ export default function Home() {
   const [popoverState, setPopoverState] = useState<{
     wordEntry: DictEntry;
     rawWord: string;
+    position: { x: number; y: number; placeAbove?: boolean };
+  } | null>(null);
+
+  // Drag / Selection Translation Popover State
+  const [selectionPopoverState, setSelectionPopoverState] = useState<{
+    text: string;
     position: { x: number; y: number; placeAbove?: boolean };
   } | null>(null);
 
@@ -461,6 +468,87 @@ export default function Home() {
     ? vocabItems.some((v) => v.word.toLowerCase() === popoverState.wordEntry.word.toLowerCase())
     : false;
 
+  // Capture drag & highlight text selections across words and sentences
+  useEffect(() => {
+    if (activeView !== 'reader') return;
+
+    const handleSelectionCheck = () => {
+      if (typeof window === 'undefined') return;
+      const selection = window.getSelection();
+      if (!selection || selection.isCollapsed) return;
+
+      const text = selection.toString().trim();
+      if (!text || text.length === 0) return;
+
+      // Ignore selection if inside an input, dialog, button or popover
+      const anchor = selection.anchorNode;
+      const element = anchor instanceof HTMLElement ? anchor : anchor?.parentElement;
+      if (element?.closest('input, textarea, button, [role="dialog"], .select-none')) {
+        return;
+      }
+
+      try {
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        if (rect.width === 0 && rect.height === 0) return;
+
+        const placeAbove = rect.top > 220;
+        setSelectionPopoverState({
+          text,
+          position: {
+            x: rect.left + rect.width / 2,
+            y: placeAbove ? rect.top - 10 : rect.bottom + 10,
+            placeAbove,
+          },
+        });
+        setPopoverState(null);
+      } catch (err) {}
+    };
+
+    const handleMouseUp = () => {
+      setTimeout(handleSelectionCheck, 15);
+    };
+
+    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('touchend', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('touchend', handleMouseUp);
+    };
+  }, [activeView]);
+
+  const handleSaveSelectionToVocab = (text: string, translation: string) => {
+    const isSingleWord = !text.includes(' ') && text.length < 25;
+    const newItem: VocabularyItem = {
+      id: `vocab-sel-${Date.now()}`,
+      word: isSingleWord ? text : (text.length > 36 ? text.slice(0, 36) + '...' : text),
+      phonetic: '',
+      pos: isSingleWord ? 'word' : 'phrase',
+      translation,
+      contextSentence: text,
+      bookTitle: currentBook.chineseTitle ? `${currentBook.chineseTitle} (${currentBook.title})` : currentBook.title,
+      chapterTitle: currentChapter.title,
+      addedAt: new Date().toISOString().split('T')[0],
+      status: 'learning',
+    };
+    persistVocabItems([newItem, ...vocabItems]);
+  };
+
+  const handleDeepAnalyzeSelection = (text: string) => {
+    const customSentence: SentenceAnalysis = {
+      id: `custom-${Date.now()}`,
+      paragraphIndex: 0,
+      rawText: text,
+      chineseTranslation: '',
+      difficultyTag: text.length > 80 ? '长难句' : '中等',
+      grammarComponents: [],
+      coreKeywords: [],
+    };
+    setActiveSentence(customSentence);
+    setSelectionPopoverState(null);
+  };
+
   // View 0: Exquisite Welcome Gateway & Archival Manifest
   if (activeView === 'welcome') {
     return (
@@ -574,6 +662,10 @@ export default function Home() {
       <main
         className="flex-1 flex overflow-hidden cursor-default"
         onClick={(e) => {
+          if (selectionPopoverState) {
+            setSelectionPopoverState(null);
+            return;
+          }
           if (popoverState) {
             setPopoverState(null);
             return;
@@ -697,6 +789,25 @@ export default function Home() {
               setPopoverState(null);
             }
           }}
+        />
+      )}
+
+      {/* 5b. Drag / Selection Translation Popover */}
+      {selectionPopoverState && (
+        <SelectionPopover
+          selectedText={selectionPopoverState.text}
+          position={selectionPopoverState.position}
+          onClose={() => {
+            setSelectionPopoverState(null);
+            if (typeof window !== 'undefined') {
+              window.getSelection()?.removeAllRanges();
+            }
+          }}
+          onDeepAnalyze={handleDeepAnalyzeSelection}
+          onSaveVocab={handleSaveSelectionToVocab}
+          bookTitle={currentBook.chineseTitle || currentBook.title}
+          author={currentBook.author}
+          onOpenAIConfig={() => setIsAIConfigOpen(true)}
         />
       )}
 

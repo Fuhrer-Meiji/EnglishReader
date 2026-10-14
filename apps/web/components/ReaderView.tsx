@@ -123,6 +123,10 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
             <span
               key={idx}
               onClick={(e) => {
+                const sel = typeof window !== 'undefined' ? window.getSelection() : null;
+                if (sel && sel.toString().trim().length > 0) {
+                  return;
+                }
                 e.stopPropagation();
                 const rect = e.currentTarget.getBoundingClientRect();
                 onWordClick(token, rect);

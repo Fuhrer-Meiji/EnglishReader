@@ -17,6 +17,7 @@ import {
   BookOpen,
   Languages,
   ExternalLink,
+  Share2,
 } from 'lucide-react';
 import { loadAIConfig } from '../lib/aiConfig';
 
@@ -26,6 +27,7 @@ interface SelectionPopoverProps {
   onClose: () => void;
   onDeepAnalyze: (text: string) => void;
   onSaveVocab?: (text: string, translation: string) => void;
+  onGenerateCard?: (quote: string, translation: string) => void;
   bookTitle?: string;
   author?: string;
   onOpenAIConfig?: () => void;
@@ -37,6 +39,7 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
   onClose,
   onDeepAnalyze,
   onSaveVocab,
+  onGenerateCard,
   bookTitle = '传世原著',
   author = '文学名家',
   onOpenAIConfig,
@@ -221,6 +224,21 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
             </button>
           )}
 
+          {/* Make Gold Quote Card */}
+          {onGenerateCard && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onGenerateCard(selectedText.trim(), translation || '');
+                onClose();
+              }}
+              className="p-1.5 rounded-lg hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-2)] transition-colors cursor-pointer text-[var(--color-accent)]"
+              title="生成金句书签长图 (可下载/分享)"
+            >
+              <Share2 className="w-3.5 h-3.5" />
+            </button>
+          )}
+
           {/* Close */}
           <button
             onClick={onClose}
@@ -253,15 +271,32 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
             </p>
 
             {/* Bottom Tools & Deep AI Trigger */}
-            <div className="flex items-center justify-between pt-1 text-[11px] font-meta-mono text-[var(--color-ink-muted)]">
-              <button
-                onClick={handleTriggerDeepAnalysis}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[var(--color-accent)]/10 hover:bg-[var(--color-accent)]/20 text-[var(--color-accent)] border border-[var(--color-accent)]/30 transition-colors cursor-pointer font-medium shadow-2xs group"
-                title="唤醒王尔德 AI 对该选段进行句法树与修辞典故深度剖析"
-              >
-                <Sparkles className="w-3 h-3 group-hover:scale-110 transition-transform" />
-                <span>AI 句法与文学深度赏析</span>
-              </button>
+            <div className="flex items-center justify-between pt-1 text-[11px] font-meta-mono text-[var(--color-ink-muted)] gap-2 flex-wrap">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleTriggerDeepAnalysis}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[var(--color-accent)]/10 hover:bg-[var(--color-accent)]/20 text-[var(--color-accent)] border border-[var(--color-accent)]/30 transition-colors cursor-pointer font-medium shadow-2xs group"
+                  title="唤醒王尔德 AI 对该选段进行句法树与修辞典故深度剖析"
+                >
+                  <Sparkles className="w-3 h-3 group-hover:scale-110 transition-transform" />
+                  <span>AI 深度赏析</span>
+                </button>
+
+                {onGenerateCard && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onGenerateCard(selectedText.trim(), translation || '');
+                      onClose();
+                    }}
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[var(--color-paper-2)] hover:bg-[var(--color-paper-3)] text-[var(--color-ink)] border border-[var(--color-rule)] transition-colors cursor-pointer font-medium shadow-2xs"
+                    title="渲染典藏羊皮纸金句卡片并导出高清图"
+                  >
+                    <Share2 className="w-3 h-3 text-[var(--color-accent)]" />
+                    <span>生成金句卡片</span>
+                  </button>
+                )}
+              </div>
 
               {!isAI && onOpenAIConfig && (
                 <button

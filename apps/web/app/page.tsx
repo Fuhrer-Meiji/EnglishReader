@@ -33,6 +33,7 @@ import { AuthUser } from '../lib/auth';
 import { AuthModal } from '../components/AuthModal';
 import { WelcomeView } from '../components/WelcomeView';
 import { AIConfigModal } from '../components/AIConfigModal';
+import { QuoteCardModal } from '../components/QuoteCardModal';
 
 export default function Home() {
   const [activeView, setActiveView] = useState<'welcome' | 'reader' | 'bookshelf'>('welcome');
@@ -70,6 +71,12 @@ export default function Home() {
   const [selectionPopoverState, setSelectionPopoverState] = useState<{
     text: string;
     position: { x: number; y: number; placeAbove?: boolean };
+  } | null>(null);
+
+  // Archival Quote Bookmark & Card Modal State
+  const [quoteCardState, setQuoteCardState] = useState<{
+    quote: string;
+    translation?: string;
   } | null>(null);
 
   const [activeSentence, setActiveSentence] = useState<SentenceAnalysis | null>(null);
@@ -805,6 +812,9 @@ export default function Home() {
           }}
           onDeepAnalyze={handleDeepAnalyzeSelection}
           onSaveVocab={handleSaveSelectionToVocab}
+          onGenerateCard={(quote, translation) => {
+            setQuoteCardState({ quote, translation });
+          }}
           bookTitle={currentBook.chineseTitle || currentBook.title}
           author={currentBook.author}
           onOpenAIConfig={() => setIsAIConfigOpen(true)}
@@ -817,6 +827,9 @@ export default function Home() {
         onClose={() => setActiveSentence(null)}
         onSelectWord={(kw) => {
           handleSelectWordFromSidebar(kw);
+        }}
+        onGenerateCard={(quote, translation) => {
+          setQuoteCardState({ quote, translation });
         }}
         bookTitle={currentBook.chineseTitle || currentBook.title}
         author={currentBook.author}
@@ -856,6 +869,20 @@ export default function Home() {
         isOpen={isAIConfigOpen}
         onClose={() => setIsAIConfigOpen(false)}
       />
+
+      {/* 10. Archival Quote Bookmark & Card Modal */}
+      {quoteCardState && (
+        <QuoteCardModal
+          isOpen={Boolean(quoteCardState)}
+          onClose={() => setQuoteCardState(null)}
+          quote={quoteCardState.quote}
+          initialTranslation={quoteCardState.translation}
+          bookTitle={currentBook.title}
+          chineseTitle={currentBook.chineseTitle}
+          author={currentBook.author}
+          chapterTitle={currentChapter.title}
+        />
+      )}
     </div>
   );
 }

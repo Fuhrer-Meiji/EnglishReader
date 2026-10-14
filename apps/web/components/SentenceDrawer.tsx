@@ -19,6 +19,7 @@ import {
   Quote,
   Feather,
   RefreshCw,
+  Share2,
 } from 'lucide-react';
 import { SentenceAnalysis } from '../lib/types';
 import { DICTIONARY_DATABASE } from '../lib/mockData';
@@ -43,6 +44,7 @@ interface SentenceDrawerProps {
   sentence: SentenceAnalysis | null;
   onClose: () => void;
   onSelectWord: (word: string) => void;
+  onGenerateCard?: (quote: string, translation: string) => void;
   bookTitle?: string;
   author?: string;
   onOpenAIConfig?: () => void;
@@ -52,6 +54,7 @@ export const SentenceDrawer: React.FC<SentenceDrawerProps> = ({
   sentence,
   onClose,
   onSelectWord,
+  onGenerateCard,
   bookTitle = '传世原著',
   author = '文学名家',
   onOpenAIConfig,
@@ -179,13 +182,30 @@ export const SentenceDrawer: React.FC<SentenceDrawerProps> = ({
             <p className="font-book-serif text-base sm:text-lg text-[var(--color-ink)] leading-relaxed font-normal">
               {sentence.rawText}
             </p>
-            <IconButton
-              label="整句朗读"
-              icon={<Volume2 className="w-4 h-4" />}
-              variant="secondary"
-              size="sm"
-              onClick={playSentenceAudio}
-            />
+            <div className="flex items-center gap-1.5 shrink-0">
+              {onGenerateCard && (
+                <button
+                  onClick={() => {
+                    onGenerateCard(
+                      sentence.rawText,
+                      aiResult?.literaryTranslation || sentence.chineseTranslation || ''
+                    );
+                  }}
+                  className="px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--color-accent)] hover:bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/30 transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
+                  title="生成典藏羊皮纸质感金句长图"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  <span>生成金句卡片</span>
+                </button>
+              )}
+              <IconButton
+                label="整句朗读"
+                icon={<Volume2 className="w-4 h-4" />}
+                variant="secondary"
+                size="sm"
+                onClick={playSentenceAudio}
+              />
+            </div>
           </div>
           <div className="pt-2 border-t border-[var(--color-rule)]">
             <p className="text-xs text-[var(--color-ink-2)] leading-relaxed">

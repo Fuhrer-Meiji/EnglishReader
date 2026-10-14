@@ -30,9 +30,10 @@ import { VocabDrawer } from '../components/VocabDrawer';
 import { useReaderTheme } from '../components/AstryxProvider';
 import { AuthUser } from '../lib/auth';
 import { AuthModal } from '../components/AuthModal';
+import { WelcomeView } from '../components/WelcomeView';
 
 export default function Home() {
-  const [activeView, setActiveView] = useState<'reader' | 'bookshelf'>('bookshelf');
+  const [activeView, setActiveView] = useState<'welcome' | 'reader' | 'bookshelf'>('welcome');
   const [currentBookId, setCurrentBookId] = useState<string>('the-great-gatsby');
   const [currentBook, setCurrentBook] = useState<Book>(BOOKS_DATABASE['the-great-gatsby'] || SAMPLE_BOOK);
   const [currentChapterIndex, setCurrentChapterIndex] = useState<number>(0);
@@ -199,6 +200,7 @@ export default function Home() {
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch (e) {}
     setUser(null);
+    setActiveView('welcome');
   };
 
   const persistVocabItems = (items: VocabularyItem[]) => {
@@ -259,6 +261,7 @@ export default function Home() {
           const data = await res.json();
           if (isMounted && data.user) {
             setUser(data.user);
+            setActiveView('bookshelf');
             const syncRes = await fetch('/api/user/sync');
             if (syncRes.ok) {
               const syncData = await syncRes.json();
@@ -266,10 +269,15 @@ export default function Home() {
                 applyCloudDataToClient(syncData.data);
               }
             }
+            return;
           }
         }
       } catch (err) {
         console.warn('[Auth] Check session error:', err);
+      }
+
+      if (isMounted) {
+        setActiveView('welcome');
       }
     }
     checkUserSession();
@@ -449,6 +457,43 @@ export default function Home() {
     ? vocabItems.some((v) => v.word.toLowerCase() === popoverState.wordEntry.word.toLowerCase())
     : false;
 
+  // View 0: Exquisite Welcome Gateway & Archival Manifest
+  if (activeView === 'welcome') {
+    return (
+      <>
+        <WelcomeView
+          onEnterBookshelf={() => setActiveView('bookshelf')}
+          onSelectBook={(bookId) => {
+            setCurrentBookId(bookId);
+            if (typeof window !== 'undefined') {
+              const savedChap = parseInt(localStorage.getItem(`er_chap_${bookId}`) || '0', 10);
+              const savedPage = parseInt(localStorage.getItem(`er_page_${bookId}`) || '0', 10);
+              setCurrentChapterIndex(savedChap);
+              setCurrentPage(savedPage);
+            } else {
+              setCurrentChapterIndex(0);
+              setCurrentPage(0);
+            }
+            setActiveView('reader');
+          }}
+          user={user}
+          onAuthSuccess={(loggedUser, syncedData) => {
+            handleAuthSuccess(loggedUser, syncedData);
+            setActiveView('bookshelf');
+          }}
+          onLogout={handleLogout}
+          clientDataToMerge={gatherClientDataForMerge()}
+        />
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          onSuccess={handleAuthSuccess}
+          clientDataToMerge={gatherClientDataForMerge()}
+        />
+      </>
+    );
+  }
+
   // View 1: WeChat Read Styled Bookshelf & Library
   if (activeView === 'bookshelf') {
     return (
@@ -467,6 +512,7 @@ export default function Home() {
             }
             setActiveView('reader');
           }}
+          onGoWelcome={() => setActiveView('welcome')}
           user={user}
           onOpenAuth={() => setIsAuthModalOpen(true)}
           onLogout={handleLogout}

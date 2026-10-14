@@ -30,6 +30,7 @@ import { AuthUser } from '../lib/auth';
 
 interface BookshelfViewProps {
   onSelectBook: (bookId: string) => void;
+  onGoWelcome?: () => void;
   user?: AuthUser | null;
   onOpenAuth?: () => void;
   onLogout?: () => void;
@@ -134,6 +135,7 @@ function attachRealProgress(books: BookCardInfo[]): BookCardInfo[] {
 
 export const BookshelfView: React.FC<BookshelfViewProps> = ({
   onSelectBook,
+  onGoWelcome,
   user,
   onOpenAuth,
   onLogout,
@@ -361,7 +363,11 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           {/* Top row on mobile / Left on desktop */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div
+              onClick={onGoWelcome}
+              className={`flex items-center gap-3 ${onGoWelcome ? 'cursor-pointer hover:opacity-85 transition-opacity' : ''}`}
+              title={onGoWelcome ? '返回文库导览首页' : undefined}
+            >
               <div className="w-8 h-8 rounded-md bg-[var(--color-ink)] text-[var(--color-paper)] flex items-center justify-center font-book-serif font-bold text-sm shadow-xs select-none">
                 ER
               </div>
@@ -437,6 +443,16 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({
 
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center gap-5">
+              {onGoWelcome && (
+                <button
+                  onClick={onGoWelcome}
+                  className="flex items-center gap-1.5 text-xs text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] transition-colors cursor-pointer font-medium"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                  <span>文库导览</span>
+                </button>
+              )}
+
               <Button
                 label="导入书籍"
                 variant="secondary"

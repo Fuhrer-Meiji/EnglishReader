@@ -23,6 +23,7 @@ import {
   X,
   Library,
   ChevronLeft,
+  Bot,
 } from 'lucide-react';
 import { Badge, Button, IconButton, Dialog, DialogHeader } from '@astryxdesign/core';
 import { UserMenu } from './UserMenu';
@@ -31,6 +32,7 @@ import { AuthUser } from '../lib/auth';
 interface BookshelfViewProps {
   onSelectBook: (bookId: string) => void;
   onGoWelcome?: () => void;
+  onOpenAIConfig?: () => void;
   user?: AuthUser | null;
   onOpenAuth?: () => void;
   onLogout?: () => void;
@@ -136,6 +138,7 @@ function attachRealProgress(books: BookCardInfo[]): BookCardInfo[] {
 export const BookshelfView: React.FC<BookshelfViewProps> = ({
   onSelectBook,
   onGoWelcome,
+  onOpenAIConfig,
   user,
   onOpenAuth,
   onLogout,
@@ -387,7 +390,16 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({
             </div>
 
             {/* Mobile Actions (Top Right) */}
-            <div className="flex items-center gap-2 md:hidden">
+            <div className="flex items-center gap-1.5 md:hidden">
+              {onOpenAIConfig && (
+                <button
+                  onClick={onOpenAIConfig}
+                  className="p-2 rounded-lg text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-3)] transition-colors cursor-pointer"
+                  title="AI 助读配置"
+                >
+                  <Bot className="w-4 h-4 text-[var(--color-accent)]" />
+                </button>
+              )}
               <button
                 onClick={() => {
                   setUploadStatus('idle');
@@ -442,7 +454,18 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({
             </div>
 
             {/* Desktop Actions */}
-            <div className="hidden md:flex items-center gap-5">
+            <div className="hidden md:flex items-center gap-4">
+              {onOpenAIConfig && (
+                <button
+                  onClick={onOpenAIConfig}
+                  className="flex items-center gap-1.5 text-xs text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] transition-colors cursor-pointer font-medium px-2 py-1 rounded hover:bg-[var(--color-paper-3)]"
+                  title="配置 OpenAI / DeepSeek 等大模型 API"
+                >
+                  <Bot className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                  <span>AI 设置</span>
+                </button>
+              )}
+
               {onGoWelcome && (
                 <button
                   onClick={onGoWelcome}

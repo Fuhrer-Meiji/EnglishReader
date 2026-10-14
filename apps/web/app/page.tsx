@@ -31,6 +31,7 @@ import { useReaderTheme } from '../components/AstryxProvider';
 import { AuthUser } from '../lib/auth';
 import { AuthModal } from '../components/AuthModal';
 import { WelcomeView } from '../components/WelcomeView';
+import { AIConfigModal } from '../components/AIConfigModal';
 
 export default function Home() {
   const [activeView, setActiveView] = useState<'welcome' | 'reader' | 'bookshelf'>('welcome');
@@ -53,6 +54,9 @@ export default function Home() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
+
+  // AI BYOK Modal State
+  const [isAIConfigOpen, setIsAIConfigOpen] = useState<boolean>(false);
 
   // Popovers & Drawers
   const [popoverState, setPopoverState] = useState<{
@@ -483,12 +487,17 @@ export default function Home() {
           }}
           onLogout={handleLogout}
           clientDataToMerge={gatherClientDataForMerge()}
+          onOpenAIConfig={() => setIsAIConfigOpen(true)}
         />
         <AuthModal
           isOpen={isAuthModalOpen}
           onClose={() => setIsAuthModalOpen(false)}
           onSuccess={handleAuthSuccess}
           clientDataToMerge={gatherClientDataForMerge()}
+        />
+        <AIConfigModal
+          isOpen={isAIConfigOpen}
+          onClose={() => setIsAIConfigOpen(false)}
         />
       </>
     );
@@ -513,6 +522,7 @@ export default function Home() {
             setActiveView('reader');
           }}
           onGoWelcome={() => setActiveView('welcome')}
+          onOpenAIConfig={() => setIsAIConfigOpen(true)}
           user={user}
           onOpenAuth={() => setIsAuthModalOpen(true)}
           onLogout={handleLogout}
@@ -524,6 +534,10 @@ export default function Home() {
           onClose={() => setIsAuthModalOpen(false)}
           onSuccess={handleAuthSuccess}
           clientDataToMerge={gatherClientDataForMerge()}
+        />
+        <AIConfigModal
+          isOpen={isAIConfigOpen}
+          onClose={() => setIsAIConfigOpen(false)}
         />
       </>
     );
@@ -553,6 +567,7 @@ export default function Home() {
         onManualSync={syncWithCloud}
         isSyncing={isSyncing}
         isControlsVisible={isControlsVisible}
+        onOpenAIConfig={() => setIsAIConfigOpen(true)}
       />
 
       {/* 2. Main Reader Canvas with Optional Study Sidebar */}
@@ -692,6 +707,9 @@ export default function Home() {
         onSelectWord={(kw) => {
           handleSelectWordFromSidebar(kw);
         }}
+        bookTitle={currentBook.chineseTitle || currentBook.title}
+        author={currentBook.author}
+        onOpenAIConfig={() => setIsAIConfigOpen(true)}
       />
 
       {/* 7. Vocabulary Drawer */}
@@ -720,6 +738,12 @@ export default function Home() {
         onClose={() => setIsAuthModalOpen(false)}
         onSuccess={handleAuthSuccess}
         clientDataToMerge={gatherClientDataForMerge()}
+      />
+
+      {/* 9. AI BYOK Configuration Modal */}
+      <AIConfigModal
+        isOpen={isAIConfigOpen}
+        onClose={() => setIsAIConfigOpen(false)}
       />
     </div>
   );

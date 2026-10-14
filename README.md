@@ -79,6 +79,11 @@
 - **带原文例句入库**：加入生词本不仅记录单词，更自动封存那一刻的**原著上下文例句与章节出处**；
 - **全端无缝漫游**：账号体系自动沉淀阅读进度、页码记忆、生词掌握状态，更换电脑、平板、手机开卷即续。
 
+#### 6. 🤖 AI 文学级深度伴读与自由密钥配置 (BYOK · Bring Your Own Key)
+- **多主流模型预设与自填接口**：原生集成 **DeepSeek (深度求索)、OpenAI (GPT-4o)、月之暗面 (Moonshot/Kimi)、SiliconFlow (硅基流动)、通义千问 (Qwen)**，亦可自定义任何兼容 OpenAI 协议的 API 地址与模型；
+- **独创王尔德文学级提示词**：超越机械式机器翻译，提供信达雅文学译本、长难句语法成分树状深度拆解、修辞手法与时代典故深度注脚；
+- **隐私零泄露与毫秒测速**：用户 API 密钥仅保存在读者浏览器本地 `localStorage`，支持一键实时测速延迟，不落库不上传。
+
 ---
 
 ### 🛠️ 技术栈一览
@@ -161,6 +166,11 @@ For non-native English readers and lifelong learners, reading original classical
 #### 5. ☁️ Contextual Vocabulary Vault & Private Cloud Sync
 - **Words Bound to Original Context**: Adding words to your vocabulary vault automatically captures the **exact sentence and chapter excerpt**;
 - **Cross-Device Progress Roaming**: Real-time cloud sync for reading bookmarks, page offsets, and mastered vocabulary across phone, tablet, and desktop.
+
+#### 6. 🤖 AI Literary Companion & BYOK (Bring Your Own Key)
+- **Multi-Model Presets & Custom Endpoints**: Out-of-the-box presets for **DeepSeek, OpenAI (GPT-4o), Moonshot (Kimi), SiliconFlow, and Qwen**, plus arbitrary OpenAI-compatible custom endpoints and models;
+- **Wilde-Grade Literary Prompting**: Goes far beyond literal machine translation to deliver faithful & graceful literary renditions, syntactic tree breakdowns, rhetorical insights, and historical allusions;
+- **Zero Privacy Leakage & Latency Testing**: User API keys are stored strictly in client-side `localStorage`, verified via real-time latency ping, and never persisted to the server.
 
 ---
 

@@ -29,6 +29,7 @@ import {
   ArrowRight,
   GraduationCap,
   Layers,
+  Bot,
 } from 'lucide-react';
 import { AuthUser } from '../lib/auth';
 import { useReaderTheme } from './AstryxProvider';
@@ -40,6 +41,7 @@ interface WelcomeViewProps {
   onAuthSuccess: (user: AuthUser, syncedData?: any) => void;
   onLogout: () => void;
   clientDataToMerge?: any;
+  onOpenAIConfig?: () => void;
 }
 
 interface FeatureCard {
@@ -55,8 +57,15 @@ const FEATURE_CARDS: FeatureCard[] = [
     title: 'ECDICT 770,000 离线学术词库',
     subtitle: '离线毫秒解析 · 四六级/考研/GRE 考纲高亮',
     tag: '语言学术深度',
-    desc: '每个生词点触即译，包含词频、音标、柯林斯星级与权威中英释义。自动识别 CEFR 梯级生词，支持原著长难句语法结构树状深度拆解。',
+    desc: '每个生词点触即译，包含词频、音标、柯林斯星级与权威中英释义。自动识别 CEFR 梯级生词，原著阅读流畅如行云流水。',
     icon: <BookA className="w-5 h-5 text-[var(--color-accent)]" />,
+  },
+  {
+    title: 'AI 文学伴读 · 自带密钥 (BYOK)',
+    subtitle: 'DeepSeek / OpenAI / 月之暗面 / 千问 任意接入',
+    tag: '智能研读深度',
+    desc: '独创王尔德文学风格提示词，对长难句提供信达雅译文、成分树状拆解、隐喻与时代典故深度注脚。零数据外泄，密钥安全保存在本地。',
+    icon: <Sparkles className="w-5 h-5 text-[var(--color-accent)]" />,
   },
   {
     title: 'Standard Ebooks 数字化纸本版式',
@@ -190,6 +199,7 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
   onAuthSuccess,
   onLogout,
   clientDataToMerge,
+  onOpenAIConfig,
 }) => {
   const { theme, setTheme } = useReaderTheme();
 
@@ -310,6 +320,17 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
               <Library className="w-3.5 h-3.5 text-[var(--color-accent)]" />
               <span>浏览文库 (1,528 卷)</span>
             </button>
+
+            {onOpenAIConfig && (
+              <button
+                onClick={onOpenAIConfig}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[var(--color-ink-2)] hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-elevated)] transition-colors cursor-pointer font-medium"
+                title="配置个人 AI 密钥 (BYOK)"
+              >
+                <Bot className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                <span>AI 设置</span>
+              </button>
+            )}
 
             {/* Theme switcher */}
             <div className="flex items-center gap-1 bg-[var(--color-paper-3)] p-1 rounded-lg border border-[var(--color-rule)]">
@@ -624,7 +645,7 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {FEATURE_CARDS.map((card, idx) => (
             <div
               key={idx}

@@ -24,6 +24,7 @@ interface ReaderHeaderProps {
   onManualSync?: () => Promise<void>;
   isSyncing?: boolean;
   isControlsVisible?: boolean;
+  onOpenAIConfig?: () => void;
 }
 
 export const ReaderHeader: React.FC<ReaderHeaderProps> = ({
@@ -39,6 +40,7 @@ export const ReaderHeader: React.FC<ReaderHeaderProps> = ({
   onManualSync,
   isSyncing,
   isControlsVisible = true,
+  onOpenAIConfig,
 }) => {
   return (
     <header
@@ -94,6 +96,17 @@ export const ReaderHeader: React.FC<ReaderHeaderProps> = ({
 
         {/* Right: Shelf Navigation & User Account */}
         <div className="flex items-center gap-2 sm:gap-2.5 text-xs text-[var(--color-ink-muted)] font-meta-mono shrink-0">
+          {onOpenAIConfig && (
+            <button
+              onClick={onOpenAIConfig}
+              className="flex items-center gap-1 px-2 py-1 rounded-md bg-[var(--color-paper-elevated)] hover:bg-[var(--color-paper-3)] border border-[var(--color-rule)] text-[var(--color-accent)] hover:text-[var(--color-ink)] transition-colors cursor-pointer text-xs font-meta-mono shadow-2xs"
+              title="配置 AI 大模型伴读接口"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">AI 设置</span>
+            </button>
+          )}
+
           <button
             onClick={onGoBookshelf}
             className="hidden sm:inline-flex text-xs px-2.5 py-1 rounded-md hover:bg-[var(--color-paper-elevated)] text-[var(--color-ink-2)] transition-colors cursor-pointer"

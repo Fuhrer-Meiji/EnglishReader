@@ -9,7 +9,6 @@ import React, { useState, useEffect } from 'react';
 import {
   X,
   Volume2,
-  Sparkles,
   BookOpen,
   Layers,
   Lightbulb,
@@ -18,7 +17,6 @@ import {
   Key,
   Quote,
   Feather,
-  RefreshCw,
   Share2,
 } from 'lucide-react';
 import { SentenceAnalysis } from '../lib/types';
@@ -64,10 +62,15 @@ export const SentenceDrawer: React.FC<SentenceDrawerProps> = ({
   const [aiError, setAiError] = useState<string | null>(null);
   const [hasApiKey, setHasApiKey] = useState(false);
 
-  useEffect(() => {
-    // Reset AI result when sentence changes
+  // Synchronize state during render to avoid cascading useEffect renders
+  const [prevSentenceId, setPrevSentenceId] = useState<string | undefined>(sentence?.id);
+  if (sentence?.id !== prevSentenceId) {
+    setPrevSentenceId(sentence?.id);
     setAiResult(null);
     setAiError(null);
+  }
+
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       const cfg = loadAIConfig();
       setHasApiKey(Boolean(cfg.apiKey && cfg.apiKey.trim()));

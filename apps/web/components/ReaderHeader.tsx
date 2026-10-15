@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { ReadingMode } from '../lib/types';
-import { BookOpen, Feather, ChevronLeft, Sliders } from 'lucide-react';
+import { BookOpen, Feather, ChevronLeft, Sliders, Share2 } from 'lucide-react';
 import { UserMenu } from './UserMenu';
 import { AuthUser } from '../lib/auth';
 
@@ -25,6 +25,7 @@ interface ReaderHeaderProps {
   isSyncing?: boolean;
   isControlsVisible?: boolean;
   onOpenAIConfig?: () => void;
+  onOpenQuoteCard?: () => void;
 }
 
 export const ReaderHeader: React.FC<ReaderHeaderProps> = ({
@@ -41,6 +42,7 @@ export const ReaderHeader: React.FC<ReaderHeaderProps> = ({
   isSyncing,
   isControlsVisible = true,
   onOpenAIConfig,
+  onOpenQuoteCard,
 }) => {
   return (
     <header
@@ -96,6 +98,17 @@ export const ReaderHeader: React.FC<ReaderHeaderProps> = ({
 
         {/* Right: Shelf Navigation & User Account */}
         <div className="flex items-center gap-2 sm:gap-2.5 text-xs text-[var(--color-ink-muted)] font-meta-mono shrink-0">
+          {onOpenQuoteCard && (
+            <button
+              onClick={onOpenQuoteCard}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--color-paper-elevated)] hover:bg-[var(--color-paper-3)] active:scale-95 border border-[var(--color-rule)] text-[var(--color-accent)] hover:text-[var(--color-ink)] transition-all cursor-pointer text-xs font-meta-mono shadow-2xs"
+              title="制作金句书签与藏书票卡片"
+            >
+              <Share2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">金句卡片</span>
+            </button>
+          )}
+
           {onOpenAIConfig && (
             <button
               onClick={onOpenAIConfig}

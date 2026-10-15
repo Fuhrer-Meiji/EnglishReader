@@ -873,6 +873,7 @@ export default function Home() {
         isSyncing={isSyncing}
         isControlsVisible={isControlsVisible}
         onOpenAIConfig={() => setIsAIConfigOpen(true)}
+        onOpenQuoteCard={handleOpenQuoteCard}
       />
 
       {/* 2. Main Reader Canvas with Optional Study Sidebar */}

@@ -186,7 +186,8 @@ export const QuoteCardModal: React.FC<QuoteCardModalProps> = ({
   const [overlayDarkness, setOverlayDarkness] = useState<number>(0.35); // 0.0 ~ 0.8
   const [showImage, setShowImage] = useState<boolean>(true);
   const [imageOffsetY, setImageOffsetY] = useState<number>(20); // 0 (top) ~ 100 (bottom), default 20% to frame portraits and art heads
-  const [imageOffsetX] = useState<number>(50); // 0 (left) ~ 100 (right), default 50%
+  const [imageOffsetX, setImageOffsetX] = useState<number>(50); // 0 (left) ~ 100 (right), default 50%
+  const [previewDataUrl, setPreviewDataUrl] = useState<string | null>(null);
 
   // Editable text states
   const [quoteText, setQuoteText] = useState<string>(propQuote);
@@ -501,7 +502,7 @@ export const QuoteCardModal: React.FC<QuoteCardModalProps> = ({
       ctx.fillStyle = '#D1D5DB';
       ctx.font = '9px "SF Mono", monospace';
       ctx.textAlign = 'right';
-      ctx.fillText('Wilde · 8.217.7.250', frameMargin + frameW - 14, footerY + 12);
+      ctx.fillText('Wilde · Standard Ebooks', frameMargin + frameW - 14, footerY + 12);
     }
 
     // -------------------------------------------------------------
@@ -610,7 +611,7 @@ export const QuoteCardModal: React.FC<QuoteCardModalProps> = ({
       ctx.fillText('WILDE · STANDARD EBOOKS 精校典藏', padX, footY);
 
       ctx.textAlign = 'right';
-      ctx.fillText('8.217.7.250', baseWidth - padX, footY);
+      ctx.fillText('Standard Ebooks · Wilde', baseWidth - padX, footY);
     }
 
     // -------------------------------------------------------------
@@ -719,7 +720,7 @@ export const QuoteCardModal: React.FC<QuoteCardModalProps> = ({
       const botY = baseHeight - bMargin - 22;
       ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
       ctx.font = '10px "SF Mono", monospace';
-      ctx.fillText('王尔德 · 精校双语原著典藏 · 8.217.7.250', baseWidth / 2, botY);
+      ctx.fillText('王尔德 · 精校双语原著典藏 · Standard Ebooks', baseWidth / 2, botY);
     }
 
     // -------------------------------------------------------------
@@ -853,7 +854,7 @@ export const QuoteCardModal: React.FC<QuoteCardModalProps> = ({
       ctx.fillStyle = palette.subtextHex;
       ctx.font = '10px "SF Mono", monospace';
       ctx.textAlign = 'center';
-      ctx.fillText('王尔德 · Wilde | 精校双语原著典藏 · 8.217.7.250', baseWidth / 2, footY);
+      ctx.fillText('王尔德 · Wilde | 精校双语原著典藏 · Standard Ebooks', baseWidth / 2, footY);
     }
 
     // -------------------------------------------------------------
@@ -956,12 +957,17 @@ export const QuoteCardModal: React.FC<QuoteCardModalProps> = ({
 
       ctx.fillStyle = '#64748B';
       ctx.font = '10px "SF Mono", monospace';
-      ctx.fillText('STANDARD EBOOKS ARCHIVAL INTEGITY', pX, bY);
+      ctx.fillText('STANDARD EBOOKS ARCHIVAL INTEGRITY', pX, bY);
       ctx.textAlign = 'right';
-      ctx.fillText('8.217.7.250', baseWidth - pX, bY);
+      ctx.fillText('WILDE CANON ARCHIVE', baseWidth - pX, bY);
     }
 
     ctx.restore();
+    try {
+      setPreviewDataUrl(canvas.toDataURL('image/png', 0.95));
+    } catch {
+      // ignore
+    }
     setIsRendering(false);
   }, [
     layout,
@@ -1122,18 +1128,26 @@ export const QuoteCardModal: React.FC<QuoteCardModalProps> = ({
             </div>
           </div>
 
-          {/* Canvas Wrapper */}
-          <div className="w-full max-w-[360px] sm:max-w-[400px] shadow-2xl rounded-xl overflow-hidden border border-[var(--color-rule)] bg-black/5 transition-all">
+          {/* Canvas & Mobile-friendly Image Preview */}
+          <div className="relative w-full max-w-[360px] sm:max-w-[400px] shadow-2xl rounded-xl overflow-hidden border border-[var(--color-rule)] bg-black/5 transition-all">
+            {previewDataUrl ? (
+              <img
+                src={previewDataUrl}
+                alt="Wilde Quote Card Preview"
+                className="w-full h-auto block select-auto"
+                style={{ maxHeight: '64vh', objectFit: 'contain' }}
+              />
+            ) : null}
             <canvas
               ref={canvasRef}
-              className="w-full h-auto block select-none pointer-events-none"
+              className={`w-full h-auto select-none pointer-events-none ${previewDataUrl ? 'hidden' : 'block'}`}
               style={{ maxHeight: '64vh', objectFit: 'contain' }}
             />
           </div>
 
           <div className="mt-3 flex items-center justify-between w-full max-w-[400px] px-1 text-[11px] font-meta-mono text-[var(--color-ink-muted)]">
             <span>2x Retina 超清画质导出</span>
-            <span>适配小红书 · 朋友圈 · 微博</span>
+            <span className="text-[var(--color-accent)] font-medium">手机长按可直接存图</span>
           </div>
         </div>
 
@@ -1310,68 +1324,133 @@ export const QuoteCardModal: React.FC<QuoteCardModalProps> = ({
                     </div>
                   </div>
 
-                  {/* Photo Framing / Vertical Position Offset */}
-                  <div className="pt-2 border-t border-[var(--color-rule)] space-y-1.5">
-                    <div className="flex items-center justify-between text-[11px]">
-                      <div className="flex items-center gap-1.5">
-                        <Sliders className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-                        <span className="text-[var(--color-ink)] font-meta-mono font-medium">画面构图 (上下移动)</span>
+                  {/* Photo Framing / Dual-Axis Position Offset */}
+                  <div className="pt-2 border-t border-[var(--color-rule)] space-y-2">
+                    {/* Vertical (Y) Offset */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <div className="flex items-center gap-1.5">
+                          <Sliders className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                          <span className="text-[var(--color-ink)] font-meta-mono font-medium">垂直取景 (上下移动)</span>
+                        </div>
+                        <span className="text-[10px] text-[var(--color-ink-muted)] font-meta-mono">
+                          {imageOffsetY <= 25 ? '靠上 · 人像特写' : imageOffsetY >= 75 ? '靠下 · 全景远景' : '居中'} ({imageOffsetY}%)
+                        </span>
                       </div>
-                      <span className="text-[10px] text-[var(--color-ink-muted)] font-meta-mono">
-                        {imageOffsetY <= 25 ? '靠上 · 人像特写' : imageOffsetY >= 75 ? '靠下 · 全景远景' : '居中'} ({imageOffsetY}%)
-                      </span>
+
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setImageOffsetY(15)}
+                            className={`px-2 py-0.5 rounded text-[10px] font-meta-mono cursor-pointer transition-colors ${
+                              imageOffsetY <= 25
+                                ? 'bg-[var(--color-accent)] text-white font-medium shadow-2xs'
+                                : 'bg-[var(--color-paper)] text-[var(--color-ink-2)] hover:bg-[var(--color-paper-3)] border border-[var(--color-rule)]'
+                            }`}
+                            title="焦点靠上：呈现王尔德肖像面容、天空等核心细节"
+                          >
+                            靠上
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setImageOffsetY(50)}
+                            className={`px-2 py-0.5 rounded text-[10px] font-meta-mono cursor-pointer transition-colors ${
+                              imageOffsetY > 25 && imageOffsetY < 75
+                                ? 'bg-[var(--color-accent)] text-white font-medium shadow-2xs'
+                                : 'bg-[var(--color-paper)] text-[var(--color-ink-2)] hover:bg-[var(--color-paper-3)] border border-[var(--color-rule)]'
+                            }`}
+                            title="居中对称取景"
+                          >
+                            居中
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setImageOffsetY(85)}
+                            className={`px-2 py-0.5 rounded text-[10px] font-meta-mono cursor-pointer transition-colors ${
+                              imageOffsetY >= 75
+                                ? 'bg-[var(--color-accent)] text-white font-medium shadow-2xs'
+                                : 'bg-[var(--color-paper)] text-[var(--color-ink-2)] hover:bg-[var(--color-paper-3)] border border-[var(--color-rule)]'
+                            }`}
+                            title="焦点靠下"
+                          >
+                            靠下
+                          </button>
+                        </div>
+
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          step="1"
+                          value={imageOffsetY}
+                          onChange={(e) => setImageOffsetY(parseInt(e.target.value, 10))}
+                          className="flex-1 accent-[var(--color-accent)] cursor-pointer h-1.5"
+                          title="自由滑动微调图片上下展示位置"
+                        />
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <div className="flex gap-1 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => setImageOffsetY(15)}
-                          className={`px-2 py-0.5 rounded text-[10px] font-meta-mono cursor-pointer transition-colors ${
-                            imageOffsetY <= 25
-                              ? 'bg-[var(--color-accent)] text-white font-medium shadow-2xs'
-                              : 'bg-[var(--color-paper)] text-[var(--color-ink-2)] hover:bg-[var(--color-paper-3)] border border-[var(--color-rule)]'
-                          }`}
-                          title="焦点靠上：呈现王尔德肖像面容、天空等核心细节"
-                        >
-                          靠上
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setImageOffsetY(50)}
-                          className={`px-2 py-0.5 rounded text-[10px] font-meta-mono cursor-pointer transition-colors ${
-                            imageOffsetY > 25 && imageOffsetY < 75
-                              ? 'bg-[var(--color-accent)] text-white font-medium shadow-2xs'
-                              : 'bg-[var(--color-paper)] text-[var(--color-ink-2)] hover:bg-[var(--color-paper-3)] border border-[var(--color-rule)]'
-                          }`}
-                          title="居中对称取景"
-                        >
-                          居中
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setImageOffsetY(85)}
-                          className={`px-2 py-0.5 rounded text-[10px] font-meta-mono cursor-pointer transition-colors ${
-                            imageOffsetY >= 75
-                              ? 'bg-[var(--color-accent)] text-white font-medium shadow-2xs'
-                              : 'bg-[var(--color-paper)] text-[var(--color-ink-2)] hover:bg-[var(--color-paper-3)] border border-[var(--color-rule)]'
-                          }`}
-                          title="焦点靠下"
-                        >
-                          靠下
-                        </button>
+                    {/* Horizontal (X) Offset */}
+                    <div className="space-y-1 pt-1.5 border-t border-[var(--color-rule)]/60">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="text-[var(--color-ink)] font-meta-mono font-medium">水平取景 (左右移动)</span>
+                        <span className="text-[10px] text-[var(--color-ink-muted)] font-meta-mono">
+                          {imageOffsetX <= 25 ? '靠左' : imageOffsetX >= 75 ? '靠右' : '居中'} ({imageOffsetX}%)
+                        </span>
                       </div>
 
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        step="1"
-                        value={imageOffsetY}
-                        onChange={(e) => setImageOffsetY(parseInt(e.target.value, 10))}
-                        className="flex-1 accent-[var(--color-accent)] cursor-pointer h-1.5"
-                        title="自由滑动微调图片上下展示位置"
-                      />
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setImageOffsetX(15)}
+                            className={`px-2 py-0.5 rounded text-[10px] font-meta-mono cursor-pointer transition-colors ${
+                              imageOffsetX <= 25
+                                ? 'bg-[var(--color-accent)] text-white font-medium shadow-2xs'
+                                : 'bg-[var(--color-paper)] text-[var(--color-ink-2)] hover:bg-[var(--color-paper-3)] border border-[var(--color-rule)]'
+                            }`}
+                            title="焦点靠左"
+                          >
+                            靠左
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setImageOffsetX(50)}
+                            className={`px-2 py-0.5 rounded text-[10px] font-meta-mono cursor-pointer transition-colors ${
+                              imageOffsetX > 25 && imageOffsetX < 75
+                                ? 'bg-[var(--color-accent)] text-white font-medium shadow-2xs'
+                                : 'bg-[var(--color-paper)] text-[var(--color-ink-2)] hover:bg-[var(--color-paper-3)] border border-[var(--color-rule)]'
+                            }`}
+                            title="居中对称取景"
+                          >
+                            居中
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setImageOffsetX(85)}
+                            className={`px-2 py-0.5 rounded text-[10px] font-meta-mono cursor-pointer transition-colors ${
+                              imageOffsetX >= 75
+                                ? 'bg-[var(--color-accent)] text-white font-medium shadow-2xs'
+                                : 'bg-[var(--color-paper)] text-[var(--color-ink-2)] hover:bg-[var(--color-paper-3)] border border-[var(--color-rule)]'
+                            }`}
+                            title="焦点靠右"
+                          >
+                            靠右
+                          </button>
+                        </div>
+
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          step="1"
+                          value={imageOffsetX}
+                          onChange={(e) => setImageOffsetX(parseInt(e.target.value, 10))}
+                          className="flex-1 accent-[var(--color-accent)] cursor-pointer h-1.5"
+                          title="自由滑动微调横版图片左右展示位置"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>

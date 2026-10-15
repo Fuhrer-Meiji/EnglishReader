@@ -22,6 +22,8 @@ import {
   Sliders,
   Trash2,
   Layers,
+  Sparkles,
+  Share2,
 } from 'lucide-react';
 
 export type CardLayoutId = 'polaroid' | 'editorial' | 'cinematic' | 'ex-libris' | 'midnight';
@@ -160,10 +162,12 @@ export interface QuoteCardModalProps {
   onClose: () => void;
   quote: string;
   initialTranslation?: string;
+  bookId?: string;
   bookTitle?: string;
   chineseTitle?: string;
   author?: string;
   chapterTitle?: string;
+  onOpenAuth?: () => void;
 }
 
 export const QuoteCardModal: React.FC<QuoteCardModalProps> = ({
@@ -171,10 +175,12 @@ export const QuoteCardModal: React.FC<QuoteCardModalProps> = ({
   onClose,
   quote: propQuote,
   initialTranslation = '',
+  bookId,
   bookTitle = 'The Picture of Dorian Gray',
   chineseTitle = '道林·格雷的画像',
   author = 'Oscar Wilde',
   chapterTitle = 'Chapter I',
+  onOpenAuth,
 }) => {
   // Configurable states
   const [layout, setLayout] = useState<CardLayoutId>('polaroid');
@@ -202,6 +208,11 @@ export const QuoteCardModal: React.FC<QuoteCardModalProps> = ({
   const [isCopiedText, setIsCopiedText] = useState<boolean>(false);
   const [isDownloading, setIsDownloading] = useState<boolean>(false);
   const [isRendering, setIsRendering] = useState<boolean>(false);
+  const [isPublishing, setIsPublishing] = useState<boolean>(false);
+  const [isPublished, setIsPublished] = useState<boolean>(false);
+  const [publishThought, setPublishThought] = useState<string>('');
+  const [showPublishInput, setShowPublishInput] = useState<boolean>(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -1083,6 +1094,48 @@ export const QuoteCardModal: React.FC<QuoteCardModalProps> = ({
     }
   };
 
+  // Publish to Community Square
+  const handlePublishToCommunity = async () => {
+    if (!previewDataUrl) return;
+
+    setIsPublishing(true);
+    setPublishError(null);
+
+    try {
+      const res = await fetch('/api/community/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bookId,
+          bookTitle: chineseTitle || bookTitle,
+          author,
+          quoteText: quoteText.trim(),
+          chineseTranslation: showTranslation && translationText.trim() ? translationText.trim() : undefined,
+          thought: publishThought.trim() || undefined,
+          cardImageUrl: previewDataUrl,
+          cardLayout: layout,
+        }),
+      });
+
+      if (res.ok) {
+        setIsPublished(true);
+        setShowPublishInput(false);
+        setPublishThought('');
+        setTimeout(() => setIsPublished(false), 3000);
+      } else if (res.status === 401) {
+        if (onOpenAuth) onOpenAuth();
+        setPublishError('请先登录以发布至书友广场');
+      } else {
+        const err = await res.json();
+        setPublishError(err.error || '发布失败，请重试');
+      }
+    } catch {
+      setPublishError('网络连接异常，请重试');
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 select-none animate-in fade-in duration-200">
       {/* Dark overlay backdrop */}
@@ -1629,6 +1682,74 @@ export const QuoteCardModal: React.FC<QuoteCardModalProps> = ({
                 )}
               </button>
             </div>
+
+            {/* Publish to Community Square */}
+            {showPublishInput ? (
+              <div className="p-2.5 rounded-xl bg-[var(--color-paper-2)] border border-[var(--color-accent)]/40 space-y-2 animate-in fade-in duration-150">
+                <div className="flex items-center justify-between text-[11px] font-meta-mono text-[var(--color-accent)] font-medium">
+                  <span className="flex items-center gap-1">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>发布到书友广场</span>
+                  </span>
+                  <button
+                    onClick={() => setShowPublishInput(false)}
+                    className="text-[var(--color-ink-muted)] hover:text-[var(--color-ink)] cursor-pointer"
+                  >
+                    取消
+                  </button>
+                </div>
+                <textarea
+                  value={publishThought}
+                  onChange={(e) => setPublishThought(e.target.value)}
+                  placeholder="写一句你的读书感悟或对这句英文的赏析（可选）..."
+                  rows={2}
+                  maxLength={500}
+                  className="w-full text-xs p-2 rounded-lg bg-[var(--color-paper-elevated)] border border-[var(--color-rule)] text-[var(--color-ink)] resize-none focus:outline-hidden focus:border-[var(--color-accent)]"
+                />
+                {publishError && (
+                  <p className="text-[11px] text-rose-500">{publishError}</p>
+                )}
+                <button
+                  onClick={handlePublishToCommunity}
+                  disabled={isPublishing}
+                  className="w-full py-2 rounded-lg bg-[var(--color-accent)] hover:opacity-90 active:scale-98 text-white font-medium text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs disabled:opacity-50"
+                >
+                  {isPublishing ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>正在上榜发布...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Share2 className="w-3.5 h-3.5" />
+                      <span>确认发布到书友广场</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  if (!previewDataUrl) return;
+                  setShowPublishInput(true);
+                }}
+                disabled={isRendering}
+                className="w-full py-2 px-3 rounded-xl bg-[var(--color-paper-2)] hover:bg-[var(--color-accent)]/10 active:scale-[0.99] border border-[var(--color-accent)]/40 text-[var(--color-accent)] text-xs font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                title="将此金句卡片发布到书友广场，与全网读者交流点赞"
+              >
+                {isPublished ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-500" />
+                    <span className="text-emerald-500 font-medium">已成功发布至书友广场！</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>发布至书友广场 · 与读友交流</span>
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </div>
       </div>

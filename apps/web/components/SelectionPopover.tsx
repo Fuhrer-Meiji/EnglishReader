@@ -19,6 +19,7 @@ import {
   Languages,
   Sliders,
   Share2,
+  MessageSquare,
 } from 'lucide-react';
 import { loadAIConfig } from '../lib/aiConfig';
 
@@ -32,6 +33,7 @@ interface SelectionPopoverProps {
   bookTitle?: string;
   author?: string;
   onOpenAIConfig?: () => void;
+  onOpenThoughts?: (quote: string, translation?: string) => void;
 }
 
 export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
@@ -44,6 +46,7 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
   bookTitle = '传世原著',
   author = '文学名家',
   onOpenAIConfig,
+  onOpenThoughts,
 }) => {
   const [translation, setTranslation] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -295,6 +298,21 @@ export const SelectionPopover: React.FC<SelectionPopoverProps> = ({
                   >
                     <Share2 className="w-3.5 h-3.5" />
                     <span>制作金句卡片</span>
+                  </button>
+                )}
+
+                {onOpenThoughts && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onOpenThoughts(selectedText.trim(), translation || '');
+                      onClose();
+                    }}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--color-paper-2)] hover:bg-[var(--color-paper-3)] active:scale-95 text-[var(--color-ink)] border border-[var(--color-rule)] transition-all cursor-pointer font-medium shadow-2xs"
+                    title="查看或发表该段落的读友想法"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                    <span>读友想法</span>
                   </button>
                 )}
               </div>

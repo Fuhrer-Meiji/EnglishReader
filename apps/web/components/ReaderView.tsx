@@ -14,8 +14,8 @@ import {
   DifficultyLevel,
   SentenceAnalysis,
 } from '../lib/types';
-import { DICTIONARY_DATABASE } from '../lib/mockData';
-import { Layers, ChevronLeft, ChevronRight } from 'lucide-react';
+import { DICTIONARY_DATABASE, DictEntry } from '../lib/mockData';
+import { Layers, ChevronLeft, ChevronRight, MessageSquare } from 'lucide-react';
 
 interface ReaderViewProps {
   chapter: Chapter;
@@ -35,6 +35,9 @@ interface ReaderViewProps {
   onPrevChapter?: () => void;
   hasPrevChapter?: boolean;
   hasNextChapter?: boolean;
+  chapterVocab?: Record<string, DictEntry>;
+  thoughtCounts?: Record<string, number>;
+  onOpenSentenceThoughts?: (sentence: SentenceAnalysis) => void;
 }
 
 export const ReaderView: React.FC<ReaderViewProps> = ({
@@ -55,6 +58,9 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
   onPrevChapter,
   hasPrevChapter = false,
   hasNextChapter = false,
+  chapterVocab,
+  thoughtCounts,
+  onOpenSentenceThoughts,
 }) => {
   const activeFontFamily = isSerif
     ? 'var(--font-newsreader), Newsreader, Charter, "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif'
@@ -65,7 +71,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
     if (readingMode === 'zen' || selectedLevelFilter === 'OFF' || !level) return false;
     if (selectedLevelFilter === 'ALL') return true;
     if (selectedLevelFilter === 'CET4') return true;
-    if (selectedLevelFilter === 'CET6') return level === 'CET6' || level === 'KY' || level === 'GRE';
+    if (selectedLevelFilter === 'CET6') return level === 'CET6' || level === 'KY' || level === 'IELTS' || level === 'GRE';
     if (selectedLevelFilter === 'KY') return level === 'KY' || level === 'GRE';
     if (selectedLevelFilter === 'GRE') return level === 'GRE';
     return false;
@@ -84,6 +90,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
           ? 'text-rose-300 border-b border-rose-400/80 font-medium'
           : 'text-rose-800 border-b border-rose-700/80 font-medium';
       case 'CET6':
+      case 'IELTS':
         return 'text-[var(--color-accent)] border-b border-[var(--color-accent)]/80 font-medium';
       case 'CET4':
         return isDark
@@ -116,7 +123,7 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
             return token;
           }
 
-          const dictEntry = DICTIONARY_DATABASE[clean];
+          const dictEntry = (chapterVocab && chapterVocab[clean]) || DICTIONARY_DATABASE[clean];
           const isHighlighted = dictEntry && shouldHighlightWord(dictEntry.level);
 
           return (
@@ -142,6 +149,21 @@ export const ReaderView: React.FC<ReaderViewProps> = ({
             </span>
           );
         })}
+
+        {/* Community Thoughts Bubble (WeChat Read style) */}
+        {Boolean(thoughtCounts && sent.id && thoughtCounts[sent.id]) && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenSentenceThoughts?.(sent);
+            }}
+            className="inline-flex items-center gap-0.5 align-middle ml-1.5 px-1.5 py-0.2 rounded-full text-[10px] font-meta-mono font-medium text-[var(--color-accent)] bg-[var(--color-accent)]/10 hover:bg-[var(--color-accent)]/20 border border-[var(--color-accent)]/30 transition-all cursor-pointer shadow-2xs"
+            title={`${thoughtCounts![sent.id]} 条读友想法`}
+          >
+            <MessageSquare className="w-2.5 h-2.5 inline" />
+            <span>{thoughtCounts![sent.id]}</span>
+          </button>
+        )}
 
         {readingMode === 'study' && (
           <button

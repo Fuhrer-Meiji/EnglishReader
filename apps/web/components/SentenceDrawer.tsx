@@ -18,6 +18,7 @@ import {
   Quote,
   Feather,
   Share2,
+  MessageSquare,
 } from 'lucide-react';
 import { SentenceAnalysis } from '../lib/types';
 import { DICTIONARY_DATABASE } from '../lib/mockData';
@@ -43,6 +44,7 @@ interface SentenceDrawerProps {
   onClose: () => void;
   onSelectWord: (word: string) => void;
   onGenerateCard?: (quote: string, translation: string) => void;
+  onOpenThoughts?: (quote: string, translation?: string) => void;
   bookTitle?: string;
   author?: string;
   onOpenAIConfig?: () => void;
@@ -53,6 +55,7 @@ export const SentenceDrawer: React.FC<SentenceDrawerProps> = ({
   onClose,
   onSelectWord,
   onGenerateCard,
+  onOpenThoughts,
   bookTitle = '传世原著',
   author = '文学名家',
   onOpenAIConfig,
@@ -199,6 +202,21 @@ export const SentenceDrawer: React.FC<SentenceDrawerProps> = ({
                 >
                   <Share2 className="w-3.5 h-3.5" />
                   <span>生成金句卡片</span>
+                </button>
+              )}
+              {onOpenThoughts && (
+                <button
+                  onClick={() => {
+                    onOpenThoughts(
+                      sentence.rawText,
+                      aiResult?.literaryTranslation || sentence.chineseTranslation || ''
+                    );
+                  }}
+                  className="px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--color-ink)] hover:text-[var(--color-accent)] hover:bg-[var(--color-paper-3)] border border-[var(--color-rule)] transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
+                  title="查看或发表这句原著的读友想法"
+                >
+                  <MessageSquare className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                  <span>读友想法</span>
                 </button>
               )}
               <IconButton

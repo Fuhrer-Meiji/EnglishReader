@@ -5,9 +5,9 @@
  * contrast: pass (APCA / WCAG 2.1 AAA)
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ChapterStats, DifficultyLevel } from '../lib/types';
-import { DICTIONARY_DATABASE } from '../lib/mockData';
+import { DICTIONARY_DATABASE, DictEntry } from '../lib/mockData';
 import { Gauge, BookA, Sliders, Volume2, BookOpen, X, ChevronLeft, ChevronRight, Feather } from 'lucide-react';
 import { Badge, IconButton } from '@astryxdesign/core';
 
@@ -18,6 +18,7 @@ interface StudySidebarProps {
   onSelectWord: (word: string) => void;
   onClose?: () => void;
   onExitStudyMode?: () => void;
+  chapterVocab?: Record<string, DictEntry>;
 }
 
 export const StudySidebar: React.FC<StudySidebarProps> = ({
@@ -27,9 +28,12 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
   onSelectWord,
   onClose,
   onExitStudyMode,
+  chapterVocab,
 }) => {
   const [selectedWordKey, setSelectedWordKey] = useState<string | null>(null);
-  const selectedEntry = selectedWordKey ? DICTIONARY_DATABASE[selectedWordKey] : null;
+  const selectedEntry = selectedWordKey
+    ? (chapterVocab && chapterVocab[selectedWordKey]) || DICTIONARY_DATABASE[selectedWordKey]
+    : null;
 
   const filterOptions: { label: string; value: DifficultyLevel | 'ALL' | 'OFF' }[] = [
     { label: '全部标色', value: 'ALL' },
@@ -51,7 +55,26 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
     }
   };
 
-  const highLevelWords = Object.entries(DICTIONARY_DATABASE);
+  const highLevelWords = useMemo(() => {
+    const list = Object.values(chapterVocab || {});
+    const filtered = list.filter(
+      (entry) => entry.level && ['CET4', 'CET6', 'KY', 'IELTS', 'GRE'].includes(entry.level)
+    );
+    if (filtered.length === 0) {
+      return Object.entries(DICTIONARY_DATABASE).map(([_, v]) => v);
+    }
+    const map = new Map<string, DictEntry>();
+    for (const item of filtered) {
+      const key = item.word.toLowerCase();
+      if (!map.has(key)) {
+        map.set(key, item);
+      }
+    }
+    const priority: Record<string, number> = { GRE: 4, KY: 3, IELTS: 2, CET6: 2, CET4: 1 };
+    return Array.from(map.values()).sort(
+      (a, b) => (priority[b.level || ''] || 0) - (priority[a.level || ''] || 0)
+    );
+  }, [chapterVocab]);
 
   return (
     <>
@@ -279,40 +302,54 @@ export const StudySidebar: React.FC<StudySidebarProps> = ({
               </div>
 
               <div className="space-y-1.5 max-h-[380px] overflow-y-auto pr-1">
-                {highLevelWords.map(([rawKey, entry]) => (
-                  <div
-                    key={rawKey}
-                    onClick={() => {
-                      setSelectedWordKey(rawKey);
-                      onSelectWord(rawKey);
-                    }}
-                    className="p-2.5 rounded-xl bg-[var(--color-paper-elevated)] border border-[var(--color-rule)] hover:border-[var(--color-accent)]/50 transition-colors cursor-pointer group flex items-start justify-between shadow-2xs"
-                  >
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-book-serif font-medium text-xs text-[var(--color-ink)] group-hover:text-[var(--color-accent)]">
-                          {entry.word}
-                        </span>
-                        {entry.level && (
-                          <Badge label={entry.level} variant="teal" />
-                        )}
+                {highLevelWords.map((entry, idx) => {
+                  const rawKey = entry.word.toLowerCase();
+                  return (
+                    <div
+                      key={`${rawKey}-${idx}`}
+                      onClick={() => {
+                        setSelectedWordKey(rawKey);
+                        onSelectWord(rawKey);
+                      }}
+                      className="p-2.5 rounded-xl bg-[var(--color-paper-elevated)] border border-[var(--color-rule)] hover:border-[var(--color-accent)]/50 transition-colors cursor-pointer group flex items-start justify-between shadow-2xs"
+                    >
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-book-serif font-medium text-xs text-[var(--color-ink)] group-hover:text-[var(--color-accent)]">
+                            {entry.word}
+                          </span>
+                          {entry.level && (
+                            <Badge
+                              label={entry.level}
+                              variant={
+                                entry.level === 'GRE'
+                                  ? 'purple'
+                                  : entry.level === 'KY'
+                                  ? 'red'
+                                  : entry.level === 'CET6' || entry.level === 'IELTS'
+                                  ? 'orange'
+                                  : 'teal'
+                              }
+                            />
+                          )}
+                        </div>
+                        <p className="text-[11px] text-[var(--color-ink-muted)] line-clamp-1 mt-0.5">
+                          {entry.translation}
+                        </p>
                       </div>
-                      <p className="text-[11px] text-[var(--color-ink-muted)] line-clamp-1 mt-0.5">
-                        {entry.translation}
-                      </p>
-                    </div>
 
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                      <IconButton
-                        label="朗读"
-                        icon={<Volume2 className="w-3.5 h-3.5" />}
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e: React.MouseEvent) => playWord(entry.word, e)}
-                      />
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <IconButton
+                          label="朗读"
+                          icon={<Volume2 className="w-3.5 h-3.5" />}
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e: React.MouseEvent) => playWord(entry.word, e)}
+                        />
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </>

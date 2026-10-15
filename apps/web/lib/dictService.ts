@@ -42,3 +42,55 @@ export async function fetchWordDefinition(rawWord: string): Promise<DictEntry> {
     return fallbackEntry;
   }
 }
+
+export async function fetchBatchWordDefinitions(rawWords: string[]): Promise<Record<string, DictEntry>> {
+  const result: Record<string, DictEntry> = {};
+  const toFetch: string[] = [];
+
+  for (const raw of rawWords) {
+    const clean = raw.toLowerCase().trim().replace(/[’']/g, '');
+    if (!clean || clean.length <= 1) continue;
+
+    if (clientCache.has(clean)) {
+      result[clean] = clientCache.get(clean)!;
+    } else {
+      toFetch.push(clean);
+    }
+  }
+
+  if (toFetch.length === 0) {
+    return result;
+  }
+
+  try {
+    const res = await fetch('/api/dict/batch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ words: toFetch }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.words) {
+        for (const [w, item] of Object.entries(data.words as Record<string, any>)) {
+          const entry: DictEntry = {
+            word: item.word || w,
+            phonetic: item.phonetic || `/${w}/`,
+            pos: item.pos || '',
+            translation: item.translation || '',
+            englishDef: item.englishDef || '',
+            level: item.level as DifficultyLevel | undefined,
+            collocations: item.tags,
+          };
+          clientCache.set(w, entry);
+          result[w] = entry;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[dictService] Batch lookup error:', err);
+  }
+
+  return result;
+}
+

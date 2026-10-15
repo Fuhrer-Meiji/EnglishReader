@@ -17,7 +17,7 @@ import {
   INITIAL_VOCAB_ITEMS,
   DictEntry,
 } from '../lib/mockData';
-import { fetchWordDefinition } from '../lib/dictService';
+import { fetchWordDefinition, fetchBatchWordDefinitions } from '../lib/dictService';
 import { ReaderHeader } from '../components/ReaderHeader';
 import { ReaderView } from '../components/ReaderView';
 import { BookshelfView } from '../components/BookshelfView';
@@ -34,6 +34,8 @@ import { AuthModal } from '../components/AuthModal';
 import { WelcomeView } from '../components/WelcomeView';
 import { AIConfigModal } from '../components/AIConfigModal';
 import { QuoteCardModal } from '../components/QuoteCardModal';
+import { ParagraphThoughtsDrawer } from '../components/ParagraphThoughtsDrawer';
+import { CommunitySquareModal } from '../components/CommunitySquareModal';
 
 export default function Home() {
   const [activeView, setActiveView] = useState<'welcome' | 'reader' | 'bookshelf'>('welcome');
@@ -87,6 +89,68 @@ export default function Home() {
   const [activeSentence, setActiveSentence] = useState<SentenceAnalysis | null>(null);
   const [isVocabOpen, setIsVocabOpen] = useState<boolean>(false);
   const [vocabItems, setVocabItems] = useState<VocabularyItem[]>(INITIAL_VOCAB_ITEMS);
+
+  // Community & Social Interaction States
+  const [isSquareOpen, setIsSquareOpen] = useState<boolean>(false);
+  const [thoughtsDrawerState, setThoughtsDrawerState] = useState<{
+    sentenceId?: string | null;
+    quoteText: string;
+    chineseTranslation?: string;
+    chapterIndex?: number;
+  } | null>(null);
+  const [thoughtCounts, setThoughtCounts] = useState<Record<string, number>>({});
+
+  // Fetch thought counts for current book & chapter
+  useEffect(() => {
+    let isCancelled = false;
+    async function loadThoughtCounts() {
+      try {
+        const res = await fetch(
+          `/api/community/thoughts?bookId=${encodeURIComponent(currentBookId)}&chapterIndex=${currentChapterIndex}`
+        );
+        if (res.ok && !isCancelled) {
+          const data = await res.json();
+          setThoughtCounts(data.countsBySentence || {});
+        }
+      } catch (e) {
+        console.warn('[Community] Failed to fetch thought counts:', e);
+      }
+    }
+    loadThoughtCounts();
+    return () => {
+      isCancelled = true;
+    };
+  }, [currentBookId, currentChapterIndex]);
+
+  // Global SSE stream to receive real-time thoughts & new posts
+  useEffect(() => {
+    let eventSource: EventSource | null = null;
+    try {
+      eventSource = new EventSource('/api/community/stream');
+      eventSource.onmessage = (e) => {
+        try {
+          const event = JSON.parse(e.data);
+          if (event.type === 'new_thought') {
+            const incoming = event.payload;
+            if (
+              incoming.bookId === currentBookId &&
+              incoming.chapterIndex === currentChapterIndex &&
+              incoming.sentenceId
+            ) {
+              setThoughtCounts((prev) => ({
+                ...prev,
+                [incoming.sentenceId]: (prev[incoming.sentenceId] || 0) + 1,
+              }));
+            }
+          }
+        } catch {}
+      };
+    } catch {}
+
+    return () => {
+      if (eventSource) eventSource.close();
+    };
+  }, [currentBookId, currentChapterIndex]);
 
   const gatherClientDataForMerge = () => {
     if (typeof window === 'undefined') return {};
@@ -498,6 +562,38 @@ export default function Home() {
   }, [currentBookId]);
 
   const currentChapter = currentBook.chapters[currentChapterIndex] || currentBook.chapters[0];
+  const [chapterVocab, setChapterVocab] = useState<Record<string, DictEntry>>({});
+
+  // Asynchronously resolve exam/difficulty levels for all words in current chapter
+  useEffect(() => {
+    let isCancelled = false;
+    if (!currentChapter || !currentChapter.sentences) return;
+
+    const words: string[] = [];
+    for (const sent of currentChapter.sentences) {
+      const tokens = sent.rawText.match(/[a-zA-Z’']+/g);
+      if (tokens) {
+        for (const token of tokens) {
+          const clean = token.toLowerCase().replace(/[’']/g, '');
+          if (clean.length > 1) {
+            words.push(clean);
+          }
+        }
+      }
+    }
+
+    if (words.length === 0) return;
+
+    fetchBatchWordDefinitions(words).then((res) => {
+      if (!isCancelled && res) {
+        setChapterVocab(res);
+      }
+    });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [currentChapter]);
 
   // Keyboard navigation for Two-Column spread reading
   useEffect(() => {
@@ -932,6 +1028,7 @@ export default function Home() {
               setCurrentChapterIndex((prev) => Math.min(currentBook.chapters.length - 1, prev + 1));
               setCurrentPage(0);
             }}
+            chapterVocab={chapterVocab}
           />
         </div>
 
@@ -944,6 +1041,7 @@ export default function Home() {
             onSelectWord={handleSelectWordFromSidebar}
             onClose={() => setIsStudySidebarOpen(false)}
             onExitStudyMode={() => setReadingMode('zen')}
+            chapterVocab={chapterVocab}
           />
         )}
       </main>

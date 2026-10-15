@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { ReadingMode } from '../lib/types';
-import { BookOpen, Feather, ChevronLeft, Sliders, Share2 } from 'lucide-react';
+import { BookOpen, Feather, ChevronLeft, Sliders, Share2, Users } from 'lucide-react';
 import { UserMenu } from './UserMenu';
 import { AuthUser } from '../lib/auth';
 
@@ -26,6 +26,7 @@ interface ReaderHeaderProps {
   isControlsVisible?: boolean;
   onOpenAIConfig?: () => void;
   onOpenQuoteCard?: () => void;
+  onOpenSquare?: () => void;
 }
 
 export const ReaderHeader: React.FC<ReaderHeaderProps> = ({
@@ -43,6 +44,7 @@ export const ReaderHeader: React.FC<ReaderHeaderProps> = ({
   isControlsVisible = true,
   onOpenAIConfig,
   onOpenQuoteCard,
+  onOpenSquare,
 }) => {
   return (
     <header
@@ -98,6 +100,17 @@ export const ReaderHeader: React.FC<ReaderHeaderProps> = ({
 
         {/* Right: Shelf Navigation & User Account */}
         <div className="flex items-center gap-2 sm:gap-2.5 text-xs text-[var(--color-ink-muted)] font-meta-mono shrink-0">
+          {onOpenSquare && (
+            <button
+              onClick={onOpenSquare}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--color-paper-elevated)] hover:bg-[var(--color-paper-3)] active:scale-95 border border-[var(--color-rule)] text-[var(--color-ink-2)] hover:text-[var(--color-accent)] transition-all cursor-pointer text-xs font-meta-mono shadow-2xs"
+              title="进入书友金句广场与实时动态"
+            >
+              <Users className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+              <span className="hidden sm:inline">书友广场</span>
+            </button>
+          )}
+
           {onOpenQuoteCard && (
             <button
               onClick={onOpenQuoteCard}

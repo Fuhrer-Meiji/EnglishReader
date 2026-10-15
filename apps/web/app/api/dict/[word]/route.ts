@@ -9,7 +9,15 @@ let dbInstance: DatabaseSync | null = null;
 function getDatabase(): DatabaseSync | null {
   if (dbInstance) return dbInstance;
 
-  const dbPath = path.join(process.cwd(), 'data', 'dict.db');
+  function getDictPath(): string {
+    const p1 = path.join(process.cwd(), 'data', 'dict.db');
+    if (fs.existsSync(p1)) return p1;
+    const p2 = path.join(process.cwd(), 'apps', 'web', 'data', 'dict.db');
+    if (fs.existsSync(p2)) return p2;
+    return p1;
+  }
+
+  const dbPath = getDictPath();
   if (fs.existsSync(dbPath)) {
     try {
       dbInstance = new DatabaseSync(dbPath, { readOnly: true });
@@ -29,24 +37,32 @@ function parseTags(tagStr?: string): { tags: string[]; highestLevel?: 'CET4' | '
   const tags: string[] = [];
   let highestLevel: 'CET4' | 'CET6' | 'KY' | 'IELTS' | 'GRE' | undefined = undefined;
 
-  if (rawTags.includes('zk')) tags.push('中考');
+  const isZk = rawTags.includes('zk');
+
+  if (isZk) tags.push('中考');
   if (rawTags.includes('gk')) tags.push('高考');
-  if (rawTags.includes('cet4')) {
-    tags.push('四级');
-    highestLevel = 'CET4';
-  }
-  if (rawTags.includes('cet6')) {
-    tags.push('六级');
-    highestLevel = 'CET6';
-  }
-  if (rawTags.includes('ky')) {
-    tags.push('考研');
-    if (!highestLevel || highestLevel === 'CET4') highestLevel = 'KY';
-  }
+  if (rawTags.includes('cet4')) tags.push('四级');
+  if (rawTags.includes('cet6')) tags.push('六级');
+  if (rawTags.includes('ky')) tags.push('考研');
   if (rawTags.includes('ielts')) tags.push('雅思');
   if (rawTags.includes('toefl')) tags.push('托福');
-  if (rawTags.includes('gre')) {
-    tags.push('GRE');
+  if (rawTags.includes('gre')) tags.push('GRE');
+
+  // Elementary junior-high words (zk) like 'the', 'father', 'make' should not be highlighted as college exam vocab
+  if (!isZk) {
+    if (rawTags.includes('cet4') || rawTags.includes('gk')) {
+      highestLevel = 'CET4';
+    }
+    if (rawTags.includes('cet6') || rawTags.includes('ielts') || rawTags.includes('toefl')) {
+      highestLevel = 'CET6';
+    }
+    if (rawTags.includes('ky')) {
+      highestLevel = 'KY';
+    }
+    if (rawTags.includes('gre')) {
+      highestLevel = 'GRE';
+    }
+  } else if (rawTags.includes('gre')) {
     highestLevel = 'GRE';
   }
 

@@ -908,6 +908,7 @@ export default function Home() {
           onManualSync={syncWithCloud}
           isSyncing={isSyncing}
           onOpenQuoteCard={() => handleOpenQuoteCard()}
+          onOpenSquare={() => setIsSquareOpen(true)}
         />
         <AuthModal
           isOpen={isAuthModalOpen}
@@ -919,16 +920,33 @@ export default function Home() {
           isOpen={isAIConfigOpen}
           onClose={() => setIsAIConfigOpen(false)}
         />
+        <CommunitySquareModal
+          isOpen={isSquareOpen}
+          onClose={() => setIsSquareOpen(false)}
+          user={user}
+          onOpenAuth={() => setIsAuthModalOpen(true)}
+          onCraftCardFromQuote={(quote, translation, bTitle, auth) => {
+            handleOpenQuoteCard({
+              quote,
+              translation,
+              bookTitle: bTitle,
+              author: auth,
+            });
+          }}
+          onOpenWorkshop={() => handleOpenQuoteCard()}
+        />
         {quoteCardState && (
           <QuoteCardModal
             isOpen={Boolean(quoteCardState)}
             onClose={() => setQuoteCardState(null)}
             quote={quoteCardState.quote}
             initialTranslation={quoteCardState.translation}
+            bookId={currentBookId}
             bookTitle={quoteCardState.bookTitle || currentBook.title}
             chineseTitle={quoteCardState.chineseTitle || currentBook.chineseTitle}
             author={quoteCardState.author || currentBook.author}
             chapterTitle={quoteCardState.chapterTitle || currentChapter.title}
+            onOpenAuth={() => setIsAuthModalOpen(true)}
           />
         )}
       </>
@@ -970,6 +988,7 @@ export default function Home() {
         isControlsVisible={isControlsVisible}
         onOpenAIConfig={() => setIsAIConfigOpen(true)}
         onOpenQuoteCard={handleOpenQuoteCard}
+        onOpenSquare={() => setIsSquareOpen(true)}
       />
 
       {/* 2. Main Reader Canvas with Optional Study Sidebar */}
@@ -1029,6 +1048,15 @@ export default function Home() {
               setCurrentPage(0);
             }}
             chapterVocab={chapterVocab}
+            thoughtCounts={thoughtCounts}
+            onOpenSentenceThoughts={(sent) =>
+              setThoughtsDrawerState({
+                sentenceId: sent.id,
+                quoteText: sent.rawText,
+                chineseTranslation: sent.chineseTranslation,
+                chapterIndex: currentChapterIndex,
+              })
+            }
           />
         </div>
 
@@ -1136,6 +1164,13 @@ export default function Home() {
           bookTitle={currentBook.chineseTitle || currentBook.title}
           author={currentBook.author}
           onOpenAIConfig={() => setIsAIConfigOpen(true)}
+          onOpenThoughts={(quote, translation) => {
+            setThoughtsDrawerState({
+              quoteText: quote,
+              chineseTranslation: translation,
+              chapterIndex: currentChapterIndex,
+            });
+          }}
         />
       )}
 
@@ -1152,6 +1187,14 @@ export default function Home() {
         bookTitle={currentBook.chineseTitle || currentBook.title}
         author={currentBook.author}
         onOpenAIConfig={() => setIsAIConfigOpen(true)}
+        onOpenThoughts={(quote, translation) => {
+          setThoughtsDrawerState({
+            sentenceId: activeSentence?.id,
+            quoteText: quote,
+            chineseTranslation: translation,
+            chapterIndex: currentChapterIndex,
+          });
+        }}
       />
 
       {/* 7. Vocabulary Drawer */}
@@ -1196,12 +1239,56 @@ export default function Home() {
           onClose={() => setQuoteCardState(null)}
           quote={quoteCardState.quote}
           initialTranslation={quoteCardState.translation}
+          bookId={currentBookId}
           bookTitle={quoteCardState.bookTitle || currentBook.title}
           chineseTitle={quoteCardState.chineseTitle || currentBook.chineseTitle}
           author={quoteCardState.author || currentBook.author}
           chapterTitle={quoteCardState.chapterTitle || currentChapter.title}
+          onOpenAuth={() => setIsAuthModalOpen(true)}
         />
       )}
+
+      {/* 11. Paragraph Thoughts & Marginalia Drawer */}
+      {thoughtsDrawerState && (
+        <ParagraphThoughtsDrawer
+          isOpen={Boolean(thoughtsDrawerState)}
+          onClose={() => setThoughtsDrawerState(null)}
+          bookId={currentBookId}
+          bookTitle={currentBook.chineseTitle || currentBook.title}
+          chapterIndex={thoughtsDrawerState.chapterIndex ?? currentChapterIndex}
+          chapterTitle={currentChapter.title}
+          sentenceId={thoughtsDrawerState.sentenceId}
+          quoteText={thoughtsDrawerState.quoteText}
+          chineseTranslation={thoughtsDrawerState.chineseTranslation}
+          user={user}
+          onOpenAuth={() => setIsAuthModalOpen(true)}
+          onGenerateCard={(quote, translation) => {
+            setQuoteCardState({
+              quote,
+              translation,
+              bookTitle: currentBook.chineseTitle || currentBook.title,
+              author: currentBook.author,
+            });
+          }}
+        />
+      )}
+
+      {/* 12. Community Square Modal (Accessible from Reader View) */}
+      <CommunitySquareModal
+        isOpen={isSquareOpen}
+        onClose={() => setIsSquareOpen(false)}
+        user={user}
+        onOpenAuth={() => setIsAuthModalOpen(true)}
+        onCraftCardFromQuote={(quote, translation, bTitle, auth) => {
+          handleOpenQuoteCard({
+            quote,
+            translation,
+            bookTitle: bTitle,
+            author: auth,
+          });
+        }}
+        onOpenWorkshop={() => handleOpenQuoteCard()}
+      />
     </div>
   );
 }

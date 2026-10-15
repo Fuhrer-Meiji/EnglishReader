@@ -28,7 +28,8 @@ export async function GET(request: NextRequest) {
         p.card_image_url as cardImageUrl,
         p.card_layout as cardLayout,
         p.created_at as createdAt,
-        p.likes_count as likesCount
+        p.likes_count as likesCount,
+        (SELECT count(*) FROM community_comments c WHERE c.post_id = p.id) as commentsCount
       FROM community_posts p
       LEFT JOIN users u ON p.user_id = u.id
     `;
@@ -57,6 +58,7 @@ export async function GET(request: NextRequest) {
       isLikedByMe: userLikedPostIds.has(p.id),
       username: p.username || '文学漫游者',
       avatarColor: p.avatarColor || '#b45309',
+      commentsCount: Number(p.commentsCount) || 0,
     }));
 
     return NextResponse.json({
@@ -73,7 +75,7 @@ export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user) {
-      return NextResponse.json({ error: '请先登录以发布金句动态' }, { status: 401 });
+      return NextResponse.json({ error: '请先登录以发布广场动态' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -88,12 +90,18 @@ export async function POST(request: NextRequest) {
       cardLayout,
     } = body;
 
-    const trimmedQuote = typeof quoteText === 'string' ? quoteText.trim() : '';
-    if (!trimmedQuote) {
-      return NextResponse.json({ error: '金句内容不能为空' }, { status: 400 });
+    let trimmedQuote = typeof quoteText === 'string' ? quoteText.trim() : '';
+    const trimmedThought = typeof thought === 'string' ? thought.trim() : '';
+
+    if (!trimmedQuote && !trimmedThought) {
+      return NextResponse.json({ error: '动态内容或金句不能为空' }, { status: 400 });
     }
 
-    const trimmedThought = typeof thought === 'string' ? thought.trim() : '';
+    // If no quote given, use thought as quote_text to satisfy db column
+    if (!trimmedQuote) {
+      trimmedQuote = trimmedThought;
+    }
+
     if (trimmedThought.length > 1000) {
       return NextResponse.json({ error: '感悟字数不能超过 1000 字' }, { status: 400 });
     }
@@ -137,6 +145,7 @@ export async function POST(request: NextRequest) {
       cardLayout: cardLayout || 'polaroid',
       createdAt: now,
       likesCount: 0,
+      commentsCount: 0,
       isLikedByMe: false,
     };
 

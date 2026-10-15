@@ -4,7 +4,9 @@ export type CommunityEventType =
   | 'new_thought'
   | 'like_thought'
   | 'new_post'
-  | 'like_post';
+  | 'like_post'
+  | 'chat_message'
+  | 'new_comment';
 
 export interface CommunityEvent {
   type: CommunityEventType;

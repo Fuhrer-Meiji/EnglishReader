@@ -124,6 +124,27 @@ export function getUserDb(): DatabaseSync {
       UNIQUE (user_id, target_type, target_id)
     );
 
+    CREATE TABLE IF NOT EXISTS community_chat_messages (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      username TEXT NOT NULL,
+      avatar_color TEXT NOT NULL,
+      content TEXT NOT NULL,
+      reading_context TEXT,
+      created_at INTEGER NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS community_comments (
+      id TEXT PRIMARY KEY,
+      post_id TEXT NOT NULL REFERENCES community_posts(id) ON DELETE CASCADE,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      username TEXT NOT NULL,
+      avatar_color TEXT NOT NULL,
+      content TEXT NOT NULL,
+      reply_to_username TEXT,
+      created_at INTEGER NOT NULL
+    );
+
     CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
     CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
     CREATE INDEX IF NOT EXISTS idx_vocab_user ON user_vocabulary(user_id);
@@ -132,6 +153,8 @@ export function getUserDb(): DatabaseSync {
     CREATE INDEX IF NOT EXISTS idx_thoughts_sentence ON community_thoughts(sentence_id);
     CREATE INDEX IF NOT EXISTS idx_posts_created ON community_posts(created_at DESC);
     CREATE INDEX IF NOT EXISTS idx_likes_target ON community_likes(target_type, target_id);
+    CREATE INDEX IF NOT EXISTS idx_chat_created ON community_chat_messages(created_at ASC);
+    CREATE INDEX IF NOT EXISTS idx_comments_post ON community_comments(post_id, created_at ASC);
   `);
 
   // Seed initial literary thoughts and square posts if empty
@@ -159,6 +182,19 @@ export function getUserDb(): DatabaseSync {
         VALUES
         ('post_seed_1', ?, 'the-picture-of-dorian-gray', 'The Picture of Dorian Gray', 'Oscar Wilde', 'We are all in the gutter, but some of us are looking at the stars.', '我们都身处沟壑之中，但仍有人在仰望星空。', '重温这一句，无论在什么境遇下都能让人重新获得清澈的力量。分享给正在漫漫长夜中潜心共读的每一位书友。', '/presets/starry-night.jpg', 'polaroid', ?, 18)
       `).run(scholarId, now - 3600000);
+
+      dbInstance.prepare(`
+        INSERT INTO community_chat_messages (id, user_id, username, avatar_color, content, reading_context, created_at)
+        VALUES
+        ('chat_seed_1', ?, '王尔德伴读书友', '#b45309', '各位书友晚上好！欢迎来到书友交流大厅。大家今天都在精读哪一部作品？遇到任何不解的句式或词义，都可以随时在这里探讨交流～', '正在研读《道林·格雷的画像》', ?),
+        ('chat_seed_2', ?, '王尔德伴读书友', '#b45309', '推荐大家读到名句时多在句旁留下边注想法，或者做成卡片分享到广场，大家互相讨论才更有共读的趣味！', '正在研读《道林·格雷的画像》', ?)
+      `).run(scholarId, now - 7200000, scholarId, now - 1800000);
+
+      dbInstance.prepare(`
+        INSERT INTO community_comments (id, post_id, user_id, username, avatar_color, content, reply_to_username, created_at)
+        VALUES
+        ('comment_seed_1', 'post_seed_1', ?, '王尔德伴读书友', '#b45309', '《温夫人的扇子》第三幕达林顿勋爵的这句名言，无论何时重读都让人心头一颤。', NULL, ?)
+      `).run(scholarId, now - 1800000);
     }
   } catch (e) {
     console.warn('[DB] Seeding community thoughts note:', e);

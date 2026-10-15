@@ -925,6 +925,7 @@ export default function Home() {
           onClose={() => setIsSquareOpen(false)}
           user={user}
           onOpenAuth={() => setIsAuthModalOpen(true)}
+          currentBookTitle={currentBook.chineseTitle || currentBook.title}
           onCraftCardFromQuote={(quote, translation, bTitle, auth) => {
             handleOpenQuoteCard({
               quote,
@@ -1279,6 +1280,7 @@ export default function Home() {
         onClose={() => setIsSquareOpen(false)}
         user={user}
         onOpenAuth={() => setIsAuthModalOpen(true)}
+        currentBookTitle={currentBook.chineseTitle || currentBook.title}
         onCraftCardFromQuote={(quote, translation, bTitle, auth) => {
           handleOpenQuoteCard({
             quote,

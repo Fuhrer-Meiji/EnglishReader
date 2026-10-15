@@ -25,11 +25,9 @@ import {
   Moon,
   Sun,
   Coffee,
-  Bookmark,
   ArrowRight,
-  GraduationCap,
-  Layers,
   Bot,
+  Sparkles,
 } from 'lucide-react';
 import { AuthUser } from '../lib/auth';
 import { useReaderTheme } from './AstryxProvider';
@@ -42,6 +40,14 @@ interface WelcomeViewProps {
   onLogout: () => void;
   clientDataToMerge?: any;
   onOpenAIConfig?: () => void;
+  onOpenQuoteCard?: (params?: {
+    quote?: string;
+    translation?: string;
+    bookTitle?: string;
+    chineseTitle?: string;
+    author?: string;
+    chapterTitle?: string;
+  }) => void;
 }
 
 interface FeatureCard {
@@ -200,6 +206,7 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
   onLogout,
   clientDataToMerge,
   onOpenAIConfig,
+  onOpenQuoteCard,
 }) => {
   const { theme, setTheme } = useReaderTheme();
 
@@ -324,6 +331,17 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
               <span>浏览文库 (1,528 卷)</span>
             </button>
 
+            {onOpenQuoteCard && (
+              <button
+                onClick={() => onOpenQuoteCard()}
+                className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[var(--color-ink-2)] hover:text-[var(--color-accent)] hover:bg-[var(--color-paper-elevated)] transition-colors cursor-pointer font-medium"
+                title="金句藏书票工坊：传世名画与古典排版"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                <span>金句工坊</span>
+              </button>
+            )}
+
             {onOpenAIConfig && (
               <button
                 onClick={onOpenAIConfig}
@@ -422,8 +440,8 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
               </div>
             </div>
 
-            {/* Direct Guest Link */}
-            <div className="pt-2 flex items-center gap-4">
+            {/* Direct Guest Link & Quote Card Workshop Quick Trigger */}
+            <div className="pt-2 flex flex-wrap items-center gap-3">
               <button
                 onClick={onEnterBookshelf}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--color-ink)] text-[var(--color-paper)] font-medium text-xs hover:opacity-90 transition-opacity cursor-pointer shadow-sm group"
@@ -431,6 +449,21 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
                 <span>以访客身份直接探索文库</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
               </button>
+
+              {onOpenQuoteCard && (
+                <button
+                  onClick={() => onOpenQuoteCard()}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--color-accent)]/40 bg-[var(--color-paper-elevated)] hover:bg-[var(--color-accent)]/10 text-[var(--color-accent)] font-medium text-xs transition-colors cursor-pointer shadow-2xs group"
+                  title="传世名画 × 金句藏书票卡片工坊"
+                >
+                  <Sparkles className="w-4 h-4 text-[var(--color-accent)] group-hover:rotate-12 transition-transform" />
+                  <span>金句藏书票工坊</span>
+                  <span className="text-[9px] bg-[var(--color-accent)] text-white px-1.5 py-0.5 rounded-full font-meta-mono font-semibold">
+                    NEW
+                  </span>
+                </button>
+              )}
+
               <span className="text-xs text-[var(--color-ink-muted)] font-meta-mono">
                 无需注册即可随心阅读
               </span>
@@ -761,7 +794,27 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
                 </div>
 
                 <div className="mt-4 pt-3 border-t border-[var(--color-rule)]/60 flex items-center justify-between text-xs text-[var(--color-ink-muted)] font-meta-mono">
-                  <span>即点即读 · 离线词典</span>
+                  {onOpenQuoteCard ? (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenQuoteCard({
+                          quote: b.quote,
+                          bookTitle: b.title,
+                          chineseTitle: b.chineseTitle,
+                          author: b.author,
+                        });
+                      }}
+                      className="inline-flex items-center gap-1.5 text-[var(--color-accent)] hover:underline cursor-pointer font-medium"
+                      title="将该名著开篇金句制作成典藏藏书票卡片"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>制作金句卡</span>
+                    </button>
+                  ) : (
+                    <span>即点即读 · 离线词典</span>
+                  )}
                   <span className="text-[var(--color-accent)] group-hover:underline flex items-center gap-0.5">
                     开卷阅读 &rarr;
                   </span>

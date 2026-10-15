@@ -20,7 +20,7 @@ import {
   X,
   ChevronRight,
   ChevronLeft,
-  Settings2,
+  Sparkles,
 } from 'lucide-react';
 import { LayoutMode, ReadingMode, ThemeMode } from '../lib/types';
 
@@ -44,6 +44,7 @@ interface WeChatDockProps {
   vocabCount: number;
   isControlsVisible?: boolean;
   onToggleControls?: () => void;
+  onOpenQuoteCard?: () => void;
 }
 
 const FONT_PRESETS = [
@@ -82,6 +83,7 @@ export const WeChatDock: React.FC<WeChatDockProps> = ({
   vocabCount,
   isControlsVisible = true,
   onToggleControls,
+  onOpenQuoteCard,
 }) => {
   const [activePanel, setActivePanel] = useState<'font' | 'theme' | null>(null);
 
@@ -414,6 +416,20 @@ export const WeChatDock: React.FC<WeChatDockProps> = ({
             </span>
           </button>
 
+          {/* 3b. 金句卡片工坊 */}
+          {onOpenQuoteCard && (
+            <button
+              onClick={onOpenQuoteCard}
+              className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-[var(--color-paper-elevated)] hover:text-[var(--color-accent)] transition-colors group relative cursor-pointer"
+              title="制作金句藏书票卡片"
+            >
+              <Sparkles className="w-4 h-4 text-[var(--color-accent)]" />
+              <span className="absolute right-11 bg-[var(--color-ink)] text-[var(--color-paper)] text-[10px] font-meta-mono px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-md">
+                金句卡片工坊
+              </span>
+            </button>
+          )}
+
           {/* 4. 双栏翻页 vs 滚动阅读切换 */}
           <button
             onClick={() => onToggleLayoutMode(layoutMode === 'scroll' ? 'double' : 'scroll')}
@@ -568,6 +584,18 @@ export const WeChatDock: React.FC<WeChatDockProps> = ({
           )}
           <span className="text-[10px] font-meta-mono">色温</span>
         </button>
+
+        {/* 6. 金句卡片 */}
+        {onOpenQuoteCard && (
+          <button
+            onClick={onOpenQuoteCard}
+            className="flex flex-col items-center gap-1 py-1 px-2 text-[var(--color-accent)] hover:text-[var(--color-accent)] cursor-pointer"
+            title="生成金句卡片"
+          >
+            <Sparkles className="w-4.5 h-4.5" />
+            <span className="text-[10px] font-meta-mono font-medium">金句卡</span>
+          </button>
+        )}
 
         {/* 6. 生词本 */}
         <button

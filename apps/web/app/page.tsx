@@ -78,6 +78,10 @@ export default function Home() {
   const [quoteCardState, setQuoteCardState] = useState<{
     quote: string;
     translation?: string;
+    bookTitle?: string;
+    chineseTitle?: string;
+    author?: string;
+    chapterTitle?: string;
   } | null>(null);
 
   const [activeSentence, setActiveSentence] = useState<SentenceAnalysis | null>(null);
@@ -693,6 +697,64 @@ export default function Home() {
     setSelectionPopoverState(null);
   };
 
+  const handleOpenQuoteCard = useCallback(
+    (custom?: {
+      quote?: string;
+      translation?: string;
+      bookTitle?: string;
+      chineseTitle?: string;
+      author?: string;
+      chapterTitle?: string;
+    }) => {
+      if (custom?.quote) {
+        setQuoteCardState({
+          quote: custom.quote,
+          translation: custom.translation,
+          bookTitle: custom.bookTitle || currentBook.title,
+          chineseTitle: custom.chineseTitle || currentBook.chineseTitle,
+          author: custom.author || currentBook.author,
+          chapterTitle: custom.chapterTitle || currentChapter.title,
+        });
+        return;
+      }
+
+      if (activeSentence) {
+        setQuoteCardState({
+          quote: activeSentence.rawText,
+          translation: activeSentence.chineseTranslation,
+          bookTitle: currentBook.title,
+          chineseTitle: currentBook.chineseTitle,
+          author: currentBook.author,
+          chapterTitle: currentChapter.title,
+        });
+        return;
+      }
+
+      const firstSent = currentChapter.sentences?.[0];
+      if (firstSent) {
+        setQuoteCardState({
+          quote: firstSent.rawText,
+          translation: firstSent.chineseTranslation,
+          bookTitle: currentBook.title,
+          chineseTitle: currentBook.chineseTitle,
+          author: currentBook.author,
+          chapterTitle: currentChapter.title,
+        });
+        return;
+      }
+
+      setQuoteCardState({
+        quote: 'The artist is the creator of beautiful things. To reveal art and conceal the artist is art’s aim.',
+        translation: '艺术家是美妙事物的创造者。展现艺术而隐藏艺术家，乃是艺术的宗旨。',
+        bookTitle: 'The Picture of Dorian Gray',
+        chineseTitle: '道林·格雷的画像',
+        author: 'Oscar Wilde',
+        chapterTitle: 'Preface',
+      });
+    },
+    [activeSentence, currentBook, currentChapter]
+  );
+
   // View 0: Exquisite Welcome Gateway & Archival Manifest
   if (activeView === 'welcome') {
     return (
@@ -708,6 +770,7 @@ export default function Home() {
           onLogout={handleLogout}
           clientDataToMerge={gatherClientDataForMerge()}
           onOpenAIConfig={() => setIsAIConfigOpen(true)}
+          onOpenQuoteCard={handleOpenQuoteCard}
         />
         <AuthModal
           isOpen={isAuthModalOpen}
@@ -719,6 +782,18 @@ export default function Home() {
           isOpen={isAIConfigOpen}
           onClose={() => setIsAIConfigOpen(false)}
         />
+        {quoteCardState && (
+          <QuoteCardModal
+            isOpen={Boolean(quoteCardState)}
+            onClose={() => setQuoteCardState(null)}
+            quote={quoteCardState.quote}
+            initialTranslation={quoteCardState.translation}
+            bookTitle={quoteCardState.bookTitle || currentBook.title}
+            chineseTitle={quoteCardState.chineseTitle || currentBook.chineseTitle}
+            author={quoteCardState.author || currentBook.author}
+            chapterTitle={quoteCardState.chapterTitle || currentChapter.title}
+          />
+        )}
       </>
     );
   }
@@ -736,6 +811,7 @@ export default function Home() {
           onLogout={handleLogout}
           onManualSync={syncWithCloud}
           isSyncing={isSyncing}
+          onOpenQuoteCard={() => handleOpenQuoteCard()}
         />
         <AuthModal
           isOpen={isAuthModalOpen}
@@ -747,6 +823,18 @@ export default function Home() {
           isOpen={isAIConfigOpen}
           onClose={() => setIsAIConfigOpen(false)}
         />
+        {quoteCardState && (
+          <QuoteCardModal
+            isOpen={Boolean(quoteCardState)}
+            onClose={() => setQuoteCardState(null)}
+            quote={quoteCardState.quote}
+            initialTranslation={quoteCardState.translation}
+            bookTitle={quoteCardState.bookTitle || currentBook.title}
+            chineseTitle={quoteCardState.chineseTitle || currentBook.chineseTitle}
+            author={quoteCardState.author || currentBook.author}
+            chapterTitle={quoteCardState.chapterTitle || currentChapter.title}
+          />
+        )}
       </>
     );
   }
@@ -888,6 +976,7 @@ export default function Home() {
         vocabCount={vocabItems.length}
         isControlsVisible={isControlsVisible}
         onToggleControls={() => setIsControlsVisible((prev) => !prev)}
+        onOpenQuoteCard={handleOpenQuoteCard}
       />
 
       {/* 4. Table of Contents Modal */}
@@ -984,6 +1073,7 @@ export default function Home() {
             )
           )
         }
+        onGenerateCard={(quote, translation) => handleOpenQuoteCard({ quote, translation })}
       />
 
       {/* 8. User Auth & Sync Modal */}
@@ -1007,10 +1097,10 @@ export default function Home() {
           onClose={() => setQuoteCardState(null)}
           quote={quoteCardState.quote}
           initialTranslation={quoteCardState.translation}
-          bookTitle={currentBook.title}
-          chineseTitle={currentBook.chineseTitle}
-          author={currentBook.author}
-          chapterTitle={currentChapter.title}
+          bookTitle={quoteCardState.bookTitle || currentBook.title}
+          chineseTitle={quoteCardState.chineseTitle || currentBook.chineseTitle}
+          author={quoteCardState.author || currentBook.author}
+          chapterTitle={quoteCardState.chapterTitle || currentChapter.title}
         />
       )}
     </div>

@@ -26,6 +26,7 @@ import {
   Library,
   ChevronLeft,
   Bot,
+  Sparkles,
 } from 'lucide-react';
 import { Badge, Button, IconButton, Dialog, DialogHeader } from '@astryxdesign/core';
 import { UserMenu } from './UserMenu';
@@ -41,6 +42,7 @@ interface BookshelfViewProps {
   onLogout?: () => void;
   onManualSync?: () => Promise<void>;
   isSyncing?: boolean;
+  onOpenQuoteCard?: () => void;
 }
 
 interface CatalogBookItem {
@@ -147,6 +149,7 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({
   onLogout,
   onManualSync,
   isSyncing,
+  onOpenQuoteCard,
 }) => {
   const { theme } = useReaderTheme();
   const [activeTab, setActiveTab] = useState<'my-shelf' | 'public-library'>('my-shelf');
@@ -419,6 +422,15 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({
                   <Bot className="w-4 h-4 text-[var(--color-accent)]" />
                 </button>
               )}
+              {onOpenQuoteCard && (
+                <button
+                  onClick={onOpenQuoteCard}
+                  className="p-2 rounded-lg text-[var(--color-ink-muted)] hover:text-[var(--color-accent)] hover:bg-[var(--color-paper-3)] transition-colors cursor-pointer"
+                  title="金句卡片工坊"
+                >
+                  <Sparkles className="w-4 h-4 text-[var(--color-accent)]" />
+                </button>
+              )}
               <button
                 onClick={() => {
                   setUploadStatus('idle');
@@ -482,6 +494,17 @@ export const BookshelfView: React.FC<BookshelfViewProps> = ({
                 >
                   <Sliders className="w-3.5 h-3.5 text-[var(--color-accent)]" />
                   <span>伴读设置</span>
+                </button>
+              )}
+
+              {onOpenQuoteCard && (
+                <button
+                  onClick={onOpenQuoteCard}
+                  className="flex items-center gap-1.5 text-xs text-[var(--color-ink-muted)] hover:text-[var(--color-accent)] transition-colors cursor-pointer font-medium px-2 py-1 rounded hover:bg-[var(--color-paper-3)]"
+                  title="金句卡片工坊：制作传世名画藏书票"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                  <span>金句工坊</span>
                 </button>
               )}
 

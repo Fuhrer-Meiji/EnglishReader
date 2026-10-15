@@ -13,19 +13,15 @@ import {
   Download,
   Copy,
   Check,
-  Share2,
   Palette,
-  Eye,
   Edit3,
   Feather,
   RefreshCw,
   Image as ImageIcon,
   Upload,
   Sliders,
-  Maximize2,
   Trash2,
   Layers,
-  BookOpen,
 } from 'lucide-react';
 
 export type CardLayoutId = 'polaroid' | 'editorial' | 'cinematic' | 'ex-libris' | 'midnight';
@@ -44,36 +40,36 @@ interface PresetImage {
 
 const PRESET_IMAGES: PresetImage[] = [
   {
+    id: 'wilde-portrait',
+    name: '王尔德肖像',
+    label: '萨罗尼 1882 · 文豪本尊',
+    artist: 'Napoleon Sarony',
+    url: '/presets/wilde-portrait.jpg',
+    thumb: '/presets/wilde-portrait.jpg',
+  },
+  {
     id: 'starry-night',
     name: '星月夜',
     label: '梵高 · 仰望星空',
     artist: 'Vincent van Gogh',
-    url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/1280px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg',
-    thumb: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/320px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg',
+    url: '/presets/starry-night.jpg',
+    thumb: '/presets/starry-night.jpg',
   },
   {
     id: 'wanderer',
     name: '雾海旅人',
     label: '弗里德里希 · 浪漫幽远',
     artist: 'Caspar David Friedrich',
-    url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Caspar_David_Friedrich_-_Wanderer_above_the_sea_of_fog.jpg/1280px-Caspar_David_Friedrich_-_Wanderer_above_the_sea_of_fog.jpg',
-    thumb: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Caspar_David_Friedrich_-_Wanderer_above_the_sea_of_fog.jpg/320px-Caspar_David_Friedrich_-_Wanderer_above_the_sea_of_fog.jpg',
-  },
-  {
-    id: 'wilde-portrait',
-    name: '王尔德肖像',
-    label: '萨罗尼 1882 · 文豪本尊',
-    artist: 'Napoleon Sarony',
-    url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Oscar_Wilde.jpg/1024px-Oscar_Wilde.jpg',
-    thumb: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Oscar_Wilde.jpg/320px-Oscar_Wilde.jpg',
+    url: '/presets/wanderer.jpg',
+    thumb: '/presets/wanderer.jpg',
   },
   {
     id: 'water-lilies',
     name: '睡莲池',
     label: '莫奈 · 印象光影',
     artist: 'Claude Monet',
-    url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Monet_Water_Lilies_1916.jpg/1280px-Monet_Water_Lilies_1916.jpg',
-    thumb: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Monet_Water_Lilies_1916.jpg/320px-Monet_Water_Lilies_1916.jpg',
+    url: '/presets/water-lilies.jpg',
+    thumb: '/presets/water-lilies.jpg',
   },
 ];
 
@@ -184,11 +180,13 @@ export const QuoteCardModal: React.FC<QuoteCardModalProps> = ({
   const [layout, setLayout] = useState<CardLayoutId>('polaroid');
   const [aspectRatio, setAspectRatio] = useState<CardAspectRatio>('portrait');
   const [paletteId, setPaletteId] = useState<CardThemeId>('parchment');
-  const [selectedPresetId, setSelectedPresetId] = useState<string>('starry-night');
+  const [selectedPresetId, setSelectedPresetId] = useState<string>('wilde-portrait');
   const [customImageSrc, setCustomImageSrc] = useState<string | null>(null);
   const [filter, setFilter] = useState<ImageFilterId>('natural');
   const [overlayDarkness, setOverlayDarkness] = useState<number>(0.35); // 0.0 ~ 0.8
   const [showImage, setShowImage] = useState<boolean>(true);
+  const [imageOffsetY, setImageOffsetY] = useState<number>(20); // 0 (top) ~ 100 (bottom), default 20% to frame portraits and art heads
+  const [imageOffsetX] = useState<number>(50); // 0 (left) ~ 100 (right), default 50%
 
   // Editable text states
   const [quoteText, setQuoteText] = useState<string>(propQuote);
@@ -208,11 +206,16 @@ export const QuoteCardModal: React.FC<QuoteCardModalProps> = ({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const activeImageElementRef = useRef<HTMLImageElement | null>(null);
 
-  // Sync props when opening
-  useEffect(() => {
-    if (propQuote) setQuoteText(propQuote);
-    if (initialTranslation) setTranslationText(initialTranslation);
-  }, [propQuote, initialTranslation, isOpen]);
+  // Sync props when opening/changing
+  const [prevQuote, setPrevQuote] = useState<string>(propQuote);
+  const [prevTranslation, setPrevTranslation] = useState<string>(initialTranslation);
+
+  if (propQuote !== prevQuote || initialTranslation !== prevTranslation) {
+    setPrevQuote(propQuote);
+    setPrevTranslation(initialTranslation);
+    setQuoteText(propQuote);
+    setTranslationText(initialTranslation);
+  }
 
   // Handle escape to close
   useEffect(() => {
@@ -223,35 +226,6 @@ export const QuoteCardModal: React.FC<QuoteCardModalProps> = ({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
-
-  // Load image whenever source changes
-  useEffect(() => {
-    if (!showImage) {
-      activeImageElementRef.current = null;
-      renderCanvas();
-      return;
-    }
-
-    const imageSource = customImageSrc || PRESET_IMAGES.find((p) => p.id === selectedPresetId)?.url;
-    if (!imageSource) {
-      activeImageElementRef.current = null;
-      renderCanvas();
-      return;
-    }
-
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      activeImageElementRef.current = img;
-      renderCanvas();
-    };
-    img.onerror = () => {
-      console.warn('[QuoteCard] Failed to load remote image, rendering with fallback texture');
-      activeImageElementRef.current = null;
-      renderCanvas();
-    };
-    img.src = imageSource;
-  }, [selectedPresetId, customImageSrc, showImage]);
 
   // File Upload Handler
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -330,15 +304,17 @@ export const QuoteCardModal: React.FC<QuoteCardModalProps> = ({
     return lines;
   };
 
-  // Helper: Draw image with object-fit: cover
-  const drawCoverImage = (
+  // Helper: Draw image with object-fit: cover and adjustable framing offset
+  const drawCoverImage = useCallback((
     ctx: CanvasRenderingContext2D,
     img: HTMLImageElement,
     x: number,
     y: number,
     w: number,
     h: number,
-    radius: number = 0
+    radius: number = 0,
+    offsetYPercent: number = imageOffsetY,
+    offsetXPercent: number = imageOffsetX
   ) => {
     ctx.save();
     if (radius > 0) {
@@ -365,10 +341,12 @@ export const QuoteCardModal: React.FC<QuoteCardModalProps> = ({
 
     if (imgRatio > targetRatio) {
       sWidth = img.height * targetRatio;
-      sx = (img.width - sWidth) / 2;
+      const maxSx = img.width - sWidth;
+      sx = maxSx * (Math.min(Math.max(offsetXPercent, 0), 100) / 100);
     } else {
       sHeight = img.width / targetRatio;
-      sy = (img.height - sHeight) / 2;
+      const maxSy = img.height - sHeight;
+      sy = maxSy * (Math.min(Math.max(offsetYPercent, 0), 100) / 100);
     }
 
     ctx.drawImage(img, sx, sy, sWidth, sHeight, x, y, w, h);
@@ -381,7 +359,7 @@ export const QuoteCardModal: React.FC<QuoteCardModalProps> = ({
     }
 
     ctx.restore();
-  };
+  }, [filter, imageOffsetY, imageOffsetX, overlayDarkness]);
 
   // Main Canvas Render
   const renderCanvas = useCallback(() => {
@@ -1001,7 +979,39 @@ export const QuoteCardModal: React.FC<QuoteCardModalProps> = ({
     chineseTitle,
     author,
     chapterTitle,
+    drawCoverImage,
+    imageOffsetY,
+    imageOffsetX,
   ]);
+
+  // Load image whenever source changes
+  useEffect(() => {
+    if (!showImage) {
+      activeImageElementRef.current = null;
+      renderCanvas();
+      return;
+    }
+
+    const imageSource = customImageSrc || PRESET_IMAGES.find((p) => p.id === selectedPresetId)?.url;
+    if (!imageSource) {
+      activeImageElementRef.current = null;
+      renderCanvas();
+      return;
+    }
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      activeImageElementRef.current = img;
+      renderCanvas();
+    };
+    img.onerror = () => {
+      console.warn('[QuoteCard] Failed to load remote image, rendering with fallback texture');
+      activeImageElementRef.current = null;
+      renderCanvas();
+    };
+    img.src = imageSource;
+  }, [selectedPresetId, customImageSrc, showImage, renderCanvas]);
 
   // Re-render when config changes
   useEffect(() => {
@@ -1296,6 +1306,71 @@ export const QuoteCardModal: React.FC<QuoteCardModalProps> = ({
                         onChange={(e) => setOverlayDarkness(parseFloat(e.target.value))}
                         className="w-18 accent-[var(--color-accent)] cursor-pointer"
                         title="调整背景变暗程度以确保文字清晰辨识"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Photo Framing / Vertical Position Offset */}
+                  <div className="pt-2 border-t border-[var(--color-rule)] space-y-1.5">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <div className="flex items-center gap-1.5">
+                        <Sliders className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                        <span className="text-[var(--color-ink)] font-meta-mono font-medium">画面构图 (上下移动)</span>
+                      </div>
+                      <span className="text-[10px] text-[var(--color-ink-muted)] font-meta-mono">
+                        {imageOffsetY <= 25 ? '靠上 · 人像特写' : imageOffsetY >= 75 ? '靠下 · 全景远景' : '居中'} ({imageOffsetY}%)
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => setImageOffsetY(15)}
+                          className={`px-2 py-0.5 rounded text-[10px] font-meta-mono cursor-pointer transition-colors ${
+                            imageOffsetY <= 25
+                              ? 'bg-[var(--color-accent)] text-white font-medium shadow-2xs'
+                              : 'bg-[var(--color-paper)] text-[var(--color-ink-2)] hover:bg-[var(--color-paper-3)] border border-[var(--color-rule)]'
+                          }`}
+                          title="焦点靠上：呈现王尔德肖像面容、天空等核心细节"
+                        >
+                          靠上
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setImageOffsetY(50)}
+                          className={`px-2 py-0.5 rounded text-[10px] font-meta-mono cursor-pointer transition-colors ${
+                            imageOffsetY > 25 && imageOffsetY < 75
+                              ? 'bg-[var(--color-accent)] text-white font-medium shadow-2xs'
+                              : 'bg-[var(--color-paper)] text-[var(--color-ink-2)] hover:bg-[var(--color-paper-3)] border border-[var(--color-rule)]'
+                          }`}
+                          title="居中对称取景"
+                        >
+                          居中
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setImageOffsetY(85)}
+                          className={`px-2 py-0.5 rounded text-[10px] font-meta-mono cursor-pointer transition-colors ${
+                            imageOffsetY >= 75
+                              ? 'bg-[var(--color-accent)] text-white font-medium shadow-2xs'
+                              : 'bg-[var(--color-paper)] text-[var(--color-ink-2)] hover:bg-[var(--color-paper-3)] border border-[var(--color-rule)]'
+                          }`}
+                          title="焦点靠下"
+                        >
+                          靠下
+                        </button>
+                      </div>
+
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        step="1"
+                        value={imageOffsetY}
+                        onChange={(e) => setImageOffsetY(parseInt(e.target.value, 10))}
+                        className="flex-1 accent-[var(--color-accent)] cursor-pointer h-1.5"
+                        title="自由滑动微调图片上下展示位置"
                       />
                     </div>
                   </div>

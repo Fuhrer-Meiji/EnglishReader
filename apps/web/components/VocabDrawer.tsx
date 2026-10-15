@@ -6,7 +6,7 @@
  */
 
 import React, { useState } from 'react';
-import { X, Bookmark, Trash2, Volume2, Download, Search, CheckCircle2 } from 'lucide-react';
+import { X, Bookmark, Trash2, Volume2, Download, Search, CheckCircle2, Sparkles } from 'lucide-react';
 import { VocabularyItem } from '../lib/types';
 import { Badge, Button, IconButton, EmptyState } from '@astryxdesign/core';
 
@@ -16,6 +16,7 @@ interface VocabDrawerProps {
   vocabItems: VocabularyItem[];
   onRemoveItem: (id: string) => void;
   onToggleStatus: (id: string) => void;
+  onGenerateCard?: (quote: string, translation?: string) => void;
 }
 
 export const VocabDrawer: React.FC<VocabDrawerProps> = ({
@@ -24,6 +25,7 @@ export const VocabDrawer: React.FC<VocabDrawerProps> = ({
   vocabItems,
   onRemoveItem,
   onToggleStatus,
+  onGenerateCard,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'learning' | 'mastered'>('all');
@@ -206,8 +208,28 @@ export const VocabDrawer: React.FC<VocabDrawerProps> = ({
                 </div>
 
                 {item.contextSentence && (
-                  <div className="p-2.5 rounded-lg bg-[var(--color-paper)] border-l-2 border-[var(--color-accent)] text-[11px] text-[var(--color-ink-2)] font-book-serif italic leading-relaxed">
-                    “{item.contextSentence}”
+                  <div className="space-y-1.5">
+                    <div className="p-2.5 rounded-lg bg-[var(--color-paper)] border-l-2 border-[var(--color-accent)] text-[11px] text-[var(--color-ink-2)] font-book-serif italic leading-relaxed">
+                      “{item.contextSentence}”
+                    </div>
+                    {onGenerateCard && (
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            onGenerateCard(
+                              item.contextSentence,
+                              item.translation ? `${item.word}：${item.translation}` : undefined
+                            )
+                          }
+                          className="inline-flex items-center gap-1 text-[11px] text-[var(--color-accent)] hover:underline font-meta-mono cursor-pointer"
+                          title="将该语境例句制作成典藏金句卡片"
+                        >
+                          <Sparkles className="w-3 h-3" />
+                          <span>制作金句卡片</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

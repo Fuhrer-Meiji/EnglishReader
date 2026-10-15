@@ -157,39 +157,48 @@ export function getUserDb(): DatabaseSync {
     CREATE INDEX IF NOT EXISTS idx_comments_post ON community_comments(post_id, created_at ASC);
   `);
 
-  // Seed initial literary thoughts and square posts if empty
+  // Seed initial literary thoughts, square posts, chat, and comments if empty
   try {
+    const scholarId = 'user_wilde_scholar';
+    const now = Date.now();
+
+    // Ensure scholar persona exists
+    dbInstance.prepare(`
+      INSERT OR IGNORE INTO users (id, username, email, password_hash, salt, avatar_color, created_at, last_login_at)
+      VALUES (?, '王尔德伴读书友', 'bot@wilde.canon', 'seed_bot_hash', 'seed_salt', '#b45309', ?, ?)
+    `).run(scholarId, now, now);
+
     const thoughtCount: any = dbInstance.prepare('SELECT count(*) as count FROM community_thoughts').get();
     if (thoughtCount && thoughtCount.count === 0) {
-      const scholarId = 'user_wilde_scholar';
-      const now = Date.now();
-
-      // Ensure scholar persona exists
-      dbInstance.prepare(`
-        INSERT OR IGNORE INTO users (id, username, email, password_hash, salt, avatar_color, created_at, last_login_at)
-        VALUES (?, '王尔德伴读书友', 'bot@wilde.canon', 'seed_bot_hash', 'seed_salt', '#b45309', ?, ?)
-      `).run(scholarId, now, now);
-
       dbInstance.prepare(`
         INSERT INTO community_thoughts (id, user_id, book_id, chapter_index, sentence_id, quote_text, chinese_translation, content, created_at, likes_count)
         VALUES
         ('th_seed_1', ?, 'the-picture-of-dorian-gray', 0, NULL, 'The artist is the creator of beautiful things. To reveal art and conceal the artist is art’s aim.', '艺术家是美好事物的创造者。展现艺术而隐藏艺术家，这是艺术的目的。', '王尔德在序言里开宗明义的唯美主义宣言！艺术的本义并非说教，而是展示美本身。每次读到这里都会被这种纯粹的艺术追求所触动。', ?, 9),
         ('th_seed_2', ?, 'the-great-gatsby', 0, NULL, 'In my younger and more vulnerable years my father gave me some advice that I’ve been turning over in my mind ever since.', '在我年轻幼稚的岁月里，父亲曾给我一些忠告，至今仍常在我心头回荡。', '整部小说的经典开篇。菲茨杰拉德用极其克制而温润的笔触树立了尼克这一叙事视点，奠定了全书优雅而隐忍哀愁的基调。', ?, 7)
       `).run(scholarId, now - 86400000, scholarId, now - 43200000);
+    }
 
+    const postCount: any = dbInstance.prepare('SELECT count(*) as count FROM community_posts').get();
+    if (postCount && postCount.count === 0) {
       dbInstance.prepare(`
         INSERT INTO community_posts (id, user_id, book_id, book_title, author, quote_text, chinese_translation, thought, card_image_url, card_layout, created_at, likes_count)
         VALUES
         ('post_seed_1', ?, 'the-picture-of-dorian-gray', 'The Picture of Dorian Gray', 'Oscar Wilde', 'We are all in the gutter, but some of us are looking at the stars.', '我们都身处沟壑之中，但仍有人在仰望星空。', '重温这一句，无论在什么境遇下都能让人重新获得清澈的力量。分享给正在漫漫长夜中潜心共读的每一位书友。', '/presets/starry-night.jpg', 'polaroid', ?, 18)
       `).run(scholarId, now - 3600000);
+    }
 
+    const chatCount: any = dbInstance.prepare('SELECT count(*) as count FROM community_chat_messages').get();
+    if (chatCount && chatCount.count === 0) {
       dbInstance.prepare(`
         INSERT INTO community_chat_messages (id, user_id, username, avatar_color, content, reading_context, created_at)
         VALUES
         ('chat_seed_1', ?, '王尔德伴读书友', '#b45309', '各位书友晚上好！欢迎来到书友交流大厅。大家今天都在精读哪一部作品？遇到任何不解的句式或词义，都可以随时在这里探讨交流～', '正在研读《道林·格雷的画像》', ?),
         ('chat_seed_2', ?, '王尔德伴读书友', '#b45309', '推荐大家读到名句时多在句旁留下边注想法，或者做成卡片分享到广场，大家互相讨论才更有共读的趣味！', '正在研读《道林·格雷的画像》', ?)
       `).run(scholarId, now - 7200000, scholarId, now - 1800000);
+    }
 
+    const commentCount: any = dbInstance.prepare('SELECT count(*) as count FROM community_comments').get();
+    if (commentCount && commentCount.count === 0) {
       dbInstance.prepare(`
         INSERT INTO community_comments (id, post_id, user_id, username, avatar_color, content, reply_to_username, created_at)
         VALUES
